@@ -5,7 +5,7 @@ summary: 'A general summary of what it took to set this up, what i used and what
 categories:
   - General
   - Tech
-image: posts/pagesetup.jpg
+image: pagesetup.jpg
 draft: false
 ---
 
