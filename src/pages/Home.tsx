@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import PostCard from '../components/PostCard'
 import { usePosts } from '../hooks/usePosts'
 
-const CATEGORIES = ['All', 'Tech', 'Music Reviews', 'General']
+const CATEGORIES = ['All', 'General', 'Music Reviews', 'Tech']
 
 function getActiveClass(cat: string) {
   if (cat === 'All') return 'active'
@@ -23,7 +23,7 @@ export default function Home() {
         <span className="hero-eyebrow">✦ Welcome to the feed</span>
         <h1 className="hero-title">TheAdrianBlog</h1>
         <p className="hero-sub">
-          Dispatches from the digital frontier — tech deep-dives, music reviews, and the occasional off-topic thought.
+          My personal corner to ramble about topics that scratch my brain.
         </p>
         <div className="hero-divider" />
       </div>
