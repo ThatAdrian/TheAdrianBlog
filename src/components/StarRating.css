@@ -1,0 +1,262 @@
+/* ── CSS variables ─────────────────────────────────────────────────────────── */
+:root {
+  --star-active: #00f5ff;
+  --star-empty:  rgba(200, 200, 255, 0.2);
+  --star-active-adrian: #00f5ff;
+  --star-active-community: #b400ff;
+}
+
+/* ── Shared star primitives ──────────────────────────────────────────────────*/
+.stars-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.star-interactive {
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.star-interactive:hover {
+  transform: scale(1.15);
+}
+
+.star-svg {
+  display: block;
+  transition: filter 0.15s;
+}
+
+/* ── Track rating (inline, next to song name) ────────────────────────────────*/
+.track-rating {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.track-rating:hover {
+  background: rgba(0, 245, 255, 0.04);
+  border-color: rgba(0, 245, 255, 0.2);
+}
+
+.track-rating__name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(240, 240, 255, 0.9);
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-rating__stars {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.track-rating__value {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--star-active);
+  min-width: 24px;
+  text-align: right;
+}
+
+.track-rating--md .track-rating__name {
+  font-size: 1rem;
+}
+
+/* ── Track list wrapper (use this to wrap multiple TrackRatings) ─────────────*/
+.track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 1.5rem 0;
+}
+
+/* ── Album rating (big, top of review page) ──────────────────────────────────*/
+.album-rating {
+  margin: 2rem 0 2.5rem;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+/* Scoreboard: side-by-side cards */
+.album-rating__scoreboard {
+  display: flex;
+  align-items: stretch;
+}
+
+.score-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.score-card--adrian {
+  --star-active: #00f5ff;
+  background: rgba(0, 245, 255, 0.04);
+}
+
+.score-card--community {
+  --star-active: #b400ff;
+  background: rgba(180, 0, 255, 0.04);
+}
+
+@keyframes scorePulse {
+  0%   { background: rgba(180, 0, 255, 0.04); }
+  40%  { background: rgba(180, 0, 255, 0.14); }
+  100% { background: rgba(180, 0, 255, 0.04); }
+}
+
+.score-card--pulse {
+  animation: scorePulse 0.6s ease-out;
+}
+
+.score-card__divider {
+  width: 0.5px;
+  background: rgba(255, 255, 255, 0.08);
+  align-self: stretch;
+}
+
+.score-card__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(200, 200, 255, 0.5);
+}
+
+.score-card__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.score-card__dot--cyan   { background: #00f5ff; box-shadow: 0 0 6px #00f5ff; }
+.score-card__dot--purple { background: #b400ff; box-shadow: 0 0 6px #b400ff; }
+
+.score-card__big {
+  font-family: 'Orbitron', monospace;
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.score-card--adrian   .score-card__big { color: #00f5ff; text-shadow: 0 0 30px rgba(0,245,255,0.4); }
+.score-card--community .score-card__big { color: #b400ff; text-shadow: 0 0 30px rgba(180,0,255,0.4); }
+
+.score-card__sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  color: rgba(200, 200, 255, 0.35);
+  letter-spacing: 0.05em;
+}
+
+/* Community input section */
+.album-rating__input {
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.album-rating__prompt {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(200, 200, 255, 0.5);
+}
+
+.album-rating__picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.album-rating__chosen {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #b400ff;
+  min-width: 36px;
+}
+
+.album-rating__submit {
+  padding: 0.5rem 1.75rem;
+  border-radius: 2rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid rgba(180, 0, 255, 0.5);
+  background: rgba(180, 0, 255, 0.1);
+  color: #b400ff;
+  transition: all 0.2s;
+}
+
+.album-rating__submit:hover:not(:disabled) {
+  background: rgba(180, 0, 255, 0.2);
+  border-color: rgba(180, 0, 255, 0.8);
+  box-shadow: 0 0 20px rgba(180, 0, 255, 0.2);
+}
+
+.album-rating__submit:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.album-rating__thanks {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  color: rgba(200, 200, 255, 0.6);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.album-rating__thanks strong {
+  color: #b400ff;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────────*/
+@media (max-width: 480px) {
+  .score-card__big { font-size: 2.2rem; }
+  .score-card { padding: 1.5rem 1rem; }
+
+  .track-rating__name {
+    max-width: 160px;
+  }
+}
