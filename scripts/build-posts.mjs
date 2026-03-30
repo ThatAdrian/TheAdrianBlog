@@ -19,7 +19,6 @@ function parseMarkdown(raw) {
     fm[key] = val.replace(/^["']|["']$/g, '')
   })
 
-  // parse categories list
   const catMatch = fmMatch[1].match(/categories:\s*\n((?:\s+-[^\n]+\n?)+)/)
   if (catMatch) {
     fm.categories = catMatch[1]
@@ -46,18 +45,18 @@ for (const file of files) {
   const parsed = parseMarkdown(raw)
   if (!parsed) continue
   if (parsed.draft === 'true') continue
-  
-posts.push({
-  slug: parsed.slug || slugify(parsed.title || file.replace('.md', '')),
-  title: parsed.title || '',
-  summary: parsed.summary || '',
-  date: parsed.date || '',
-  categories: parsed.categories || [],
-  image: parsed.image || 'placeholder.png',
-  rating: parsed.rating || '',
-  tracklist: parsed.tracklist || '',
-  content: parsed.content || '',
-})
+
+  posts.push({
+    slug: parsed.slug || slugify(parsed.title || file.replace('.md', '')),
+    title: parsed.title || '',
+    summary: parsed.summary || '',
+    date: parsed.date || '',
+    categories: parsed.categories || [],
+    image: parsed.image || 'placeholder.png',
+    rating: parsed.rating || '',
+    tracklist: parsed.tracklist || '',
+    content: parsed.content || '',
+  })
 }
 
 posts.sort((a, b) => new Date(b.date) - new Date(a.date))
