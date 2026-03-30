@@ -60,7 +60,7 @@ const SOCIAL_ITEMS = [
 export default function Adrian() {
   return (
     <div className="adrian-page page-transition">
-      <SEO title="Adrian" description="Contact me in whatever way you want, just dont be creepy thanks." url="/adrian" />
+      <SEO title="Adrian" description="Get in touch with Adrian — find me on YouTube, Spotify, Instagram and more." url="/adrian" />
 
       {/* Particles background */}
       <div className="adrian-particles">
