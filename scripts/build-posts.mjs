@@ -59,7 +59,13 @@ for (const file of files) {
   })
 }
 
-posts.sort((a, b) => new Date(b.date) - new Date(a.date))
+posts.sort((a, b) => {
+  const parseDate = (d) => {
+    const [day, month, year] = d.split('/')
+    return new Date(`${year}-${month}-${day}`)
+  }
+  return parseDate(b.date) - parseDate(a.date)
+})
 
 fs.mkdirSync(outDir, { recursive: true })
 fs.writeFileSync(path.join(outDir, 'posts.json'), JSON.stringify(posts, null, 2))
