@@ -7,7 +7,7 @@ categories:
 image: posts/bully.jpg
 rating: 3
 draft: true
-tracklist: KING,2 | THIS A MUST,3 | FATHER feat Travis Scott,3 | ALL THE LOVE,2.5 | PUNCH DRUNK,2 | WHATEVER WORKS,2 | MAMAS FAVOURITE,2 | SISTERS AND BROTHERS,1.5 | BULLY,3 | HIGHS AND LOWS,2.5 | I CANT WAIT,2 | WHITE LINES,3.5 | CIRCLES,4.0 | PREACHERMAN,5.0 | BEAUTY AND THE BEAST,4.5 | DAMN,4.5 | LAST BREATH,4.5 | THIS ONE HERE,4.5
+tracklist: KING,2 | THIS A MUST,3 | FATHER feat Travis Scott,3 | ALL THE LOVE,2.5 | PUNCH DRUNK,2 | WHATEVER WORKS,2 | MAMAS FAVOURITE,2 | SISTERS AND BROTHERS,1.5 | BULLY,3 | HIGHS AND LOWS,2.5 | I CANT WAIT,2 | WHITE LINES,3 | CIRCLES,3 | PREACHERMAN,3.5 | BEAUTY AND THE BEAST,4.5 | DAMN,4.5 | LAST BREATH,4.5 | THIS ONE HERE,4.5
 ---
 
 Following a rough few years for Ye resulting in severe backlash and a reputation that will turn peoples heads if you tell them you've even listened to a single song of his recently begs the question of whether an album like this and an apology is enough to put him back on top.
