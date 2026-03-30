@@ -28,12 +28,13 @@ export default function Home() {
           <ASCIIText
             text="TheAdrianBlog"
             enableWaves={true}
-            asciiFontSize={5}
-            textFontSize={220}
+            asciiFontSize={window.innerWidth < 768 ? 7 : 5}
+            textFontSize={window.innerWidth < 768 ? 120 : 220}
             textColor="#fdf9f3"
-            planeBaseHeight={10}
-          />
+            planeBaseHeight={window.innerWidth < 768 ? 6 : 10}
+            />
         </div>
+
 
         <span className="hero-eyebrow">✦ Welcome to the feed</span>
         <p className="hero-sub">
