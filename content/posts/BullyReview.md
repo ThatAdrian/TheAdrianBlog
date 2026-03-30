@@ -7,7 +7,7 @@ categories:
 image: posts/bully.jpg
 rating: 3
 draft: true
-tracklist: KING,2 | THIS A MUST,3 | FATHER feat Travis Scott,3 | ALL THE LOVE,2.5 | PUNCH DRUNK,2 | WHATEVER WORKS,2 | MAMAS FAVOURITE,2 | SISTERS AND BROTHERS,1.5 | BULLY,4.5 | HIGHS AND LOWS,4.5 | I CANT WAIT,5.0 | WHITE LINES,3.5 | CIRCLES,4.0 | PREACHERMAN,5.0 | BEAUTY AND THE BEAST,4.5 | DAMN,4.5 | LAST BREATH,4.5 | THIS ONE HERE,4.5
+tracklist: KING,2 | THIS A MUST,3 | FATHER feat Travis Scott,3 | ALL THE LOVE,2.5 | PUNCH DRUNK,2 | WHATEVER WORKS,2 | MAMAS FAVOURITE,2 | SISTERS AND BROTHERS,1.5 | BULLY,3 | HIGHS AND LOWS,2.5 | I CANT WAIT,2 | WHITE LINES,3.5 | CIRCLES,4.0 | PREACHERMAN,5.0 | BEAUTY AND THE BEAST,4.5 | DAMN,4.5 | LAST BREATH,4.5 | THIS ONE HERE,4.5
 ---
 
 Following a rough few years for Ye resulting in severe backlash and a reputation that will turn peoples heads if you tell them you've even listened to a single song of his recently begs the question of whether an album like this and an apology is enough to put him back on top.
@@ -16,12 +16,14 @@ After all of these ridiculous delays it has nearly gone past the whole excitemen
 
 ## The sound
 
-More of your review...
+A somewhat repetitive collection of basic songs, I'm getting the impression that modern music and how the soundscape of the popular tracks nowadays may have surpassed the sound this album is projecting. by all means its not a bad album but a lot of these songs have no energy or much standout to them.
+
+Some songs which had crazy energy and i was genuienly excited for back when they were leaks or the strange prereleases have been amalgamised to ones of dare i say lower quality, for example CIRCLES, with Don Toliver, is a song i loved when i first heard it and now i listen to it it sounds like the vocals were mixed somehow worse.
 
 ## Standout tracks
 
-Your highlights...
+FATHER, WHITE LINES, CIRCLES, PREACHER MAN,
 
 ## Verdict
 
-Closing thoughts.
+I expected better. 
