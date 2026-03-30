@@ -3,7 +3,7 @@ import PostCard from '../components/PostCard'
 import ASCIIText from '../components/ASCIIText'
 import { usePosts } from '../hooks/usePosts'
 
-const CATEGORIES = ['All', 'Tech', 'Music Reviews', 'General']
+const CATEGORIES = ['All', 'General', 'Music Reviews', 'Tech']
 
 function getActiveClass(cat: string) {
   if (cat === 'All') return 'active'
@@ -33,9 +33,9 @@ export default function Home() {
         />
       </div>
 
-        <span className="hero-eyebrow">✦ Welcome to the feed</span>
+        <span className="hero-eyebrow">✦ Welcome to the Freaking ADRIAN BLOG!!!!!</span>
         <p className="hero-sub">
-          Dispatches from the digital frontier — tech deep-dives, music reviews, and the occasional off-topic thought.
+          My corner for rambles, reviews and random experiments etc etc.
         </p>
         <div className="hero-divider" />
       </div>
