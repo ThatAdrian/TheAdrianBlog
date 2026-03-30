@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/build-posts.mjs && vite",
-    "build": "node scripts/build-posts.mjs && vite build",
+    "build": "node scripts/build-posts.mjs && node scripts/build-sitemap.mjs && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
