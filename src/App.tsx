@@ -22,7 +22,6 @@ export default function App() {
 
   return (
     <>
-      {/* Dot grid background — hidden on Adrian page which has its own particles */}
       {!isAdrianPage && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
           <DotGrid
@@ -33,16 +32,16 @@ export default function App() {
         </div>
       )}
 
-      {/* BubbleMenu navigation */}
       <BubbleMenu
         logo={
           <span style={{
             fontFamily: 'Orbitron, monospace',
             fontWeight: 700,
-            fontSize: '0.55rem',
+            fontSize: '0.72rem',
             color: '#00f5ff',
-            letterSpacing: '0.03em',
+            letterSpacing: '0.06em',
             whiteSpace: 'nowrap',
+            textShadow: '0 0 12px rgba(0,245,255,0.4)',
           }}>
             TheAdrianBlog
           </span>
