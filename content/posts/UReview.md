@@ -18,6 +18,8 @@ An incredible and refreshing sound of immaculate production. an album like this 
 
 This album has amazing energy throughout all of it and then some calmer and more meaningful songs like Lovefield and Wish U Well. Underscores is really showing off her production skills in this album. With interesting sound effects and a hefty bit less acoustic and rock elements which I really enjoyed in the previous albums. I wouldnt say its a move in the wrong direction at all although I hope its not entirely an abandonment of the previous sound.
 
+[TRACK_RATINGS]
+
 ## Standout tracks
 
 Music, Hollywood Forever, Lovefield and Do It
