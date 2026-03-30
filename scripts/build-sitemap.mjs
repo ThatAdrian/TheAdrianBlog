@@ -32,7 +32,7 @@ const urls = [
   </url>`),
 
   // Individual posts
-  ...posts.map((post: any) => `  <url>
+  ...posts.map((post) => `  <url>
     <loc>${SITE_URL}/posts/${post.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
