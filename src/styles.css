@@ -444,3 +444,44 @@ body {
 }
 
 .page-transition { animation: pageIn 0.4s both; }
+
+/* ASCII hero wrapper */
+.hero-ascii-wrap {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.6s both;
+}
+
+/* Post card inner — replaces .post-card since BorderGlow is now the outer wrapper */
+.post-card-inner {
+  display: block;
+  text-decoration: none;
+  position: relative;
+  transition: transform 0.3s;
+}
+
+.border-glow-card:hover .post-card-title {
+  color: var(--accent-cyan);
+}
+
+.border-glow-card:hover .read-more {
+  gap: 0.7rem;
+}
+
+.border-glow-card:hover .post-card-thumbnail img {
+  transform: scale(1.06);
+}
+
+/* Keep grid working with BorderGlow as outer element */
+.posts-grid .border-glow-card {
+  animation: fadeInUp 0.5s both;
+}
+
+.posts-grid .border-glow-card:nth-child(1) { animation-delay: 50ms; }
+.posts-grid .border-glow-card:nth-child(2) { animation-delay: 100ms; }
+.posts-grid .border-glow-card:nth-child(3) { animation-delay: 150ms; }
+.posts-grid .border-glow-card:nth-child(4) { animation-delay: 200ms; }
+.posts-grid .border-glow-card:nth-child(5) { animation-delay: 250ms; }
+.posts-grid .border-glow-card:nth-child(6) { animation-delay: 300ms; }
