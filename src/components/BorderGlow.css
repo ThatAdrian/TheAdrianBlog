@@ -96,7 +96,7 @@
 .border-glow-card > .edge-light {
   inset: calc(var(--glow-padding) * -1);
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 
   mask-image:
     conic-gradient(
@@ -136,7 +136,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   border-radius: inherit;
   z-index: 1;
 }
