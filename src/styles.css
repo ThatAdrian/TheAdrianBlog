@@ -454,6 +454,13 @@ body {
   animation: fadeInUp 0.6s both;
 }
 
+@media (max-width: 768px) {
+  .hero-ascii-wrap {
+    height: 140px;
+  }
+}
+
+
 /* Post card inner — replaces .post-card since BorderGlow is now the outer wrapper */
 .post-card-inner {
   display: block;
