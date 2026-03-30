@@ -26,10 +26,10 @@ export default function Home() {
         <ASCIIText
           text="TheAdrianBlog"
           enableWaves={true}
-          asciiFontSize={6}
-          textFontSize={160}
+          asciiFontSize={5}
+          textFontSize={220}
           textColor="#fdf9f3"
-          planeBaseHeight={6}
+          planeBaseHeight={10}
         />
       </div>
 
