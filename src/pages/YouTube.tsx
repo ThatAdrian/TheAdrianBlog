@@ -9,7 +9,9 @@ const CHANNEL_URL = 'https://www.youtube.com/@agamez123'
 // Format: { id: 'YouTube video ID', title: 'Title' }
 // Get the ID from the URL: youtube.com/watch?v=THIS_PART
 const FEATURED_VIDEOS = [
-  { id: 'dQw4w9WgXcQ', title: 'Latest Video' }, // replace with real IDs
+  { id: 'w16UFQ9sI2I', title: 'Latest Video' },
+  { id: 'PaQDATayWuQ', title: 'Featured Vlog' },
+  { id: 'Bih-j2KDIXw', title: 'Personal Favourite' }// replace with real IDs
 ]
 
 export default function YouTube() {
@@ -17,7 +19,7 @@ export default function YouTube() {
     <div className="page-transition" style={{ paddingTop: '80px', minHeight: '100vh' }}>
       <SEO
         title="YouTube"
-        description="Watch Adrian's latest YouTube videos — tech, gaming and more."
+        description="Watch my latest YouTube videos"
         url="/youtube"
       />
 
@@ -42,7 +44,7 @@ export default function YouTube() {
             </div>
             <div className="yt-channel-info">
               <h2 className="yt-channel-name">@agamez123</h2>
-              <p className="yt-channel-desc">Videos on gaming, tech and whatever else is on my mind.</p>
+              <p className="yt-channel-desc">My cool videos here</p>
             </div>
             <a href={CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="yt-subscribe-btn">
               Visit Channel
