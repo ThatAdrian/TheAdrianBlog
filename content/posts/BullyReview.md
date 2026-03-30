@@ -6,6 +6,7 @@ categories:
   - Music Reviews
 image: posts/bully.jpg
 rating: 3
+Draft: True
 tracklist: 360,4.5 | Club classics,4.0 | Sympathy is a knife,5.0 | I might say something stupid,3.5 | Talk talk,4.5 | Von dutch,5.0 | Everything is romantic,3.0 | Rewind,4.0 | So I,4.5 | Girl so confusing,4.5 | Apple,5.0 | B2b,3.5 | Mean girls,4.0 | 365,5.0 | Guess,4.5
 ---
 
