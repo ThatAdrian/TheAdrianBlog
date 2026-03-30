@@ -466,7 +466,13 @@ export default function ASCIIText({
     };
 
     const setup = async () => {
-      const { width, height } = containerRef.current!.getBoundingClientRect();
+  // Wait for IBM Plex Mono to load before initialising
+  try {
+    await document.fonts.load('600 200px "IBM Plex Mono"')
+    await document.fonts.ready
+  } catch (e) {}
+
+  const { width, height } = containerRef.current!.getBoundingClientRect()
 
       if (width === 0 || height === 0) {
         observer = new IntersectionObserver(
