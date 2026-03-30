@@ -23,15 +23,15 @@ export default function Home() {
       <div className="hero">
         {/* ASCII animated title */}
         <div className="hero-ascii-wrap">
-          <ASCIIText
-            text="TheAdrianBlog"
-            enableWaves={true}
-            asciiFontSize={8}
-            textFontSize={200}
-            textColor="#fdf9f3"
-            planeBaseHeight={8}
-          />
-        </div>
+        <ASCIIText
+          text="TheAdrianBlog"
+          enableWaves={true}
+          asciiFontSize={6}
+          textFontSize={160}
+          textColor="#fdf9f3"
+          planeBaseHeight={6}
+        />
+      </div>
 
         <span className="hero-eyebrow">✦ Welcome to the feed</span>
         <p className="hero-sub">
