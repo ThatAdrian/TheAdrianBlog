@@ -111,8 +111,8 @@ export default function Adrian() {
             <h2 className="adrian-about-title">About</h2>
             <div className="adrian-about-text">
               {/* Edit this text whenever you want */}
-              <p>Hey, I'm Adrian. Welcome to my corner of the internet.</p>
-              <p>I write about music, tech, gaming and whatever else I happen to be thinking about. If you want to chat, reach out on any of the platforms above.</p>
+              <p>Hi, I'm Adrian. Welcome to my room</p>
+              <p>I write about music, tech, gaming and whatever else I want to. I always have some kind of projects running of random varying difficulties, usually out of boredom or wanting a challenge. If you want to chat, reach out on any of the platforms above.</p>
             </div>
           </div>
         </GlassSurface>
