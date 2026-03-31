@@ -50,8 +50,9 @@ export default function PostCard({ post }: { post: Post }) {
           <img
             src={`/${post.image}`}
             alt={post.title}
+            loading="lazy"
             onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png' }}
-          />
+            />
           <div className="glossy-overlay" />
           <span className={`post-card-category ${getCatClass(primaryCat)}`}>{primaryCat}</span>
         </div>
