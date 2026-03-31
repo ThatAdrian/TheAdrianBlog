@@ -20,24 +20,31 @@ const NAV_ITEMS = [
 export default function App() {
   const location = useLocation()
   const isAdrianPage = location.pathname === '/adrian'
-const isNotFound = !['/', '/music', '/youtube', '/adrian'].includes(location.pathname) &&
-  !location.pathname.startsWith('/posts/') &&
-  !location.pathname.startsWith('/category/')
+  const isNotFound = !['/', '/music', '/youtube', '/adrian'].includes(location.pathname) &&
+    !location.pathname.startsWith('/posts/') &&
+    !location.pathname.startsWith('/category/')
 
-return (
-  <>
-    {!isAdrianPage && !isNotFound && (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <DotGrid ... />
-      </div>
-    )}
+  return (
+    <>
+      {!isAdrianPage && !isNotFound && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+          <DotGrid
+            dotSize={6} gap={14} baseColor="#232323" activeColor="#9b287b"
+            proximity={100} shockRadius={200} shockStrength={17}
+            resistance={1650} returnDuration={1.3}
+          />
+        </div>
+      )}
 
       <BubbleMenu
         logo={
           <span style={{
-            fontFamily: 'Orbitron, monospace', fontWeight: 700,
-            fontSize: '0.72rem', color: '#00f5ff',
-            letterSpacing: '0.06em', whiteSpace: 'nowrap',
+            fontFamily: 'Orbitron, monospace',
+            fontWeight: 700,
+            fontSize: '0.72rem',
+            color: '#00f5ff',
+            letterSpacing: '0.06em',
+            whiteSpace: 'nowrap',
             textShadow: '0 0 12px rgba(0,245,255,0.4)',
           }}>
             TheAdrianBlog
