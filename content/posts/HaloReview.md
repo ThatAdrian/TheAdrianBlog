@@ -14,9 +14,9 @@ tracklist: EVERYTHING IVE EVER WANTED,4 | DOIT4ME,5 | SAME LA,4.5 | PRETTY4U,3.5
 
 ## The sound
 
-An incredible and refreshing sound of immaculate production. an album like this doesnt come often and i believe the way this years lineup is currently looking this might make it onto my top 10. Ive been anticipating this album for a while, since the first single actually.
+When i first discovered tiffany day it was cause of AMERICAN GIRL probably on shuffle and what not and general ramble online, i started listening ot the singles off this album prior to the full release and my initial review was that there were too many singles out before the album. there was 6 songs released off the 13 song album which i believe was unnecessary, if there were 3 released and then the album it wouldve been enough and maybe even more exciting when listening as now im expecting these amazing songs, if these caught me by surprise it may have even lifted my rating.
 
-This album has amazing energy throughout all of it and then some calmer and more meaningful songs like Lovefield and Wish U Well. Underscores is really showing off her production skills in this album. With interesting sound effects and a hefty bit less acoustic and rock elements which I really enjoyed in the previous albums. I wouldnt say its a move in the wrong direction at all although I hope its not entirely an abandonment of the previous sound.
+I remember telling my friends that this album will be a hefty competitor and to get on this album before it comes out and
 
 [TRACK_RATINGS]
 
