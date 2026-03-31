@@ -1,7 +1,7 @@
 ---
 date: 03/04/2026
 title: "HALO - Tiffany Day Review"
-summary: 'Like an oasis in the middle of a desert its the most refreshing sound in a while'
+summary: 'Tiffany does NOT look like she would make music like this'
 categories:
   - Music Reviews
 image: posts/halo.jpg
