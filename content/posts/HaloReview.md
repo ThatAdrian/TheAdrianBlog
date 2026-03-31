@@ -1,13 +1,13 @@
 ---
-date: 28/03/2026
-title: "U - underscores Review"
+date: 03/04/2026
+title: "HALO - Tiffany Day Review"
 summary: 'Like an oasis in the middle of a desert its the most refreshing sound in a while'
 categories:
   - Music Reviews
-image: posts/u.jpg
+image: posts/halo.jpg
 rating: 4
 draft: true
-tracklist: Tell Me U Want It,4 | Music,5 | Hollywood Forever,4.5 | The Peace,3.5 | Innuendo I Get U,3.5 | Lovefield,4.5 | Do It,5 | Bodyfeeling,3.5 | Wish U Well,3
+tracklist: EVERYTHING IVE EVER WANTED,4 | DOIT4ME,5 | SAME LA,4.5 | PRETTY4U,3.5 | COPYCAT,3.5 | NO LUCK,4.5 | BREAKUP,5 | TELL ME WHAT I DID,3.5 | START OVER,3 | LOOK UP,3 | AMERICAN GIRL,3 | FAREWELL TOLEDO,3 | ITS NOT LIKE THAT ANYMORE,3
 ---
 
 
