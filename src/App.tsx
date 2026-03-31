@@ -20,19 +20,17 @@ const NAV_ITEMS = [
 export default function App() {
   const location = useLocation()
   const isAdrianPage = location.pathname === '/adrian'
-  const is404 = !['/','music','/youtube','/adrian'].some(p => location.pathname === p || location.pathname.startsWith('/posts/') || location.pathname.startsWith('/category/'))
+const isNotFound = !['/', '/music', '/youtube', '/adrian'].includes(location.pathname) &&
+  !location.pathname.startsWith('/posts/') &&
+  !location.pathname.startsWith('/category/')
 
-  return (
-    <>
-      {!isAdrianPage && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-          <DotGrid
-            dotSize={6} gap={14} baseColor="#232323" activeColor="#9b287b"
-            proximity={100} shockRadius={200} shockStrength={17}
-            resistance={1650} returnDuration={1.3}
-          />
-        </div>
-      )}
+return (
+  <>
+    {!isAdrianPage && !isNotFound && (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <DotGrid ... />
+      </div>
+    )}
 
       <BubbleMenu
         logo={
