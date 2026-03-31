@@ -814,3 +814,81 @@ body {
 
 /* ── Navbar hide (BubbleMenu replaces it) ──────────────────────── */
 .navbar { display: none; }
+/* ── Add to bottom of src/styles.css ── */
+
+.not-found-page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.not-found-ballpit {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.not-found-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.not-found-code {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(5rem, 20vw, 12rem);
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  user-select: none;
+  margin-bottom: 0.5rem;
+}
+
+.not-found-heading {
+  font-size: clamp(1.5rem, 5vw, 3.5rem) !important;
+  color: #ffffff;
+  font-weight: 300;
+  line-height: 1.1;
+  text-shadow: 0 0 40px rgba(0,245,255,0.3);
+}
+
+.not-found-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  color: rgba(200, 200, 255, 0.5);
+  letter-spacing: 0.1em;
+  margin-top: 0.25rem;
+}
+
+.not-found-btn {
+  margin-top: 1.5rem;
+  padding: 0.7rem 2rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(0, 245, 255, 0.4);
+  background: rgba(0, 245, 255, 0.08);
+  color: var(--accent-cyan);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.not-found-btn:hover {
+  background: rgba(0, 245, 255, 0.18);
+  border-color: rgba(0, 245, 255, 0.7);
+  box-shadow: 0 0 24px rgba(0, 245, 255, 0.15);
+}
