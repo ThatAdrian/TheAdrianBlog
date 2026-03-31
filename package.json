@@ -16,7 +16,8 @@
     "gsap":"^3.12.5",
     "three": "^0.165.0",
     "@types/three": "^0.165.0",
-    "ogl": "^1.0.8"
+    "ogl": "^1.0.8",
+    "motion": "^11.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
