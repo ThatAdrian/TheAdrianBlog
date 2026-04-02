@@ -11,6 +11,11 @@ interface Post {
   image: string
 }
 
+interface PostCardProps {
+  post: Post
+  fromPath?: string
+}
+
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
   if (c === 'tech') return 'cat-tech'
@@ -32,7 +37,7 @@ function getCatColors(cat: string): string[] {
   return ['#00ff88', '#00f5ff', '#00aa44']
 }
 
-export default function PostCard({ post }: { post: Post }) {
+export default function PostCard({ post, fromPath = '/' }: PostCardProps) {
   const primaryCat = post.categories[0] ?? 'General'
 
   return (
@@ -45,14 +50,18 @@ export default function PostCard({ post }: { post: Post }) {
       edgeSensitivity={25}
       fillOpacity={0.3}
     >
-      <Link to={`/posts/${post.slug}`} className="post-card-inner">
+      <Link
+        to={`/posts/${post.slug}`}
+        state={{ from: fromPath }}
+        className="post-card-inner"
+      >
         <div className="post-card-thumbnail">
           <img
             src={`/${post.image}`}
             alt={post.title}
             loading="lazy"
-            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png' }}
-            />
+            onError={e => { (e.target as HTMLImageElement).src = '/placeholder.png' }}
+          />
           <div className="glossy-overlay" />
           <span className={`post-card-category ${getCatClass(primaryCat)}`}>{primaryCat}</span>
         </div>
