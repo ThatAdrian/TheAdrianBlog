@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import BorderGlow from './BorderGlow'
 import './ShareButton.css'
+import { createPortal } from 'react-dom'
 
 interface ShareButtonProps {
   title: string
@@ -105,7 +106,7 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
       </button>
 
       {/* Overlay */}
-      {open && (
+      {open && createPortal(
         <div className="share-overlay" aria-modal="true">
           <div ref={modalRef} className="share-modal-wrap">
             <BorderGlow
@@ -128,7 +129,22 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
                 </div>
 
                 <p className="share-modal-post-title">{title}</p>
-
+                {copied && (
+                  <div style={{
+                    background: 'rgba(0,245,255,0.1)',
+                    border: '1px solid rgba(0,245,255,0.3)',
+                    borderRadius: '8px',
+                    padding: '0.5rem 0.75rem',
+                    marginBottom: '0.75rem',
+                    fontFamily: 'Space Mono, monospace',
+                    fontSize: '0.72rem',
+                    color: 'var(--accent-cyan)',
+                    textAlign: 'center',
+                  }}>
+                    ✓ Copied to clipboard
+                  </div>
+                )}
+                <div className="share-options">
                 {/* Share options */}
                 <div className="share-options">
                   {options.map(opt => (
@@ -168,7 +184,8 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
               </div>
             </BorderGlow>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
