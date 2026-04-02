@@ -72,13 +72,13 @@ export default function NotFound() {
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <Ballpit
           count={100}
-          gravity={0.01}
-          friction={0.9975}
+          gravity={0.005}
+          friction={0.995}
           wallBounce={0.95}
           followCursor={true}
-          colors={[0x111111, 0x222222, 0x333333]}
+          colors={[0xffffff, 0xffffff, 0xffffff]}
           minSize={0.3}
-          maxSize={1}
+          maxSize={1.2}
         />
       </div>
 
