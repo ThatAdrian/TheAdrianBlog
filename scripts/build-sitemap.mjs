@@ -23,13 +23,6 @@ const urls = [
     <priority>1.0</priority>
   </url>`,
 
-  // Category pages
-  ...['Tech', 'Music Reviews', 'General'].map(cat => `  <url>
-    <loc>${SITE_URL}/category/${encodeURIComponent(cat)}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>`),
 
   // Individual posts
   ...posts.map((post) => `  <url>
