@@ -58,7 +58,7 @@ export default function Ballpit({
 
     // Build instanced mesh
     const geo = new SphereGeometry(1, 16, 16)
-    const mat = new MeshStandardMaterial({ metalness: 0.9, roughness: 0.1 })
+    const mat = new MeshStandardMaterial({ metalness: 0.3, roughness: 0.15, color: 0xffffff })
     const mesh = new InstancedMesh(geo, mat, count)
     mesh.instanceMatrix.setUsage(35048)
     scene.add(mesh)
