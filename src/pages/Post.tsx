@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { marked } from 'marked'
 import { usePosts } from '../hooks/usePosts'
 import { AlbumRating, TrackRating } from '../components/StarRating'
 import SEO from '../components/SEO'
+import ShareButton from '../components/ShareButton'
+import RelatedPosts from '../components/RelatedPosts'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -34,6 +36,10 @@ export default function Post() {
   const { slug } = useParams()
   const { posts, loading } = usePosts()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Smart back — return to where user came from
+  const referrer = (location.state as any)?.from ?? '/'
 
   const post = posts.find(p => p.slug === slug)
 
@@ -53,12 +59,10 @@ export default function Post() {
   const tracks = parseTracklist((post as any).tracklist ?? '')
   const artistRating = parseFloat((post as any).rating ?? '0')
 
-  // Build post image URL for SEO
   const postImage = post.image && post.image !== 'placeholder.png'
     ? post.image.startsWith('http') ? post.image : `/${post.image}`
     : undefined
 
-  // ── Track list block ─────────────────────────────────────────────────────
   const TrackListBlock = () => (
     <>
       <h2 style={trackHeadingStyle}>Track Ratings</h2>
@@ -75,15 +79,12 @@ export default function Post() {
     </>
   )
 
-  // ── Content renderer ─────────────────────────────────────────────────────
   const renderContent = () => {
     if (!isMusicReview || tracks.length === 0) {
       return <div className="prose-custom" dangerouslySetInnerHTML={{ __html: html }} />
     }
-
     const marker = '<p>[TRACK_RATINGS]</p>'
     const splitIdx = html.indexOf(marker)
-
     if (splitIdx === -1) {
       return (
         <>
@@ -92,10 +93,8 @@ export default function Post() {
         </>
       )
     }
-
     const before = html.slice(0, splitIdx)
     const after = html.slice(splitIdx + marker.length)
-
     return (
       <>
         <div className="prose-custom" dangerouslySetInnerHTML={{ __html: before }} />
@@ -107,7 +106,6 @@ export default function Post() {
 
   return (
     <div className="post-detail page-transition">
-      {/* Per-post SEO — overrides the homepage defaults */}
       <SEO
         title={post.title}
         description={post.summary}
@@ -116,22 +114,21 @@ export default function Post() {
         type="article"
       />
 
-      <Link to="/" className="back-link">← Back to feed</Link>
+      <Link to={referrer} className="back-link">← Back</Link>
 
       <div className="post-detail-header">
         <div className="post-detail-categories">
           {post.categories.map(cat => (
-            <span
-              key={cat}
-              className={`post-card-category ${getCatClass(cat)}`}
-              style={{ position: 'static' }}
-            >
+            <span key={cat} className={`post-card-category ${getCatClass(cat)}`} style={{ position: 'static' }}>
               {cat}
             </span>
           ))}
         </div>
         <h1 className="post-detail-title">{post.title}</h1>
-        <p className="post-detail-meta">{post.date}</p>
+        <div className="post-detail-meta-row">
+          <p className="post-detail-meta">{post.date}</p>
+          <ShareButton title={post.title} />
+        </div>
       </div>
 
       {isMusicReview && artistRating > 0 && (
@@ -143,20 +140,28 @@ export default function Post() {
         />
       )}
 
-      {post.summary && (
-        <p className="post-detail-summary">{post.summary}</p>
-      )}
+      {post.summary && <p className="post-detail-summary">{post.summary}</p>}
 
       {post.image && post.image !== 'placeholder.png' && (
         <img
           src={`/${post.image}`}
           alt={post.title}
           className="post-detail-image"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          loading="lazy"
+          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
       )}
 
       {renderContent()}
+
+      {/* Related posts */}
+      <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <RelatedPosts
+          currentSlug={slug ?? ''}
+          currentCategories={post.categories}
+          allPosts={posts}
+        />
+      </div>
     </div>
   )
 }
