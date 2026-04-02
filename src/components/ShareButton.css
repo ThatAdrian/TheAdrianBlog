@@ -29,7 +29,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(3,2,15,0.7);
+  padding: 1rem;
+  background: rgba(3,2,15,0.75);
   backdrop-filter: blur(8px);
   animation: shareOverlayIn 0.2s ease;
 }
@@ -41,7 +42,7 @@
 
 .share-modal-wrap {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   padding: 1rem;
   animation: shareModalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
