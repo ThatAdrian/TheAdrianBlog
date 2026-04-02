@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import BorderGlow from './BorderGlow'
 import './ShareButton.css'
-import { createPortal } from 'react-dom'
 
 interface ShareButtonProps {
   title: string
@@ -21,7 +21,6 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const shareUrl = url ?? window.location.href
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
@@ -33,7 +32,6 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  // Close on escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('keydown', handler)
@@ -50,7 +48,7 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
   const options: ShareOption[] = [
     {
       label: 'Twitter / X',
-      color: '#000000',
+      color: '#ffffff',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.736-8.858L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -90,13 +88,13 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
         navigator.clipboard.writeText(`**${title}**\n${shareUrl}`)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
+        setOpen(false)
       }
     },
   ]
 
   return (
     <>
-      {/* Trigger button */}
       <button className="share-trigger" onClick={() => setOpen(true)} aria-label="Share this post">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -105,7 +103,6 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
         Share
       </button>
 
-      {/* Overlay */}
       {open && createPortal(
         <div className="share-overlay" aria-modal="true">
           <div ref={modalRef} className="share-modal-wrap">
@@ -129,6 +126,7 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
                 </div>
 
                 <p className="share-modal-post-title">{title}</p>
+
                 {copied && (
                   <div style={{
                     background: 'rgba(0,245,255,0.1)',
@@ -144,14 +142,13 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
                     ✓ Copied to clipboard
                   </div>
                 )}
-                <div className="share-options">
-                {/* Share options */}
+
                 <div className="share-options">
                   {options.map(opt => (
                     <button
                       key={opt.label}
                       className="share-option"
-                      onClick={() => { opt.action(); if (opt.label !== 'Discord') setOpen(false) }}
+                      onClick={() => opt.action()}
                       style={{ '--option-color': opt.color } as React.CSSProperties}
                     >
                       <span className="share-option-icon" style={{ color: opt.color }}>{opt.icon}</span>
@@ -160,7 +157,6 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
                   ))}
                 </div>
 
-                {/* Copy link */}
                 <div className="share-copy-row">
                   <span className="share-copy-url">{shareUrl}</span>
                   <button className="share-copy-btn" onClick={copyLink}>
@@ -184,9 +180,8 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
               </div>
             </BorderGlow>
           </div>
-        </div>,
-        document.body
-      )}
+        </div>
+      , document.body)}
     </>
   )
 }
