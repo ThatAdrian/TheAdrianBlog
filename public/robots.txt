@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
+Disallow: /category/
+
 Sitemap: https://www.theadrianblog.com/sitemap.xml
