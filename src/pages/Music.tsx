@@ -160,7 +160,7 @@ export default function Music() {
           <div className="no-posts"><p>No music reviews yet.</p></div>
         ) : (
           <div className="posts-grid">
-            {musicReviews.map(post => <PostCard key={post.slug} post={post} />)}
+            {musicReviews.map(post => <PostCard key={post.slug} post={post} fromPath="/music" />)}
           </div>
         )}
 
