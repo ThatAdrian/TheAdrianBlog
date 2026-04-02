@@ -41,9 +41,9 @@
 }
 
 .share-modal-wrap {
-  width: 100%;
-  max-width: 440px;
-  padding: 1rem;
+  width: calc(100% - 2rem);
+  max-width: 420px;
+  box-sizing: border-box;
   animation: shareModalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
 
@@ -54,8 +54,10 @@
 
 /* Inner modal content */
 .share-modal {
-  padding: 1.5rem;
+  padding: 1.25rem;
   width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .share-modal-header {
@@ -104,6 +106,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-bottom: 1.25rem;
+  width: 100%;
 }
 
 .share-option {
@@ -147,6 +150,9 @@
   border-radius: 10px;
   background: rgba(0,0,0,0.3);
   border: 0.5px solid rgba(255,255,255,0.08);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .share-copy-url {
