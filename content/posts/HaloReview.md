@@ -6,8 +6,8 @@ categories:
   - Music Reviews
 image: posts/halo.jpg
 rating: 4.5
-draft: true
-tracklist: EVERYTHING IVE EVER WANTED,2.5 | DOIT4ME,4 | SAME LA,4.5 | PRETTY4U,5 | COPYCAT,3 | NO LUCK,2.5 | BREAKUP,5 | TELL ME WHAT I DID,3.5 | START OVER,3 | LOOK UP,3 | AMERICAN GIRL,3 | FAREWELL TOLEDO,3 | ITS NOT LIKE THAT ANYMORE,3
+draft: false
+tracklist: EVERYTHING IVE EVER WANTED,2.5 | DOIT4ME,4 | SAME LA,4.5 | PRETTY4U,5 | COPYCAT,3 | NO LUCK,2.5 | BREAKUP,4 | TELL ME WHAT I DID,3.5 | START OVER,4 | LOOK UP,4 | AMERICAN GIRL,5 | FAREWELL TOLEDO,2.5 | ITS NOT LIKE THAT ANYMORE,4
 ---
 
 
@@ -18,14 +18,14 @@ When i first discovered tiffany day it was cause of AMERICAN GIRL probably on sh
 
 I remember telling my friends that this album will be a hefty competitor and to get on this album before it comes out and i stand by my point.
 
-The first track is a good intro transitioning into a great energetic second track which is super catchy, then into the two amazing previously released singles really ramping up the energy. copycat was ok but nothing special 
+The first track is a good intro transitioning into a great energetic second track which is super catchy, then into the two amazing previously released singles really ramping up the energy. copycat was ok but nothing special, call me boring but no luck being slower didnt hit me as much therefore the lower score but i like breakup, super catchy and a boogie worthy song, tell me what i did is solid, not as good as the stars on this album but still very relistenable and quite hype and energtic, same thing for start over, maybe a bit catchier. look up is nice, not much to say about it, it will be getting me jumping. now onto american girl, omg i love this song, its the song that put me onto tiff and its such a good tune, the flow is there, the energy is there and i love it. frewell toledo isnt super memorable but whateva, last song is a great way to end the album, quite meaningful but high quality and a great track in general.
 
 [TRACK_RATINGS]
 
 ## Standout tracks
 
-Music, Hollywood Forever, Lovefield and Do It
+DOIT4ME, SAME LA, PRETTY4U, START OVER, AMERICAN GIRL and ITS NOT LIKE THAT ANYMORE
 
 ## Verdict
 
-All I can say is that im sad there isnt more to it. Im simply wishing for a deluxe. I believe Wallsocket was better only due to having more songs and a deep narrative to it but overall its a very solid album which has very good replayability.
+Amazing album to start off with as for me finding tiff, super catchy and i pray theres a tour as i will be going, all of this is subject to adjustment as i was quite over excited to listen to this and i only listened like one and a half times but its worth it. this is the female 2hollis id say.
