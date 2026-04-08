@@ -17,7 +17,7 @@ function getCatClass(cat: string) {
 function parseTracklist(raw: string): { id: string; name: string; rating: number }[] {
   if (!raw) return []
   return raw.split('|').map((entry, i) => {
-    const parts = entry.trim().split(',')
+    const parts = entry.trim().split('~')
     const name = parts[0]?.trim() ?? ''
     const rating = parseFloat(parts[1]?.trim() ?? '0')
     return { id: `track-${i}`, name, rating }
