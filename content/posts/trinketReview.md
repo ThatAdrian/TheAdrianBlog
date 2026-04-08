@@ -7,7 +7,7 @@ categories:
 image: posts/trinket.jpg
 rating: 
 draft: true
-tracklist: reclusive wizard leaves tower~2.5 | You're serious, aren't you?~4 | SAME LA~4.5 | PRETTY4U~5 | COPYCAT~3 | NO LUCK~2.5 | BREAKUP~4 | TELL ME WHAT I DID~3.5 | START OVER~4 | LOOK UP~4 | AMERICAN GIRL~5 | FAREWELL TOLEDO~2.5 | ITS NOT LIKE THAT ANYMORE~4
+tracklist: reclusive wizard leaves tower~2.5 | You're serious, aren't you?~4 | lil qoo~4.5 | BURNMATERIAL~5 | strawberry☆chop~3 | ( ╥﹏╥ )~2.5 | (fallout)~4 | all-time chump~3.5 | BUMPR~4 | bbbackboard~4 | Recap :~5 | landslide~2.5
 ---
 
 
