@@ -1019,3 +1019,17 @@ body {
   margin: 0;
   letter-spacing: 0.04em;
 }
+
+/* Wrapper that gives space for the comment margin on the right */
+.post-content-with-comments {
+  position: relative;
+  /* On desktop give extra right margin for comment bubbles */
+  padding-right: 60px;
+}
+
+@media (max-width: 900px) {
+  .post-content-with-comments {
+    padding-right: 0;
+  }
+}
+
