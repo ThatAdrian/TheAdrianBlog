@@ -1034,3 +1034,30 @@ body {
   }
 }
 
+/* Track row wrapper — adds comment button alongside track rating */
+.track-rating-row {
+  display: flex;
+  align-items: center;
+}
+
+.track-rating-row .track-rating {
+  flex: 1;
+}
+
+/* Extra right padding on post content for comment margin */
+.post-content-with-comments {
+  position: relative;
+  padding-right: 56px;
+}
+
+@media (max-width: 900px) {
+  .post-content-with-comments {
+    padding-right: 44px;
+  }
+}
+
+@media (max-width: 600px) {
+  .post-content-with-comments {
+    padding-right: 38px;
+  }
+}
