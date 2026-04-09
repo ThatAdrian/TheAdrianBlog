@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { marked } from 'marked'
 import { usePosts } from '../hooks/usePosts'
@@ -6,7 +6,7 @@ import { AlbumRating, TrackRating } from '../components/StarRating'
 import SEO from '../components/SEO'
 import ShareButton from '../components/ShareButton'
 import RelatedPosts from '../components/RelatedPosts'
-import InlineComments from '../components/InlineComments'
+import InlineComments, { TrackCommentTrigger } from '../components/InlineComments'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -57,6 +57,7 @@ export default function Post() {
   const html = marked(post.content || '') as string
   const tracks = parseTracklist((post as any).tracklist ?? '')
   const artistRating = parseFloat((post as any).rating ?? '0')
+  const postSlug = slug ?? post.slug
 
   const postImage = post.image && post.image !== 'placeholder.png'
     ? post.image.startsWith('http') ? post.image : `/${post.image}`
@@ -67,12 +68,14 @@ export default function Post() {
       <h2 style={trackHeadingStyle}>Track Ratings</h2>
       <div className="track-list">
         {tracks.map((t, i) => (
-          <TrackRating
-            key={t.id}
-            trackId={`${slug}-${i}`}
-            trackName={t.name}
-            artistRating={t.rating}
-          />
+          <div key={t.id} className="track-rating-row">
+            <TrackRating
+              trackId={`${postSlug}-${i}`}
+              trackName={t.name}
+              artistRating={t.rating}
+            />
+            <TrackCommentTrigger trackName={t.name} postSlug={postSlug} />
+          </div>
         ))}
       </div>
     </>
@@ -109,7 +112,7 @@ export default function Post() {
         title={post.title}
         description={post.summary}
         image={postImage}
-        url={`/posts/${slug}`}
+        url={`/posts/${postSlug}`}
         type="article"
       />
 
@@ -132,7 +135,7 @@ export default function Post() {
 
       {isMusicReview && artistRating > 0 && (
         <AlbumRating
-          albumId={slug ?? post.slug}
+          albumId={postSlug}
           albumName={post.title}
           artistRating={artistRating}
           showCommunity={true}
@@ -151,16 +154,14 @@ export default function Post() {
         />
       )}
 
-      {/* Content + comment system */}
       <div className="post-content-with-comments">
         {renderContent()}
-        <InlineComments postSlug={slug ?? post.slug} />
+        <InlineComments postSlug={postSlug} />
       </div>
 
-      {/* Related posts */}
       <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <RelatedPosts
-          currentSlug={slug ?? ''}
+          currentSlug={postSlug}
           currentCategories={post.categories}
           allPosts={posts}
         />
