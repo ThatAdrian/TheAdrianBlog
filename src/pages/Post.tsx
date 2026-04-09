@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { marked } from 'marked'
 import { usePosts } from '../hooks/usePosts'
@@ -6,6 +6,7 @@ import { AlbumRating, TrackRating } from '../components/StarRating'
 import SEO from '../components/SEO'
 import ShareButton from '../components/ShareButton'
 import RelatedPosts from '../components/RelatedPosts'
+import InlineComments from '../components/InlineComments'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -37,10 +38,9 @@ export default function Post() {
   const { posts, loading } = usePosts()
   const navigate = useNavigate()
   const location = useLocation()
+  const proseRef = useRef<HTMLDivElement>(null)
 
-  // Smart back — return to where user came from
   const referrer = (location.state as any)?.from ?? '/'
-
   const post = posts.find(p => p.slug === slug)
 
   useEffect(() => {
@@ -81,26 +81,26 @@ export default function Post() {
 
   const renderContent = () => {
     if (!isMusicReview || tracks.length === 0) {
-      return <div className="prose-custom" dangerouslySetInnerHTML={{ __html: html }} />
+      return <div ref={proseRef} className="prose-custom" dangerouslySetInnerHTML={{ __html: html }} />
     }
     const marker = '<p>[TRACK_RATINGS]</p>'
     const splitIdx = html.indexOf(marker)
     if (splitIdx === -1) {
       return (
-        <>
+        <div ref={proseRef}>
           <div className="prose-custom" dangerouslySetInnerHTML={{ __html: html }} />
           <TrackListBlock />
-        </>
+        </div>
       )
     }
     const before = html.slice(0, splitIdx)
     const after = html.slice(splitIdx + marker.length)
     return (
-      <>
+      <div ref={proseRef}>
         <div className="prose-custom" dangerouslySetInnerHTML={{ __html: before }} />
         <TrackListBlock />
         <div className="prose-custom" dangerouslySetInnerHTML={{ __html: after }} />
-      </>
+      </div>
     )
   }
 
@@ -152,7 +152,14 @@ export default function Post() {
         />
       )}
 
-      {renderContent()}
+      {/* Content with inline comment system overlaid */}
+      <div className="post-content-with-comments">
+        {renderContent()}
+        <InlineComments
+          postSlug={slug ?? post.slug}
+          contentRef={proseRef as React.RefObject<HTMLElement>}
+        />
+      </div>
 
       {/* Related posts */}
       <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
