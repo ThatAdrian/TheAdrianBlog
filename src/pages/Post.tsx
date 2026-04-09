@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { marked } from 'marked'
 import { usePosts } from '../hooks/usePosts'
@@ -38,7 +38,6 @@ export default function Post() {
   const { posts, loading } = usePosts()
   const navigate = useNavigate()
   const location = useLocation()
-  const proseRef = useRef<HTMLDivElement>(null)
 
   const referrer = (location.state as any)?.from ?? '/'
   const post = posts.find(p => p.slug === slug)
@@ -81,26 +80,26 @@ export default function Post() {
 
   const renderContent = () => {
     if (!isMusicReview || tracks.length === 0) {
-      return <div ref={proseRef} className="prose-custom" dangerouslySetInnerHTML={{ __html: html }} />
+      return <div className="prose-custom" dangerouslySetInnerHTML={{ __html: html }} />
     }
     const marker = '<p>[TRACK_RATINGS]</p>'
     const splitIdx = html.indexOf(marker)
     if (splitIdx === -1) {
       return (
-        <div ref={proseRef}>
+        <>
           <div className="prose-custom" dangerouslySetInnerHTML={{ __html: html }} />
           <TrackListBlock />
-        </div>
+        </>
       )
     }
     const before = html.slice(0, splitIdx)
     const after = html.slice(splitIdx + marker.length)
     return (
-      <div ref={proseRef}>
+      <>
         <div className="prose-custom" dangerouslySetInnerHTML={{ __html: before }} />
         <TrackListBlock />
         <div className="prose-custom" dangerouslySetInnerHTML={{ __html: after }} />
-      </div>
+      </>
     )
   }
 
@@ -152,13 +151,10 @@ export default function Post() {
         />
       )}
 
-      {/* Content with inline comment system overlaid */}
+      {/* Content + comment system */}
       <div className="post-content-with-comments">
         {renderContent()}
-        <InlineComments
-          postSlug={slug ?? post.slug}
-          contentRef={proseRef as React.RefObject<HTMLElement>}
-        />
+        <InlineComments postSlug={slug ?? post.slug} />
       </div>
 
       {/* Related posts */}
