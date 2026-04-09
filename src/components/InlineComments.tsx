@@ -478,7 +478,7 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
         if (!text) return
 
         const range = sel.getRangeAt(0)
-        const container = document.querySelector('.prose-custom')
+        const container = document.querySelector('.post-content-with-comments')
         if (!container || !container.contains(range.commonAncestorContainer)) return
 
         const rect = range.getBoundingClientRect()
@@ -507,7 +507,7 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
         if (!text) return
 
         const range = sel.getRangeAt(0)
-        const container = document.querySelector('.prose-custom')
+        const container = document.querySelector('.post-content-with-comments')
         if (!container || !container.contains(range.commonAncestorContainer)) return
 
         const rect = range.getBoundingClientRect()
@@ -535,7 +535,7 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
         if (!text) return
 
         const range = sel.getRangeAt(0)
-        const container = document.querySelector('.prose-custom')
+        const container = document.querySelector('.post-content-with-comments')
         if (!container || !container.contains(range.commonAncestorContainer)) return
 
         const rect = range.getBoundingClientRect()
