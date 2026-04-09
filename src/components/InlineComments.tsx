@@ -4,8 +4,6 @@ import './InlineComments.css'
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 interface Comment {
   id: string
   post_slug: string
@@ -14,24 +12,13 @@ interface Comment {
   selected_text: string
   parent_id: string | null
   created_at: string
-  replies?: Comment[]
 }
 
 interface PendingComment {
   selectedText: string
-  anchorNode: Node
-  anchorOffset: number
   x: number
   y: number
 }
-
-interface CommentBubbleData {
-  comment: Comment
-  x: number
-  y: number
-}
-
-// ── Supabase helpers ──────────────────────────────────────────────────────────
 
 async function fetchComments(slug: string): Promise<Comment[]> {
   const res = await fetch(
@@ -64,8 +51,6 @@ async function postComment(data: {
   return rows[0] ?? null
 }
 
-// ── Utility ───────────────────────────────────────────────────────────────────
-
 function getInitial(name: string) {
   return name.trim().charAt(0).toUpperCase()
 }
@@ -89,12 +74,10 @@ function timeAgo(iso: string) {
   return new Date(iso).toLocaleDateString()
 }
 
-// ── Comment bubble (avatar in margin) ────────────────────────────────────────
-
 function CommentBubble({ comment, allComments, onReply }: {
   comment: Comment
   allComments: Comment[]
-  onReply: (parentId: string, selectedText: string) => void
+  onReply: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [replyText, setReplyText] = useState('')
@@ -126,7 +109,7 @@ function CommentBubble({ comment, allComments, onReply }: {
     })
     setReplyText('')
     setSubmitting(false)
-    onReply(comment.id, comment.selected_text)
+    onReply()
   }
 
   return (
@@ -142,7 +125,6 @@ function CommentBubble({ comment, allComments, onReply }: {
 
       {open && (
         <div className="comment-thread">
-          {/* Original comment */}
           <div className="comment-selected-text">"{comment.selected_text}"</div>
           <div className="comment-item">
             <span className="comment-avatar-sm" style={{ '--avatar-color': color } as React.CSSProperties}>
@@ -157,7 +139,6 @@ function CommentBubble({ comment, allComments, onReply }: {
             </div>
           </div>
 
-          {/* Replies */}
           {replies.map(reply => (
             <div key={reply.id} className="comment-item comment-item--reply">
               <span className="comment-avatar-sm" style={{ '--avatar-color': getInitialColor(reply.display_name) } as React.CSSProperties}>
@@ -173,7 +154,6 @@ function CommentBubble({ comment, allComments, onReply }: {
             </div>
           ))}
 
-          {/* Reply input */}
           <div className="comment-reply-input">
             <input
               type="text"
@@ -205,176 +185,153 @@ function CommentBubble({ comment, allComments, onReply }: {
   )
 }
 
-// ── Highlight popup (appears when text is selected) ───────────────────────────
-
-function HighlightPopup({ pending, onSubmit, onDismiss }: {
-  pending: PendingComment
-  onSubmit: (name: string, content: string) => Promise<void>
-  onDismiss: () => void
-}) {
-  const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
-  const [content, setContent] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [expanded, setExpanded] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onDismiss()
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [onDismiss])
-
-  async function handleSubmit() {
-    if (!content.trim() || !name.trim()) return
-    setSubmitting(true)
-    localStorage.setItem('comment_name', name)
-    await onSubmit(name, content)
-    setSubmitting(false)
-  }
-
-  if (!expanded) {
-    return (
-      <div
-        ref={ref}
-        className="highlight-popup"
-        style={{ left: pending.x, top: pending.y }}
-      >
-        <button className="highlight-popup-btn" onClick={() => setExpanded(true)}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          Comment
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <div
-      ref={ref}
-      className="highlight-popup highlight-popup--expanded"
-      style={{ left: pending.x, top: pending.y }}
-    >
-      <div className="highlight-popup-selected">"{pending.selectedText.slice(0, 80)}{pending.selectedText.length > 80 ? '...' : ''}"</div>
-      <input
-        type="text"
-        placeholder="Your name"
-        value={name}
-        onChange={e => setName(e.target.value)}
-        className="comment-input comment-input--name"
-        maxLength={30}
-        autoFocus
-      />
-      <textarea
-        placeholder="Add a comment..."
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        className="comment-input comment-input--text"
-        rows={3}
-        maxLength={1000}
-      />
-      <div className="highlight-popup-actions">
-        <button className="comment-cancel" onClick={onDismiss}>Cancel</button>
-        <button
-          className="comment-submit"
-          onClick={handleSubmit}
-          disabled={!content.trim() || !name.trim() || submitting}
-        >
-          {submitting ? 'Posting...' : 'Post'}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main component ─────────────────────────────────────────────────────────────
 
 interface InlineCommentsProps {
   postSlug: string
-  contentRef: React.RefObject<HTMLElement>
+  containerSelector?: string
 }
 
-export default function InlineComments({ postSlug, contentRef }: InlineCommentsProps) {
+export default function InlineComments({ postSlug, containerSelector = '.prose-custom' }: InlineCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [pending, setPending] = useState<PendingComment | null>(null)
-  const marginRef = useRef<HTMLDivElement>(null)
+  const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
+  const [commentText, setCommentText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
 
   const loadComments = useCallback(async () => {
     const data = await fetchComments(postSlug)
-    // Attach replies to parents
-    const roots = data.filter(c => !c.parent_id)
-    roots.forEach(r => { r.replies = data.filter(c => c.parent_id === r.id) })
     setComments(data)
   }, [postSlug])
 
   useEffect(() => { loadComments() }, [loadComments])
 
-  // Listen for text selection inside the prose content
+  // Listen for selections anywhere on the document
   useEffect(() => {
-  const container = contentRef.current
-  if (!container) return
+    function onMouseUp(e: MouseEvent) {
+      // Don't trigger if clicking inside the popup itself
+      if (popupRef.current?.contains(e.target as Node)) return
 
-  function onMouseUp() {
-    setTimeout(() => {
-      const sel = window.getSelection()
-      if (!sel || sel.isCollapsed || !sel.toString().trim()) return
-      const text = sel.toString().trim()
-      if (text.length < 3 || text.length > 300) return
+      setTimeout(() => {
+        const sel = window.getSelection()
+        if (!sel || sel.isCollapsed) {
+          return
+        }
+        const text = sel.toString().trim()
+        if (text.length < 3 || text.length > 300) return
 
-      const range = sel.getRangeAt(0)
-      if (!container.contains(range.commonAncestorContainer)) return
+        // Only trigger inside the prose content
+        const range = sel.getRangeAt(0)
+        const container = document.querySelector(containerSelector)
+        if (!container || !container.contains(range.commonAncestorContainer)) return
 
-      const rect = range.getBoundingClientRect()
-      const containerRect = container.getBoundingClientRect()
+        const rect = range.getBoundingClientRect()
+        const wrapRect = wrapRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 }
 
-      setPending({
-        selectedText: text,
-        anchorNode: range.startContainer,
-        anchorOffset: range.startOffset,
-        x: rect.left - containerRect.left,
-        y: rect.top - containerRect.top - 48,
-      })
-    }, 10)
-  }
+        setPending({
+          selectedText: text,
+          x: rect.left - wrapRect.left,
+          y: rect.bottom - wrapRect.top + 8,
+        })
+      }, 30)
+    }
 
-  document.addEventListener('mouseup', onMouseUp)
-  return () => document.removeEventListener('mouseup', onMouseUp)
-}, [contentRef])
+    document.addEventListener('mouseup', onMouseUp)
+    return () => document.removeEventListener('mouseup', onMouseUp)
+  }, [containerSelector])
 
-  async function handleNewComment(name: string, content: string) {
+  // Close popup on outside click
+  useEffect(() => {
     if (!pending) return
-    const newComment = await postComment({
+    function onMouseDown(e: MouseEvent) {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        setPending(null)
+        window.getSelection()?.removeAllRanges()
+      }
+    }
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [pending])
+
+  async function handleSubmit() {
+    if (!pending || !commentText.trim() || !name.trim()) return
+    setSubmitting(true)
+    localStorage.setItem('comment_name', name)
+    const result = await postComment({
       post_slug: postSlug,
       display_name: name,
-      content,
+      content: commentText,
       selected_text: pending.selectedText,
       parent_id: null,
     })
-    if (newComment) {
+    if (result) {
       await loadComments()
+      setCommentText('')
+      setPending(null)
+      window.getSelection()?.removeAllRanges()
     }
-    setPending(null)
-    window.getSelection()?.removeAllRanges()
+    setSubmitting(false)
   }
 
-  // Top-level comments only (no parent)
   const rootComments = comments.filter(c => !c.parent_id)
 
   return (
-    <div className="inline-comments-wrap" style={{ position: 'relative' }}>
-      {/* Highlight popup */}
+    <div ref={wrapRef} className="inline-comments-wrap">
+
+      {/* Popup appears below the selection */}
       {pending && (
-        <HighlightPopup
-          pending={pending}
-          onSubmit={handleNewComment}
-          onDismiss={() => { setPending(null); window.getSelection()?.removeAllRanges() }}
-        />
+        <div
+          ref={popupRef}
+          className="highlight-popup--expanded"
+          style={{
+            position: 'absolute',
+            left: Math.max(0, pending.x),
+            top: pending.y,
+            zIndex: 300,
+          }}
+        >
+          <div className="highlight-popup-selected">
+            "{pending.selectedText.slice(0, 80)}{pending.selectedText.length > 80 ? '...' : ''}"
+          </div>
+          <input
+            type="text"
+            placeholder="Your name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="comment-input comment-input--name"
+            maxLength={30}
+            autoFocus
+          />
+          <textarea
+            placeholder="Add a comment on this passage..."
+            value={commentText}
+            onChange={e => setCommentText(e.target.value)}
+            className="comment-input comment-input--text"
+            rows={3}
+            maxLength={1000}
+          />
+          <div className="highlight-popup-actions">
+            <button className="comment-cancel" onClick={() => {
+              setPending(null)
+              window.getSelection()?.removeAllRanges()
+            }}>
+              Cancel
+            </button>
+            <button
+              className="comment-submit"
+              onClick={handleSubmit}
+              disabled={!commentText.trim() || !name.trim() || submitting}
+            >
+              {submitting ? 'Posting...' : 'Post'}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Comment avatars in right margin */}
-      <div ref={marginRef} className="comment-margin">
+      <div className="comment-margin">
         {rootComments.map(comment => (
           <CommentBubble
             key={comment.id}
