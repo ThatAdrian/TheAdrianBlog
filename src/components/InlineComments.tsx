@@ -313,37 +313,35 @@ export default function InlineComments({ postSlug, contentRef }: InlineCommentsP
 
   // Listen for text selection inside the prose content
   useEffect(() => {
-    const container = contentRef.current
-    if (!container) return
+  const container = contentRef.current
+  if (!container) return
 
-    function onMouseUp(e: MouseEvent) {
-      // Small delay so selection is finalised
-      setTimeout(() => {
-        const sel = window.getSelection()
-        if (!sel || sel.isCollapsed || !sel.toString().trim()) return
-        const text = sel.toString().trim()
-        if (text.length < 3 || text.length > 300) return
+  function onMouseUp() {
+    setTimeout(() => {
+      const sel = window.getSelection()
+      if (!sel || sel.isCollapsed || !sel.toString().trim()) return
+      const text = sel.toString().trim()
+      if (text.length < 3 || text.length > 300) return
 
-        // Make sure selection is inside our content area
-        const range = sel.getRangeAt(0)
-        if (!container.contains(range.commonAncestorContainer)) return
+      const range = sel.getRangeAt(0)
+      if (!container.contains(range.commonAncestorContainer)) return
 
-        const rect = range.getBoundingClientRect()
-        const containerRect = container.getBoundingClientRect()
+      const rect = range.getBoundingClientRect()
+      const containerRect = container.getBoundingClientRect()
 
-        setPending({
-          selectedText: text,
-          anchorNode: range.startContainer,
-          anchorOffset: range.startOffset,
-          x: rect.left - containerRect.left + rect.width / 2 - 50,
-          y: rect.top - containerRect.top - 44,
-        })
-      }, 10)
-    }
+      setPending({
+        selectedText: text,
+        anchorNode: range.startContainer,
+        anchorOffset: range.startOffset,
+        x: rect.left - containerRect.left,
+        y: rect.top - containerRect.top - 48,
+      })
+    }, 10)
+  }
 
-    container.addEventListener('mouseup', onMouseUp)
-    return () => container.removeEventListener('mouseup', onMouseUp)
-  }, [contentRef])
+  document.addEventListener('mouseup', onMouseUp)
+  return () => document.removeEventListener('mouseup', onMouseUp)
+}, [contentRef])
 
   async function handleNewComment(name: string, content: string) {
     if (!pending) return
