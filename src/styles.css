@@ -1029,7 +1029,8 @@ body {
 
 @media (max-width: 900px) {
   .post-content-with-comments {
-    padding-right: 0;
+    position: relative;
+    padding-right: 60px;
   }
 }
 
