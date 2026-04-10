@@ -7,6 +7,7 @@ categories:
 image: posts/halo.jpg
 rating: 4.5
 draft: false
+spotifyAlbum: https://open.spotify.com/album/4T7qu6MdxoGjzZPErRWgsO?si=DrXoThFaRW6onIwdyRQs_A
 tracklist: EVERYTHING IVE EVER WANTED~2.5 | DOIT4ME~4 | SAME LA~4.5 | PRETTY4U~5 | COPYCAT~3 | NO LUCK~2.5 | BREAKUP~4 | TELL ME WHAT I DID~3.5 | START OVER~4 | LOOK UP~4 | AMERICAN GIRL~5 | FAREWELL TOLEDO~2.5 | ITS NOT LIKE THAT ANYMORE~4
 ---
 
