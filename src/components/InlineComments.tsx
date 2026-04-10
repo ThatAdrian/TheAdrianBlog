@@ -247,8 +247,11 @@ function CommentStack({ comments, allComments, onReply, top }: {
     if (rect) {
       const popupWidth = 280
       const left = Math.max(8, rect.left - popupWidth - 8)
-      const maxTop = window.innerHeight - 400
-      setPortalPos({ top: Math.min(rect.top, maxTop), left })
+      const spaceBelow = window.innerHeight - rect.bottom
+      const top = spaceBelow >= 400
+        ? rect.bottom + 8
+        : Math.max(8, rect.top - 400 - 8)
+      setPortalPos({ top, left })
     }
     setOpen(o => !o)
   }
@@ -349,7 +352,10 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     const popupWidth = 280
     const margin = 8
     const viewportLeft = Math.max(margin, Math.min(rangeRect.left, window.innerWidth - popupWidth - margin))
-    const viewportTop = Math.min(rangeRect.bottom + 8, window.innerHeight - 420)
+    const spaceBelow = window.innerHeight - rangeRect.bottom
+    const viewportTop = spaceBelow >= 320
+      ? rangeRect.bottom + 8
+      : Math.max(8, rangeRect.top - 320 - 8)
 
     setPending({ selectedText: text, relTop, viewportTop, viewportLeft })
   }
@@ -503,8 +509,12 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
       const rect = btnRef.current?.getBoundingClientRect()
       if (rect) {
         const popupWidth = 280
+        const popupHeight = 320
         const left = Math.max(8, Math.min(rect.left - popupWidth / 2, window.innerWidth - popupWidth - 8))
-        const top = Math.min(rect.bottom + 8, window.innerHeight - 420)
+        const spaceBelow = window.innerHeight - rect.bottom
+        const top = spaceBelow >= popupHeight
+          ? rect.bottom + 8
+          : Math.max(8, rect.top - popupHeight - 8)
         setPortalPos({ top, left })
       }
     }
