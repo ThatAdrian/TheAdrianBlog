@@ -8,7 +8,7 @@ import ShareButton from '../components/ShareButton'
 import RelatedPosts from '../components/RelatedPosts'
 import InlineComments, { TrackCommentTrigger } from '../components/InlineComments'
 import LikeButton from '../components/LikeButton'
-import TrackPlayer from '../components/TrackPlayer'
+import TrackPlayer, { VolumeControl } from '../components/TrackPlayer'
 import { getAlbum, getAlbumPreviews, parseSpotifyAlbumId } from '../lib/spotify'
 
 function getCatClass(cat: string) {
@@ -101,7 +101,7 @@ export default function Post() {
           return (
             <div key={t.id} className="track-rating-row">
               {preview && (
-                <TrackPlayer previewUrl={preview} trackName={t.name} />
+                <TrackPlayer previewUrl={preview} trackName={t.name} rating={t.rating} />
               )}
               <TrackRating
                 trackId={`${postSlug}-${i}`}
@@ -196,6 +196,8 @@ export default function Post() {
         {renderContent()}
         <InlineComments postSlug={postSlug} />
       </div>
+
+      <VolumeControl />
 
       <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <RelatedPosts
