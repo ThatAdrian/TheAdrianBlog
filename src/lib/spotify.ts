@@ -5,19 +5,33 @@ let cachedToken: string | null = null
 let tokenExpiry = 0
 
 export async function getSpotifyToken(): Promise<string> {
-  if (cachedToken && Date.now() < tokenExpiry) return cachedToken
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
-    },
-    body: 'grant_type=client_credentials',
-  })
-  const data = await res.json()
-  cachedToken = data.access_token
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
-  return cachedToken!
+  if (cachedToken && Date.now() < tokenExpiry) {
+    console.log('[Spotify] Using cached token')
+    return cachedToken
+  }
+  console.log('[Spotify] Fetching new token...')
+  try {
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
+      },
+      body: 'grant_type=client_credentials',
+    })
+    if (!res.ok) {
+      console.error('[Spotify] Token request failed:', res.status, res.statusText)
+      throw new Error(`Token request failed: ${res.status}`)
+    }
+    const data = await res.json()
+    console.log('[Spotify] Token received OK')
+    cachedToken = data.access_token
+    tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
+    return cachedToken!
+  } catch (err) {
+    console.error('[Spotify] Token fetch error:', err)
+    throw err
+  }
 }
 
 export interface SpotifyTrack {
@@ -38,19 +52,25 @@ export interface SpotifyAlbum {
 }
 
 export async function getAlbum(albumId: string): Promise<SpotifyAlbum | null> {
+  console.log('[Spotify] Fetching album:', albumId)
   try {
     const token = await getSpotifyToken()
     const res = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    if (!res.ok) return null
-    return res.json()
-  } catch {
+    if (!res.ok) {
+      console.error('[Spotify] Album request failed:', res.status, res.statusText)
+      return null
+    }
+    const data = await res.json()
+    console.log('[Spotify] Album received:', data.name, '— tracks:', data.tracks?.items?.length)
+    return data
+  } catch (err) {
+    console.error('[Spotify] Album fetch error:', err)
     return null
   }
 }
 
-// Extract album ID from a Spotify URL or return as-is if already an ID
 export function parseSpotifyAlbumId(input: string): string {
   const match = input.match(/album\/([A-Za-z0-9]+)/)
   return match ? match[1] : input.trim()
