@@ -56,6 +56,7 @@ for (const file of files) {
     rating: parsed.rating || '',
     tracklist: parsed.tracklist || '',
     content: parsed.content || '',
+    spotifyAlbum: frontmatter.spotifyAlbum ?? null,
   })
 }
 
