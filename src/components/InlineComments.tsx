@@ -340,11 +340,11 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     const container = document.querySelector('.post-content-with-comments')
     if (!container || !container.contains(range.commonAncestorContainer)) return
     const rangeRect = range.getBoundingClientRect()
-    // Store viewport-relative position for the portal
     const popupWidth = 280
     const margin = 8
     const left = Math.max(margin, Math.min(rangeRect.left, window.innerWidth - popupWidth - margin))
-    const top = Math.min(rangeRect.bottom + 8, window.innerHeight - 420)
+    const maxTop = window.innerHeight - 420
+    const top = Math.min(rangeRect.bottom + 8, maxTop)
     setPending({ selectedText: text, viewportTop: top, viewportLeft: left })
   }
 
@@ -442,13 +442,7 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
         <div
           ref={popupRef}
           className="comment-popup"
-          style={{
-            position: 'fixed',
-            top: pending.viewportTop,
-            left: pending.viewportLeft,
-            width: 280,
-            zIndex: 1000,
-          }}
+          style={{ position: 'fixed', top: pending.viewportTop, left: pending.viewportLeft, width: 280, zIndex: 1000 }}
         >
           <CommentForm
             selectedText={pending.selectedText}
