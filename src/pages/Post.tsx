@@ -9,7 +9,7 @@ import RelatedPosts from '../components/RelatedPosts'
 import InlineComments, { TrackCommentTrigger } from '../components/InlineComments'
 import LikeButton from '../components/LikeButton'
 import TrackPlayer from '../components/TrackPlayer'
-import { getAlbum, parseSpotifyAlbumId, type SpotifyTrack } from '../lib/spotify'
+import { getAlbum, getAlbumPreviews, parseSpotifyAlbumId } from '../lib/spotify'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -50,21 +50,16 @@ export default function Post() {
     if (!loading && !post) navigate('/')
   }, [loading, post, navigate])
 
-  // Fetch Spotify previews if spotifyAlbum is set
+  // Fetch Deezer previews via Spotify album metadata
   useEffect(() => {
     if (loading || !post) return
     const albumField = (post as any)?.spotifyAlbum
-    console.log('[Post] spotifyAlbum field:', albumField)
     if (!albumField) return
     const albumId = parseSpotifyAlbumId(albumField)
-    console.log('[Post] Parsed album ID:', albumId)
-    getAlbum(albumId).then(album => {
+    getAlbum(albumId).then(async album => {
       if (!album) return
-      const map = new Map<string, string>()
-      album.tracks.items.forEach((t: SpotifyTrack) => {
-        if (t.preview_url) map.set(t.name.toLowerCase(), t.preview_url)
-      })
-      console.log('[Post] Preview map size:', map.size)
+      const artistName = album.artists[0]?.name ?? ''
+      const map = await getAlbumPreviews(album.tracks.items, artistName)
       setPreviewMap(map)
     })
   }, [loading, post?.slug])
