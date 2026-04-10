@@ -557,7 +557,7 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     document.dispatchEvent(new CustomEvent('comment-posted', { detail: { postSlug } }))
   }
 
-  const form = <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)} autoFocusInput={false}/>
+  const form = <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)} />
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
