@@ -509,12 +509,9 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
       const rect = btnRef.current?.getBoundingClientRect()
       if (rect) {
         const popupWidth = 280
-        const popupHeight = 320
-        const left = Math.max(8, Math.min(rect.left - popupWidth / 2, window.innerWidth - popupWidth - 8))
-        const spaceBelow = window.innerHeight - rect.bottom
-        const top = spaceBelow >= popupHeight
-          ? rect.bottom + 8
-          : Math.max(8, rect.top - popupHeight - 8)
+        // Place to the left of the button, vertically centred on it
+        const left = Math.max(8, rect.left - popupWidth - 8)
+        const top = Math.max(8, Math.min(rect.top - 60, window.innerHeight - 360))
         setPortalPos({ top, left })
       }
     }
