@@ -4,8 +4,6 @@ import './InlineComments.css'
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-
 export interface Comment {
   id: string
   post_slug: string
@@ -17,15 +15,6 @@ export interface Comment {
   user_rating: number | null
 }
 
-interface PendingComment {
-  selectedText: string
-  trackId?: string
-  x: number
-  y: number
-}
-
-// ── Supabase ───────────────────────────────────────────────────────────────────
-
 async function fetchComments(slug: string): Promise<Comment[]> {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/comments?post_slug=eq.${encodeURIComponent(slug)}&order=created_at.asc`,
@@ -36,20 +25,14 @@ async function fetchComments(slug: string): Promise<Comment[]> {
 }
 
 async function postComment(data: {
-  post_slug: string
-  display_name: string
-  content: string
-  selected_text: string
-  parent_id: string | null
-  user_rating: number | null
+  post_slug: string; display_name: string; content: string
+  selected_text: string; parent_id: string | null; user_rating: number | null
 }): Promise<Comment | null> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation',
+      apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json', Prefer: 'return=representation',
     },
     body: JSON.stringify(data),
   })
@@ -58,407 +41,248 @@ async function postComment(data: {
   return rows[0] ?? null
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
 function getInitial(name: string) { return name.trim().charAt(0).toUpperCase() }
-
 function getInitialColor(name: string) {
   const colors = ['#00f5ff', '#b400ff', '#00ff88', '#ff006e', '#0080ff', '#ffd000', '#ff6600']
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
 }
-
 function getRatingColor(r: number) {
-  if (r >= 5)   return '#ff00ff'
-  if (r >= 4.5) return '#dd00ff'
-  if (r >= 4)   return '#0088ff'
-  if (r >= 3.5) return '#00bbaa'
-  if (r >= 3)   return '#00cc44'
-  if (r >= 2.5) return '#aadd00'
-  if (r >= 2)   return '#ffd000'
-  if (r >= 1.5) return '#ff8c00'
-  if (r >= 1)   return '#ff6600'
+  if (r >= 5) return '#ff00ff'; if (r >= 4.5) return '#dd00ff'; if (r >= 4) return '#0088ff'
+  if (r >= 3.5) return '#00bbaa'; if (r >= 3) return '#00cc44'; if (r >= 2.5) return '#aadd00'
+  if (r >= 2) return '#ffd000'; if (r >= 1.5) return '#ff8c00'; if (r >= 1) return '#ff6600'
   return '#e63333'
 }
-
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  const days = Math.floor(hrs / 24)
-  return days < 7 ? `${days}d ago` : new Date(iso).toLocaleDateString()
+  if (mins < 1) return 'just now'; if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24); return days < 7 ? `${days}d ago` : new Date(iso).toLocaleDateString()
 }
 
-// ── Mini star picker ───────────────────────────────────────────────────────────
+// ── Key function: get top of a range relative to a container element ──────────
+// Uses getBoundingClientRect — both measured at the same instant so scroll-safe
+function getRangeTopRelativeTo(range: Range, container: HTMLElement): number {
+  const rangeRect = range.getBoundingClientRect()
+  const containerRect = container.getBoundingClientRect()
+  return rangeRect.bottom - containerRect.top
+}
 
+function getElementTopRelativeTo(el: Element, container: HTMLElement): number {
+  const elRect = el.getBoundingClientRect()
+  const containerRect = container.getBoundingClientRect()
+  return elRect.top - containerRect.top + elRect.height / 2 - 16
+}
+
+// ── Mini stars ────────────────────────────────────────────────────────────────
 function MiniStars({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hovered, setHovered] = useState(0)
   const active = hovered > 0 ? hovered : value
-  const color = value > 0 ? getRatingColor(value) : 'rgba(200,200,255,0.3)'
-
   return (
     <div className="mini-stars">
       <span className="mini-stars-label">Your rating:</span>
       <div className="mini-stars-row" onMouseLeave={() => setHovered(0)}>
-        {[1, 2, 3, 4, 5].map(i => {
+        {[1,2,3,4,5].map(i => {
           const fill = active >= i ? 'full' : active >= i - 0.5 ? 'half' : 'empty'
+          const col = getRatingColor(hovered > 0 ? hovered : value || 3)
           return (
-            <span
-              key={i}
-              className="mini-star"
-              onMouseMove={e => {
-                const rect = e.currentTarget.getBoundingClientRect()
-                setHovered(e.clientX - rect.left < rect.width / 2 ? i - 0.5 : i)
-              }}
-              onClick={e => {
-                const rect = e.currentTarget.getBoundingClientRect()
-                onChange(e.clientX - rect.left < rect.width / 2 ? i - 0.5 : i)
-              }}
+            <span key={i} className="mini-star"
+              onMouseMove={e => { const r = e.currentTarget.getBoundingClientRect(); setHovered(e.clientX - r.left < r.width/2 ? i-0.5 : i) }}
+              onClick={e => { const r = e.currentTarget.getBoundingClientRect(); onChange(e.clientX - r.left < r.width/2 ? i-0.5 : i) }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24">
-                <defs>
-                  {fill === 'half' && (
-                    <linearGradient id={`mh${i}`}>
-                      <stop offset="50%" stopColor={getRatingColor(hovered > 0 ? hovered : value)} />
-                      <stop offset="50%" stopColor="rgba(200,200,255,0.2)" />
-                    </linearGradient>
-                  )}
-                </defs>
-                <polygon
-                  points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                  fill={
-                    fill === 'empty' ? 'rgba(200,200,255,0.15)' :
-                    fill === 'half' ? `url(#mh${i})` :
-                    getRatingColor(hovered > 0 ? hovered : value)
-                  }
-                  stroke={fill === 'empty' ? 'rgba(200,200,255,0.15)' : getRatingColor(hovered > 0 ? hovered : value)}
-                  strokeWidth="1"
-                />
+                <defs>{fill==='half'&&<linearGradient id={`mh${i}`}><stop offset="50%" stopColor={col}/><stop offset="50%" stopColor="rgba(200,200,255,0.15)"/></linearGradient>}</defs>
+                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                  fill={fill==='empty'?'rgba(200,200,255,0.15)':fill==='half'?`url(#mh${i})`:col}
+                  stroke={fill==='empty'?'rgba(200,200,255,0.15)':col} strokeWidth="1"/>
               </svg>
             </span>
           )
         })}
-        {value > 0 && (
-          <span className="mini-stars-value" style={{ color: getRatingColor(value) }}>
-            {value.toFixed(1)}
-          </span>
-        )}
+        {value > 0 && <span className="mini-stars-value" style={{color:getRatingColor(value)}}>{value.toFixed(1)}</span>}
       </div>
     </div>
   )
 }
 
-// ── Comment form (shared) ──────────────────────────────────────────────────────
-
-function CommentForm({
-  selectedText,
-  isTrack,
-  onSubmit,
-  onCancel,
-}: {
-  selectedText: string
-  isTrack: boolean
-  onSubmit: (name: string, content: string, rating: number | null) => Promise<void>
+// ── Comment form ──────────────────────────────────────────────────────────────
+function CommentForm({ selectedText, isTrack, onSubmit, onCancel }: {
+  selectedText: string; isTrack: boolean
+  onSubmit: (name: string, content: string, rating: number|null) => Promise<void>
   onCancel: () => void
 }) {
   const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
   const [content, setContent] = useState('')
   const [rating, setRating] = useState(0)
   const [submitting, setSubmitting] = useState(false)
-
   async function handleSubmit() {
     if (!content.trim() || !name.trim()) return
-    setSubmitting(true)
-    localStorage.setItem('comment_name', name)
+    setSubmitting(true); localStorage.setItem('comment_name', name)
     await onSubmit(name, content, isTrack && rating > 0 ? rating : null)
     setSubmitting(false)
   }
-
   return (
     <div className="comment-form">
       <div className="comment-selected-text">
-        {isTrack ? `Track: "${selectedText}"` : `"${selectedText.slice(0, 100)}${selectedText.length > 100 ? '...' : ''}"`}
+        {isTrack ? `Track: "${selectedText}"` : `"${selectedText.slice(0,100)}${selectedText.length>100?'...':''}"`}
       </div>
-      {isTrack && <MiniStars value={rating} onChange={setRating} />}
-      <input
-        type="text"
-        placeholder="Your name"
-        value={name}
-        onChange={e => setName(e.target.value)}
-        className="comment-input comment-input--name"
-        maxLength={30}
-        autoFocus
-      />
-      <textarea
-        placeholder={isTrack ? 'Comment on this track...' : 'Add a comment...'}
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        className="comment-input comment-input--text"
-        rows={3}
-        maxLength={1000}
-      />
+      {isTrack && <MiniStars value={rating} onChange={setRating}/>}
+      <input type="text" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)}
+        className="comment-input comment-input--name" maxLength={30} autoFocus/>
+      <textarea placeholder={isTrack?'Comment on this track...':'Add a comment...'}
+        value={content} onChange={e=>setContent(e.target.value)}
+        className="comment-input comment-input--text" rows={3} maxLength={1000}/>
       <div className="comment-form-actions">
         <button className="comment-cancel" onClick={onCancel}>Cancel</button>
-        <button
-          className="comment-submit"
-          onClick={handleSubmit}
-          disabled={!content.trim() || !name.trim() || submitting}
-        >
-          {submitting ? 'Posting...' : 'Post'}
+        <button className="comment-submit" onClick={handleSubmit}
+          disabled={!content.trim()||!name.trim()||submitting}>
+          {submitting?'Posting...':'Post'}
         </button>
       </div>
     </div>
   )
 }
 
-// ── Thread popup ───────────────────────────────────────────────────────────────
+// ── Reply form ────────────────────────────────────────────────────────────────
+function ReplyForm({ comment, isTrack, onDone, onCancel }: {
+  comment: Comment; isTrack: boolean; onDone: () => void; onCancel: () => void
+}) {
+  const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
+  const [content, setContent] = useState('')
+  const [rating, setRating] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
+  async function handleSubmit() {
+    if (!content.trim() || !name.trim()) return
+    setSubmitting(true); localStorage.setItem('comment_name', name)
+    await postComment({ post_slug: comment.post_slug, display_name: name, content,
+      selected_text: comment.selected_text, parent_id: comment.id,
+      user_rating: isTrack && rating > 0 ? rating : null })
+    setSubmitting(false); onDone()
+  }
+  return (
+    <div className="comment-reply-input">
+      {isTrack && <MiniStars value={rating} onChange={setRating}/>}
+      <input type="text" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)}
+        className="comment-input comment-input--name" maxLength={30} autoFocus/>
+      <textarea placeholder="Write a reply..." value={content} onChange={e=>setContent(e.target.value)}
+        className="comment-input comment-input--text" rows={2} maxLength={1000}/>
+      <div className="comment-form-actions">
+        <button className="comment-cancel" onClick={onCancel}>Cancel</button>
+        <button className="comment-submit" onClick={handleSubmit}
+          disabled={!content.trim()||!name.trim()||submitting}>
+          {submitting?'Posting...':'Reply'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
-function ThreadPopup({
-  comments,
-  allComments,
-  onReply,
-  onClose,
-}: {
-  comments: Comment[]
-  allComments: Comment[]
-  onReply: (parentId: string, selectedText: string, isTrack: boolean) => void
-  onClose: () => void
+// ── Thread popup ──────────────────────────────────────────────────────────────
+function ThreadPopup({ comments, allComments, onReply, onClose }: {
+  comments: Comment[]; allComments: Comment[]
+  onReply: () => void; onClose: () => void
 }) {
   const [idx, setIdx] = useState(0)
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replying, setReplying] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const comment = comments[idx]
-
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
   }, [onClose])
-
   if (!comment) return null
   const replies = allComments.filter(c => c.parent_id === comment.id)
   const isTrack = comment.selected_text.startsWith('__track__')
-  const displayText = isTrack ? comment.selected_text.replace('__track__', '') : comment.selected_text
-
+  const displayText = isTrack ? comment.selected_text.replace('__track__','') : comment.selected_text
   return (
     <div ref={ref} className="comment-thread">
-      {/* Navigation if multiple comments */}
       {comments.length > 1 && (
         <div className="comment-thread-nav">
-          <button onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0}>‹</button>
-          <span>{idx + 1} / {comments.length}</span>
-          <button onClick={() => setIdx(i => Math.min(comments.length - 1, i + 1))} disabled={idx === comments.length - 1}>›</button>
+          <button onClick={()=>setIdx(i=>Math.max(0,i-1))} disabled={idx===0}>‹</button>
+          <span>{idx+1} / {comments.length}</span>
+          <button onClick={()=>setIdx(i=>Math.min(comments.length-1,i+1))} disabled={idx===comments.length-1}>›</button>
         </div>
       )}
-
       <div className="comment-selected-text">
-        {isTrack ? `Track: "${displayText}"` : `"${displayText.slice(0, 80)}${displayText.length > 80 ? '...' : ''}"`}
+        {isTrack?`Track: "${displayText}"`:`"${displayText.slice(0,80)}${displayText.length>80?'...':''}"`}
       </div>
-
-      {/* Root comment */}
       <div className="comment-item">
-        <span className="comment-avatar-sm" style={{ '--avatar-color': getInitialColor(comment.display_name) } as React.CSSProperties}>
-          {getInitial(comment.display_name)}
-        </span>
+        <span className="comment-avatar-sm" style={{'--avatar-color':getInitialColor(comment.display_name)} as React.CSSProperties}>{getInitial(comment.display_name)}</span>
         <div className="comment-item-body">
           <div className="comment-item-header">
             <span className="comment-item-name">{comment.display_name}</span>
-            {comment.user_rating && (
-              <span className="comment-item-rating" style={{ color: getRatingColor(comment.user_rating) }}>
-                ★ {comment.user_rating.toFixed(1)}
-              </span>
-            )}
+            {comment.user_rating&&<span className="comment-item-rating" style={{color:getRatingColor(comment.user_rating)}}>★ {comment.user_rating.toFixed(1)}</span>}
             <span className="comment-item-time">{timeAgo(comment.created_at)}</span>
           </div>
           <p className="comment-item-text">{comment.content}</p>
         </div>
       </div>
-
-      {/* Replies */}
-      {replies.map(reply => (
+      {replies.map(reply=>(
         <div key={reply.id} className="comment-item comment-item--reply">
-          <span className="comment-avatar-sm" style={{ '--avatar-color': getInitialColor(reply.display_name) } as React.CSSProperties}>
-            {getInitial(reply.display_name)}
-          </span>
+          <span className="comment-avatar-sm" style={{'--avatar-color':getInitialColor(reply.display_name)} as React.CSSProperties}>{getInitial(reply.display_name)}</span>
           <div className="comment-item-body">
             <div className="comment-item-header">
               <span className="comment-item-name">{reply.display_name}</span>
-              {reply.user_rating && (
-                <span className="comment-item-rating" style={{ color: getRatingColor(reply.user_rating) }}>
-                  ★ {reply.user_rating.toFixed(1)}
-                </span>
-              )}
+              {reply.user_rating&&<span className="comment-item-rating" style={{color:getRatingColor(reply.user_rating)}}>★ {reply.user_rating.toFixed(1)}</span>}
               <span className="comment-item-time">{timeAgo(reply.created_at)}</span>
             </div>
             <p className="comment-item-text">{reply.content}</p>
           </div>
         </div>
       ))}
-
-      {/* Reply input */}
-      {replyingTo === comment.id ? (
-        <ReplyForm
-          comment={comment}
-          isTrack={isTrack}
-          onSubmit={async (name, content, rating) => {
-            localStorage.setItem('comment_name', name)
-            await onReply(comment.id, comment.selected_text, isTrack)
-            setReplyingTo(null)
-          }}
-          onCancel={() => setReplyingTo(null)}
-        />
+      {replying ? (
+        <ReplyForm comment={comment} isTrack={isTrack}
+          onDone={()=>{setReplying(false);onReply()}} onCancel={()=>setReplying(false)}/>
       ) : (
-        <button className="comment-reply-btn" onClick={() => setReplyingTo(comment.id)}>
-          Reply
-        </button>
+        <button className="comment-reply-btn" onClick={()=>setReplying(true)}>Reply</button>
       )}
     </div>
   )
 }
 
-function ReplyForm({ comment, isTrack, onSubmit, onCancel }: {
-  comment: Comment
-  isTrack: boolean
-  onSubmit: (name: string, content: string, rating: number | null) => Promise<void>
-  onCancel: () => void
-}) {
-  const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
-  const [content, setContent] = useState('')
-  const [rating, setRating] = useState(0)
-  const [submitting, setSubmitting] = useState(false)
-
-  async function handleSubmit() {
-    if (!content.trim() || !name.trim()) return
-    setSubmitting(true)
-    localStorage.setItem('comment_name', name)
-
-    await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify({
-        post_slug: comment.post_slug,
-        display_name: name,
-        content,
-        selected_text: comment.selected_text,
-        parent_id: comment.id,
-        user_rating: isTrack && rating > 0 ? rating : null,
-      }),
-    })
-
-    await onSubmit(name, content, rating)
-    setSubmitting(false)
-  }
-
-  return (
-    <div className="comment-reply-input">
-      {isTrack && <MiniStars value={rating} onChange={setRating} />}
-      <input
-        type="text"
-        placeholder="Your name"
-        value={name}
-        onChange={e => setName(e.target.value)}
-        className="comment-input comment-input--name"
-        maxLength={30}
-        autoFocus
-      />
-      <textarea
-        placeholder="Write a reply..."
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        className="comment-input comment-input--text"
-        rows={2}
-        maxLength={1000}
-      />
-      <div className="comment-form-actions">
-        <button className="comment-cancel" onClick={onCancel}>Cancel</button>
-        <button
-          className="comment-submit"
-          onClick={handleSubmit}
-          disabled={!content.trim() || !name.trim() || submitting}
-        >
-          {submitting ? 'Posting...' : 'Reply'}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ── Comment stack badge ────────────────────────────────────────────────────────
-
+// ── Comment stack ─────────────────────────────────────────────────────────────
 function CommentStack({ comments, allComments, onReply, top }: {
-  comments: Comment[]
-  allComments: Comment[]
-  onReply: () => void
-  top: number
+  comments: Comment[]; allComments: Comment[]; onReply: () => void; top: number
 }) {
   const [open, setOpen] = useState(false)
   const first = comments[0]
   const color = getInitialColor(first.display_name)
   const multiple = comments.length > 1
-
-  const handleReply = async (parentId: string, selectedText: string, isTrack: boolean) => {
-    await onReply()
-  }
-
   return (
-    <div className="comment-stack" style={{ top }}>
-      <button
-        className={`comment-avatar ${multiple ? 'comment-avatar--stacked' : ''}`}
-        style={{ '--avatar-color': color } as React.CSSProperties}
-        onClick={() => setOpen(o => !o)}
-        title={multiple ? `${comments.length} comments` : `${first.display_name}: ${first.content}`}
-      >
-        {multiple ? (
-          <span className="comment-stack-count">{comments.length}</span>
-        ) : (
-          getInitial(first.display_name)
-        )}
-      </button>
+    <div className="comment-stack" style={{top}}>
       {multiple && (
-        <button
-          className="comment-avatar comment-avatar--behind"
-          style={{ '--avatar-color': getInitialColor(comments[1].display_name) } as React.CSSProperties}
-          onClick={() => setOpen(o => !o)}
-        >
+        <button className="comment-avatar comment-avatar--behind"
+          style={{'--avatar-color':getInitialColor(comments[1].display_name)} as React.CSSProperties}
+          onClick={()=>setOpen(o=>!o)}>
           {getInitial(comments[1].display_name)}
         </button>
       )}
-
+      <button className={`comment-avatar${multiple?' comment-avatar--stacked':''}`}
+        style={{'--avatar-color':color} as React.CSSProperties}
+        onClick={()=>setOpen(o=>!o)}
+        title={multiple?`${comments.length} comments`:`${first.display_name}: ${first.content}`}>
+        {multiple ? <span className="comment-stack-count">{comments.length}</span> : getInitial(first.display_name)}
+      </button>
       {open && (
-        <ThreadPopup
-          comments={comments}
-          allComments={allComments}
-          onReply={handleReply}
-          onClose={() => setOpen(false)}
-        />
+        <ThreadPopup comments={comments} allComments={allComments}
+          onReply={()=>{setOpen(false);onReply()}} onClose={()=>setOpen(false)}/>
       )}
     </div>
   )
 }
 
-// ── Main export ────────────────────────────────────────────────────────────────
-
-interface InlineCommentsProps {
-  postSlug: string
-}
+// ── Main ──────────────────────────────────────────────────────────────────────
+interface InlineCommentsProps { postSlug: string }
 
 export default function InlineComments({ postSlug }: InlineCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
-  const [pending, setPending] = useState<PendingComment | null>(null)
+  const [pending, setPending] = useState<{ selectedText: string; top: number } | null>(null)
+  const [stackPositions, setStackPositions] = useState<Map<string, number>>(new Map())
   const wrapRef = useRef<HTMLDivElement>(null)
   const popupRef = useRef<HTMLDivElement>(null)
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadComments = useCallback(async () => {
     const data = await fetchComments(postSlug)
@@ -467,205 +291,152 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
 
   useEffect(() => { loadComments() }, [loadComments])
 
-  // ── Selection detection (mouse) ──────────────────────────────────────────────
   useEffect(() => {
-    function onMouseUp(e: MouseEvent) {
-      if (popupRef.current?.contains(e.target as Node)) return
-      setTimeout(() => {
-        const sel = window.getSelection()
-        if (!sel || sel.isCollapsed) return
-        const text = sel.toString().trim()
-        if (!text) return
-
-        const range = sel.getRangeAt(0)
-        const container = document.querySelector('.post-content-with-comments')
-        if (!container || !container.contains(range.commonAncestorContainer)) return
-
-        const rect = range.getBoundingClientRect()
-        const wrapRect = wrapRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 }
-
-        setPending({
-          selectedText: text,
-          x: Math.max(0, rect.left - wrapRect.left),
-          y: rect.bottom - wrapRect.top + window.scrollY - (wrapRef.current?.getBoundingClientRect().top ?? 0) + 8,
-        })
-      }, 30)
+    const h = (e: Event) => {
+      const ce = e as CustomEvent
+      if (ce.detail?.postSlug === postSlug) loadComments()
     }
+    document.addEventListener('comment-posted', h)
+    return () => document.removeEventListener('comment-posted', h)
+  }, [postSlug, loadComments])
 
+  // ── Selection handler ───────────────────────────────────────────────────────
+  function tryCapture() {
+    if (!wrapRef.current) return
+    const sel = window.getSelection()
+    if (!sel || sel.isCollapsed) return
+    const text = sel.toString().trim()
+    if (!text) return
+    const range = sel.getRangeAt(0)
+    const container = document.querySelector('.post-content-with-comments')
+    if (!container || !container.contains(range.commonAncestorContainer)) return
+
+    // getBoundingClientRect subtraction — both measured at same instant, scroll-safe
+    const rangeRect = range.getBoundingClientRect()
+    const wrapRect = wrapRef.current.getBoundingClientRect()
+    const top = rangeRect.bottom - wrapRect.top
+
+    setPending({ selectedText: text, top })
+  }
+
+  useEffect(() => {
+    const onMouseUp = (e: MouseEvent) => {
+      if (popupRef.current?.contains(e.target as Node)) return
+      setTimeout(tryCapture, 30)
+    }
     document.addEventListener('mouseup', onMouseUp)
     return () => document.removeEventListener('mouseup', onMouseUp)
   }, [])
 
-  // ── Long press detection (touch/mobile) ─────────────────────────────────────
   useEffect(() => {
-    function onTouchStart(e: TouchEvent) {
-      const touch = e.touches[0]
-      longPressTimer.current = setTimeout(() => {
-        const sel = window.getSelection()
-        if (!sel || sel.isCollapsed) return
-        const text = sel.toString().trim()
-        if (!text) return
-
-        const range = sel.getRangeAt(0)
-        const container = document.querySelector('.post-content-with-comments')
-        if (!container || !container.contains(range.commonAncestorContainer)) return
-
-        const rect = range.getBoundingClientRect()
-        const wrapRect = wrapRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 }
-
-        setPending({
-          selectedText: text,
-          x: Math.max(0, touch.clientX - wrapRect.left - 100),
-          y: rect.bottom - wrapRect.top + 8,
-        })
-      }, 600)
+    const onTouchEnd = (e: TouchEvent) => {
+      if (popupRef.current?.contains(e.target as Node)) return
+      setTimeout(tryCapture, 200)
     }
-
-    function onTouchEnd() {
-      if (longPressTimer.current) clearTimeout(longPressTimer.current)
-    }
-
-    // Also detect touchend selection for iOS
-    function onTouchEndSelection() {
-      if (longPressTimer.current) clearTimeout(longPressTimer.current)
-      setTimeout(() => {
-        const sel = window.getSelection()
-        if (!sel || sel.isCollapsed) return
-        const text = sel.toString().trim()
-        if (!text) return
-
-        const range = sel.getRangeAt(0)
-        const container = document.querySelector('.post-content-with-comments')
-        if (!container || !container.contains(range.commonAncestorContainer)) return
-
-        const rect = range.getBoundingClientRect()
-        const wrapRect = wrapRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 }
-
-        setPending({
-          selectedText: text,
-          x: Math.max(0, rect.left - wrapRect.left),
-          y: rect.bottom - wrapRect.top + 8,
-        })
-      }, 100)
-    }
-
-    document.addEventListener('touchstart', onTouchStart, { passive: true })
-    document.addEventListener('touchend', onTouchEndSelection, { passive: true })
-    return () => {
-      document.removeEventListener('touchstart', onTouchStart)
-      document.removeEventListener('touchend', onTouchEndSelection)
-      if (longPressTimer.current) clearTimeout(longPressTimer.current)
-    }
+    document.addEventListener('touchend', onTouchEnd, { passive: true })
+    return () => document.removeEventListener('touchend', onTouchEnd)
   }, [])
 
-  // ── Close popup on outside click ────────────────────────────────────────────
   useEffect(() => {
     if (!pending) return
-    function onMouseDown(e: MouseEvent) {
+    const onDown = (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
-        setPending(null)
-        window.getSelection()?.removeAllRanges()
+        setPending(null); window.getSelection()?.removeAllRanges()
       }
     }
-    document.addEventListener('mousedown', onMouseDown)
-    return () => document.removeEventListener('mousedown', onMouseDown)
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
   }, [pending])
 
-  async function handleSubmit(name: string, content: string, rating: number | null) {
+  async function handleSubmit(name: string, content: string, rating: number|null) {
     if (!pending) return
-    await postComment({
-      post_slug: postSlug,
-      display_name: name,
-      content,
-      selected_text: pending.trackId ? `__track__${pending.selectedText}` : pending.selectedText,
-      parent_id: null,
-      user_rating: rating,
-    })
+    await postComment({ post_slug: postSlug, display_name: name, content,
+      selected_text: pending.selectedText, parent_id: null, user_rating: rating })
     await loadComments()
     setPending(null)
     window.getSelection()?.removeAllRanges()
   }
 
-  // ── Group root comments by selected_text for stacking ───────────────────────
+  // Group root comments
   const rootComments = comments.filter(c => !c.parent_id)
   const grouped = new Map<string, Comment[]>()
   rootComments.forEach(c => {
-    const key = c.selected_text
-    if (!grouped.has(key)) grouped.set(key, [])
-    grouped.get(key)!.push(c)
+    if (!grouped.has(c.selected_text)) grouped.set(c.selected_text, [])
+    grouped.get(c.selected_text)!.push(c)
   })
 
-  // ── Compute vertical positions for comment stacks ───────────────────────────
-  const [stackPositions, setStackPositions] = useState<Map<string, number>>(new Map())
-
+  // Compute stack positions using pure getBoundingClientRect
   useEffect(() => {
-  const positions = new Map<string, number>()
-  const wrapEl = wrapRef.current
-  if (!wrapEl) return
+    const wrap = wrapRef.current
+    if (!wrap) return
+    const positions = new Map<string, number>()
+    const wrapRect = wrap.getBoundingClientRect()
 
-  grouped.forEach((_, key) => {
-    const isTrack = key.startsWith('__track__')
-    const searchText = isTrack ? key.replace('__track__', '') : key
+    grouped.forEach((_, key) => {
+      const isTrack = key.startsWith('__track__')
+      const searchText = isTrack ? key.replace('__track__','') : key
 
-    if (isTrack) {
-      const trackEls = document.querySelectorAll('.track-rating')
-      trackEls.forEach(el => {
-        if (el.textContent?.includes(searchText)) {
-          const elRect = el.getBoundingClientRect()
-          const wrapRect = wrapEl.getBoundingClientRect()
-          positions.set(key, elRect.top - wrapRect.top + elRect.height / 2 - 16)
-        }
-      })
-    } else {
-      const prose = document.querySelector('.post-content-with-comments')
-      if (!prose) return
-      const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT)
-      while (walker.nextNode()) {
-        const node = walker.currentNode
-        const idx = node.textContent?.indexOf(searchText.slice(0, 30))
-        if (idx !== undefined && idx >= 0) {
-          const range = document.createRange()
-          range.setStart(node, idx)
-          range.setEnd(node, Math.min(idx + 30, node.textContent!.length))
-          const rect = range.getBoundingClientRect()
-          const wrapRect = wrapEl.getBoundingClientRect()
-          positions.set(key, rect.top - wrapRect.top + rect.height / 2 - 16)
-          break
+      if (isTrack) {
+        document.querySelectorAll('.track-rating').forEach(el => {
+          if (el.textContent?.includes(searchText)) {
+            const elRect = el.getBoundingClientRect()
+            positions.set(key, elRect.top - wrapRect.top + elRect.height / 2 - 16)
+          }
+        })
+      } else {
+        // Walk text nodes inside the content to find the passage
+        const container = document.querySelector('.post-content-with-comments')
+        if (!container) return
+        const needle = searchText.slice(0, 30)
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+        while (walker.nextNode()) {
+          const node = walker.currentNode
+          const idx = (node.textContent ?? '').indexOf(needle)
+          if (idx >= 0) {
+            try {
+              const range = document.createRange()
+              range.setStart(node, idx)
+              range.setEnd(node, Math.min(idx + needle.length, node.textContent!.length))
+              const rangeRect = range.getBoundingClientRect()
+              // Only set if rect has real dimensions (not zero)
+              if (rangeRect.height > 0) {
+                positions.set(key, rangeRect.top - wrapRect.top + rangeRect.height / 2 - 16)
+              }
+            } catch {}
+            break
+          }
         }
       }
-    }
-  })
-  setStackPositions(positions)
-}, [comments])
+    })
+    setStackPositions(positions)
+  }, [comments])
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600
 
   return (
     <div ref={wrapRef} className="inline-comments-wrap">
-
-      {/* Comment popup */}
       {pending && (
         <div
           ref={popupRef}
           className="comment-popup"
           style={{
             position: 'absolute',
-            left: Math.min(pending.x, window.innerWidth - 300),
-            top: pending.y,
+            top: pending.top + 8,
+            // On mobile: full width, left-aligned. On desktop: left-aligned near selection
+            left: 0,
+            right: isMobile ? 0 : 'auto',
             zIndex: 300,
           }}
         >
           <CommentForm
             selectedText={pending.selectedText}
-            isTrack={!!pending.trackId}
+            isTrack={false}
             onSubmit={handleSubmit}
-            onCancel={() => {
-              setPending(null)
-              window.getSelection()?.removeAllRanges()
-            }}
+            onCancel={() => { setPending(null); window.getSelection()?.removeAllRanges() }}
           />
         </div>
       )}
 
-      {/* Comment stacks in right margin */}
       <div className="comment-margin">
         {Array.from(grouped.entries()).map(([key, cmts]) => (
           <CommentStack
@@ -681,58 +452,33 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
   )
 }
 
-// ── Track comment button (exported for use in TrackRating) ─────────────────────
-
+// ── Track comment trigger ─────────────────────────────────────────────────────
 export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string; postSlug: string }) {
   const [open, setOpen] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-
   useEffect(() => {
     if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
   }, [open])
-
-  async function handleSubmit(name: string, content: string, rating: number | null) {
-    setSubmitting(true)
+  async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
-    await postComment({
-      post_slug: postSlug,
-      display_name: name,
-      content,
-      selected_text: `__track__${trackName}`,
-      parent_id: null,
-      user_rating: rating,
-    })
-    setSubmitting(false)
+    await postComment({ post_slug: postSlug, display_name: name, content,
+      selected_text: `__track__${trackName}`, parent_id: null, user_rating: rating })
     setOpen(false)
-    // Trigger a re-fetch in parent — use a custom event
     document.dispatchEvent(new CustomEvent('comment-posted', { detail: { postSlug } }))
   }
-
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        className="track-comment-btn"
-        onClick={() => setOpen(o => !o)}
-        title="Comment on this track"
-      >
+      <button className="track-comment-btn" onClick={() => setOpen(o => !o)} title="Comment on this track">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
       {open && (
-        <div className="comment-popup" style={{ position: 'absolute', right: 0, top: '110%', zIndex: 300, minWidth: 260 }}>
-          <CommentForm
-            selectedText={trackName}
-            isTrack={true}
-            onSubmit={handleSubmit}
-            onCancel={() => setOpen(false)}
-          />
+        <div className="comment-popup" style={{ position: 'absolute', right: 0, top: '110%', zIndex: 300 }}>
+          <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
         </div>
       )}
     </div>
