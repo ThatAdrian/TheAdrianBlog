@@ -18,8 +18,8 @@ const audioManager = {
 let globalVolume = 0.8
 const volumeListeners = new Set<(v: number) => void>()
 function setGlobalVolume(v: number) {
-  globalVolume = v
-  volumeListeners.forEach(fn => fn(v))
+  globalVolume = Math.max(0, Math.min(1, v))
+  volumeListeners.forEach(fn => fn(globalVolume))
 }
 
 // ── Rating colour ─────────────────────────────────────────────────────────────
@@ -52,6 +52,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
   const barsRef = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.04))
   const analyserRef = useRef<AnalyserNode | null>(null)
   const ctxRef = useRef<AudioContext | null>(null)
+  const gainRef = useRef<GainNode | null>(null)
   const color = rating > 0 ? getRatingColor(rating) : 'rgba(200,200,255,0.35)'
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
     })
 
     // Register volume listener with direct reference to this audio element
-    const fn = (v: number) => { audio.volume = v }
+    const fn = (v: number) => { audio.volume = v; if (gainRef.current) gainRef.current.gain.value = v }
     volumeListeners.add(fn)
 
     return () => {
@@ -158,8 +159,12 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
       const analyser = actx.createAnalyser()
       analyser.fftSize = 256
       analyser.smoothingTimeConstant = 0.75
+      const gain = actx.createGain()
+      gain.gain.value = globalVolume
+      gainRef.current = gain
       source.connect(analyser)
-      analyser.connect(actx.destination)
+      analyser.connect(gain)
+      gain.connect(actx.destination)
       analyserRef.current = analyser
     }
 
