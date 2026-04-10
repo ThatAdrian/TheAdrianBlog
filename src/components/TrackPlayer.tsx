@@ -62,12 +62,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
   const color = rating > 0 ? getRatingColor(rating) : 'rgba(200,200,255,0.35)'
 
   // Build idle bar shape from seed (track-specific, consistent)
-  const idleBars = useRef<Float32Array>(() => {
-    const rand = seededRand(trackName.split('').reduce((a, c) => a + c.charCodeAt(0), 0))
-    const arr = new Float32Array(BAR_COUNT)
-    for (let i = 0; i < BAR_COUNT; i++) arr[i] = 0.03 + rand() * 0.06
-    return arr
-  }())
+  const idleBars = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.04))
 
   const drawBars = useCallback(() => {
     const canvas = canvasRef.current
