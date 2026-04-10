@@ -504,6 +504,18 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     return () => { clearTimeout(t); document.removeEventListener('mousedown', h) }
   }, [open])
 
+  function handleOpen() {
+    const rect = btnRef.current?.getBoundingClientRect()
+    if (rect) {
+      const popupWidth = 280
+      const left = Math.max(8, rect.left - popupWidth - 8)
+      const maxTop = window.innerHeight - 400
+      const top = Math.min(rect.top, maxTop)
+      setPortalPos({ top, left })
+    }
+    setOpen(o => !o)
+  }
+
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
     await postComment({ post_slug: postSlug, display_name: name, content,
@@ -514,23 +526,19 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button ref={btnRef} className="track-comment-btn" onClick={() => setOpen(o => !o)} title="Comment on this track">
+      <button ref={btnRef} className="track-comment-btn" onClick={handleOpen} title="Comment on this track">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
 
-      {/* Render inline for both desktop and mobile — lets browser handle keyboard scroll naturally */}
-      {open && (
-        <div className="comment-popup" style={{
-          position: 'absolute',
-          right: 0,
-          bottom: '110%',
-          zIndex: 300,
-          width: 280,
-        }}>
-          <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
-        </div>
+      {open && portalPos && createPortal(
+        <div style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
+          <div className="comment-popup">
+            <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   )
