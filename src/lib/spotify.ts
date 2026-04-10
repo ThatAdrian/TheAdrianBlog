@@ -83,13 +83,12 @@ export async function getAlbumPreviews(
   tracks: { name: string }[],
   artistName: string
 ): Promise<Map<string, string>> {
-  const results = await Promise.all(
-    tracks.map(async t => {
-      const preview = await getDeezerPreview(t.name, artistName)
-      return { name: t.name.toLowerCase(), preview }
-    })
-  )
   const map = new Map<string, string>()
-  results.forEach(r => { if (r.preview) map.set(r.name, r.preview) })
+  for (const t of tracks) {
+    const preview = await getDeezerPreview(t.name, artistName)
+    if (preview) map.set(t.name.toLowerCase(), preview)
+    // Small delay to avoid Deezer rate limiting
+    await new Promise(r => setTimeout(r, 80))
+  }
   return map
 }
