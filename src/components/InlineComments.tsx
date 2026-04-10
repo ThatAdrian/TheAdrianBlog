@@ -68,12 +68,12 @@ function timeAgo(iso: string) {
 // ── Mobile bottom sheet ───────────────────────────────────────────────────────
 function MobileSheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const [bottom, setBottom] = useState(0)
+  const sheetRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
     function onResize() {
-      // When keyboard opens, visual viewport shrinks — lift sheet above keyboard
       const keyboardHeight = window.innerHeight - vv!.height - vv!.offsetTop
       setBottom(Math.max(0, keyboardHeight))
     }
@@ -85,8 +85,7 @@ function MobileSheet({ children, onClose }: { children: React.ReactNode; onClose
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
-      const el = document.getElementById('mobile-sheet-content')
-      if (el && !el.contains(e.target as Node)) onClose()
+      if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) onClose()
     }
     const t = setTimeout(() => document.addEventListener('mousedown', onDown), 50)
     return () => { clearTimeout(t); document.removeEventListener('mousedown', onDown) }
@@ -95,12 +94,13 @@ function MobileSheet({ children, onClose }: { children: React.ReactNode; onClose
   return createPortal(
     <>
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 }} onClick={onClose}/>
-      <div id="mobile-sheet-content" style={{
+      <div ref={sheetRef} style={{
         position: 'fixed', bottom, left: 0, right: 0,
         zIndex: 1000, padding: '0 0 env(safe-area-inset-bottom)',
         transition: 'bottom 0.15s ease',
+        display: 'flex', justifyContent: 'center',
       }}>
-        <div className="comment-thread" style={{ borderRadius: '16px 16px 0 0', width: '100%', maxHeight: '80vh', overflowY: 'auto' }}>
+        <div className="mobile-sheet-inner">
           {children}
         </div>
       </div>
@@ -180,8 +180,8 @@ function CommentForm({ selectedText, isTrack, onSubmit, onCancel, autoFocusInput
 }
 
 // ── Reply form ────────────────────────────────────────────────────────────────
-function ReplyForm({ comment, isTrack, onDone, onCancel }: {
-  comment: Comment; isTrack: boolean; onDone: () => void; onCancel: () => void
+function ReplyForm({ comment, isTrack, onDone, onCancel, autoFocusInput = true }: {
+  comment: Comment; isTrack: boolean; onDone: () => void; onCancel: () => void; autoFocusInput?: boolean
 }) {
   const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
   const [content, setContent] = useState('')
