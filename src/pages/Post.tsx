@@ -52,18 +52,22 @@ export default function Post() {
 
   // Fetch Spotify previews if spotifyAlbum is set
   useEffect(() => {
+    if (loading || !post) return
     const albumField = (post as any)?.spotifyAlbum
+    console.log('[Post] spotifyAlbum field:', albumField)
     if (!albumField) return
     const albumId = parseSpotifyAlbumId(albumField)
+    console.log('[Post] Parsed album ID:', albumId)
     getAlbum(albumId).then(album => {
       if (!album) return
       const map = new Map<string, string>()
       album.tracks.items.forEach((t: SpotifyTrack) => {
         if (t.preview_url) map.set(t.name.toLowerCase(), t.preview_url)
       })
+      console.log('[Post] Preview map size:', map.size)
       setPreviewMap(map)
     })
-  }, [post?.slug])
+  }, [loading, post?.slug])
 
   if (loading) return (
     <div className="post-detail">
