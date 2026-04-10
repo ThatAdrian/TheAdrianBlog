@@ -37,13 +37,7 @@ function getRatingColor(r: number): string {
   return '#e63333'
 }
 
-const BAR_COUNT = 40
-
-// Seeded pseudo-random for consistent bar shapes per track
-function seededRand(seed: number) {
-  let s = seed
-  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff }
-}
+const BAR_COUNT = 48
 
 interface TrackPlayerProps {
   previewUrl: string
@@ -57,68 +51,11 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
   const barsRef = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.04))
-  const targetBarsRef = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.04))
-  const phaseRef = useRef<number>(0)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const ctxRef = useRef<AudioContext | null>(null)
   const color = rating > 0 ? getRatingColor(rating) : 'rgba(200,200,255,0.35)'
 
-  // Build idle bar shape from seed (track-specific, consistent)
-  const idleBars = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.04))
-
-  const drawBars = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const W = canvas.width
-    const H = canvas.height
-    ctx.clearRect(0, 0, W, H)
-    const barW = W / BAR_COUNT
-    ctx.fillStyle = color
-
-    for (let i = 0; i < BAR_COUNT; i++) {
-      const h = Math.max(2, barsRef.current[i] * H)
-      ctx.globalAlpha = playing ? 0.9 : 0.2
-      ctx.fillRect(i * barW + 0.5, H - h, barW - 1, h)
-    }
-    ctx.globalAlpha = 1
-  }, [color, playing])
-
-  function animatePlaying() {
-    phaseRef.current += 0.04
-    const phase = phaseRef.current
-    const rand = seededRand(Math.floor(phase * 100))
-
-    for (let i = 0; i < BAR_COUNT; i++) {
-      // Combine sine waves at different frequencies for natural-looking bounce
-      const wave =
-        0.3 * Math.sin(phase * 2.1 + i * 0.4) +
-        0.2 * Math.sin(phase * 3.7 + i * 0.7) +
-        0.15 * Math.sin(phase * 1.3 + i * 1.1) +
-        0.1 * (rand() - 0.5)
-      targetBarsRef.current[i] = 0.25 + Math.abs(wave) * 0.55
-    }
-
-    // Smooth towards target
-    for (let i = 0; i < BAR_COUNT; i++) {
-      barsRef.current[i] = barsRef.current[i] * 0.65 + targetBarsRef.current[i] * 0.35
-    }
-
-    drawBars()
-    rafRef.current = requestAnimationFrame(animatePlaying)
-  }
-
-  function animateDecay() {
-    let allDone = true
-    for (let i = 0; i < BAR_COUNT; i++) {
-      barsRef.current[i] = barsRef.current[i] * 0.88 + idleBars.current[i] * 0.12
-      if (Math.abs(barsRef.current[i] - idleBars.current[i]) > 0.002) allDone = false
-    }
-    drawBars()
-    if (!allDone) rafRef.current = requestAnimationFrame(animateDecay)
-  }
-
   useEffect(() => {
-    // crossOrigin must be set BEFORE src for Web Audio API to work with cross-origin URLs
     const audio = new Audio()
     audio.crossOrigin = 'anonymous'
     audio.src = previewUrl
@@ -140,6 +77,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
     return () => {
       audio.pause()
       cancelAnimationFrame(rafRef.current)
+      ctxRef.current?.close()
     }
   }, [previewUrl])
 
@@ -149,10 +87,53 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
     return () => { volumeListeners.delete(fn) }
   }, [])
 
-  // Draw idle bars on mount
+  const drawBars = useCallback((alpha: number) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const W = canvas.width
+    const H = canvas.height
+    ctx.clearRect(0, 0, W, H)
+    const barW = W / BAR_COUNT
+
+    for (let i = 0; i < BAR_COUNT; i++) {
+      const h = Math.max(2, barsRef.current[i] * H)
+      ctx.globalAlpha = alpha
+      ctx.fillStyle = color
+      ctx.fillRect(i * barW + 0.5, H - h, barW - 1, h)
+    }
+    ctx.globalAlpha = 1
+  }, [color])
+
+  function animatePlaying() {
+    const analyser = analyserRef.current
+    if (analyser) {
+      // Real frequency data from Web Audio API
+      const data = new Uint8Array(analyser.frequencyBinCount)
+      analyser.getByteFrequencyData(data)
+      const step = Math.floor(data.length / BAR_COUNT)
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const raw = data[i * step] / 255
+        barsRef.current[i] = barsRef.current[i] * 0.6 + raw * 0.4
+      }
+    }
+    drawBars(0.9)
+    rafRef.current = requestAnimationFrame(animatePlaying)
+  }
+
+  function animateDecay() {
+    let allDone = true
+    for (let i = 0; i < BAR_COUNT; i++) {
+      barsRef.current[i] = barsRef.current[i] * 0.85 + 0.04 * 0.15
+      if (barsRef.current[i] > 0.045) allDone = false
+    }
+    drawBars(0.2)
+    if (!allDone) rafRef.current = requestAnimationFrame(animateDecay)
+  }
+
   useEffect(() => {
-    for (let i = 0; i < BAR_COUNT; i++) barsRef.current[i] = idleBars.current[i]
-    drawBars()
+    drawBars(0.2)
   }, [drawBars])
 
   async function toggle() {
@@ -164,24 +145,42 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
       cancelAnimationFrame(rafRef.current)
       setPlaying(false)
       animateDecay()
-    } else {
-      if (audioManager.current && audioManager.current !== audio) {
-        audioManager.stop()
-      }
-      audioManager.current = audio
-      try {
-        await audio.play()
-        setPlaying(true)
-        cancelAnimationFrame(rafRef.current)
-        animatePlaying()
-      } catch (err) {
-        console.error('Play failed:', err)
-      }
+      return
+    }
+
+    if (audioManager.current && audioManager.current !== audio) {
+      audioManager.stop()
+    }
+
+    // Create AudioContext in user gesture for Safari
+    if (!ctxRef.current) {
+      const actx = new AudioContext()
+      ctxRef.current = actx
+      const source = actx.createMediaElementSource(audio)
+      const analyser = actx.createAnalyser()
+      analyser.fftSize = 256
+      analyser.smoothingTimeConstant = 0.75
+      source.connect(analyser)
+      analyser.connect(actx.destination)
+      analyserRef.current = analyser
+    }
+
+    if (ctxRef.current.state === 'suspended') {
+      await ctxRef.current.resume()
+    }
+
+    audioManager.current = audio
+    try {
+      await audio.play()
+      setPlaying(true)
+      cancelAnimationFrame(rafRef.current)
+      animatePlaying()
+    } catch (err) {
+      console.error('Play failed:', err)
     }
   }
 
-  // Redraw when playing state changes
-  useEffect(() => { drawBars() }, [playing, drawBars])
+  useEffect(() => { drawBars(playing ? 0.9 : 0.2) }, [playing, drawBars])
 
   return (
     <div className="track-player">
@@ -205,8 +204,8 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
       <canvas
         ref={canvasRef}
         className="track-player-waveform"
-        width={200}
-        height={28}
+        width={600}
+        height={30}
         aria-hidden="true"
       />
     </div>
@@ -223,10 +222,6 @@ export function VolumeControl() {
     volumeListeners.add(fn)
     return () => { volumeListeners.delete(fn) }
   }, [])
-
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setGlobalVolume(parseFloat(e.target.value))
-  }
 
   const icon = volume === 0
     ? <><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></>
@@ -245,7 +240,7 @@ export function VolumeControl() {
         <div className="volume-slider-wrap">
           <input
             type="range" min="0" max="1" step="0.01"
-            value={volume} onChange={onChange}
+            value={volume} onChange={e => setGlobalVolume(parseFloat(e.target.value))}
             className="volume-slider" aria-label="Volume"
           />
           <span className="volume-label">{Math.round(volume * 100)}%</span>
