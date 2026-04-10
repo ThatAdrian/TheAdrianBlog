@@ -309,7 +309,7 @@ interface InlineCommentsProps { postSlug: string }
 
 export default function InlineComments({ postSlug }: InlineCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
-  const [pending, setPending] = useState<{ selectedText: string; top: number } | null>(null)
+  const [pending, setPending] = useState<{ selectedText: string; viewportTop: number; viewportLeft: number } | null>(null)
   const [stackPositions, setStackPositions] = useState<Map<string, number>>(new Map())
   const wrapRef = useRef<HTMLDivElement>(null)
   const popupRef = useRef<HTMLDivElement>(null)
@@ -340,9 +340,12 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     const container = document.querySelector('.post-content-with-comments')
     if (!container || !container.contains(range.commonAncestorContainer)) return
     const rangeRect = range.getBoundingClientRect()
-    const wrapRect = wrapRef.current.getBoundingClientRect()
-    const top = rangeRect.bottom - wrapRect.top
-    setPending({ selectedText: text, top })
+    // Store viewport-relative position for the portal
+    const popupWidth = 280
+    const margin = 8
+    const left = Math.max(margin, Math.min(rangeRect.left, window.innerWidth - popupWidth - margin))
+    const top = Math.min(rangeRect.bottom + 8, window.innerHeight - 420)
+    setPending({ selectedText: text, viewportTop: top, viewportLeft: left })
   }
 
   useEffect(() => {
@@ -435,11 +438,17 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
 
   return (
     <div ref={wrapRef} className="inline-comments-wrap">
-      {pending && (
+      {pending && createPortal(
         <div
           ref={popupRef}
           className="comment-popup"
-          style={{ position: 'absolute', top: pending.top + 8, left: 0, right: 0, zIndex: 300 }}
+          style={{
+            position: 'fixed',
+            top: pending.viewportTop,
+            left: pending.viewportLeft,
+            width: 280,
+            zIndex: 1000,
+          }}
         >
           <CommentForm
             selectedText={pending.selectedText}
@@ -447,7 +456,8 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
             onSubmit={handleSubmit}
             onCancel={() => { setPending(null); window.getSelection()?.removeAllRanges() }}
           />
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="comment-margin">
