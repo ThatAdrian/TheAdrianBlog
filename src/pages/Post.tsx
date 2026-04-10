@@ -63,7 +63,7 @@ export default function Post() {
       })
       setPreviewMap(map)
     })
-  }, [post])
+  }, [post?.slug])
 
   if (loading) return (
     <div className="post-detail">
