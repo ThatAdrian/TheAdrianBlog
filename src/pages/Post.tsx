@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { marked } from 'marked'
 import { usePosts } from '../hooks/usePosts'
@@ -7,6 +7,7 @@ import SEO from '../components/SEO'
 import ShareButton from '../components/ShareButton'
 import RelatedPosts from '../components/RelatedPosts'
 import InlineComments, { TrackCommentTrigger } from '../components/InlineComments'
+import LikeButton from '../components/LikeButton'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -129,7 +130,10 @@ export default function Post() {
         <h1 className="post-detail-title">{post.title}</h1>
         <div className="post-detail-meta-row">
           <p className="post-detail-meta">{post.date}</p>
-          <ShareButton title={post.title} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <LikeButton postSlug={postSlug} compact={false} />
+            <ShareButton title={post.title} />
+          </div>
         </div>
       </div>
 
