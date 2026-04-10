@@ -61,14 +61,17 @@ export async function getDeezerPreview(trackName: string, artistName: string): P
   try {
     const q = `track:"${trackName}" artist:"${artistName}"`
     const deezerUrl = `https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=1`
-    // Use allorigins which works from any domain
     const url = `https://api.allorigins.win/get?url=${encodeURIComponent(deezerUrl)}`
     const res = await fetch(url)
-    if (!res.ok) return null
+    if (!res.ok) { console.error('[Deezer] proxy failed:', res.status); return null }
     const wrapper = await res.json()
+    console.log('[Deezer] raw wrapper for', trackName, ':', wrapper.contents?.slice(0, 200))
     const data = JSON.parse(wrapper.contents)
-    return data?.data?.[0]?.preview ?? null
-  } catch {
+    const preview = data?.data?.[0]?.preview ?? null
+    console.log('[Deezer] preview for', trackName, ':', preview)
+    return preview
+  } catch (err) {
+    console.error('[Deezer] error for', trackName, ':', err)
     return null
   }
 }
