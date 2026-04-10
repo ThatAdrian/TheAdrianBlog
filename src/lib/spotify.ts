@@ -57,16 +57,16 @@ export function parseSpotifyAlbumId(input: string): string {
 }
 
 // ── Deezer preview fetching ───────────────────────────────────────────────────
-// Deezer CORS blocks browser requests, so we proxy through a simple CORS proxy
-const CORS_PROXY = 'https://corsproxy.io/?'
-
 export async function getDeezerPreview(trackName: string, artistName: string): Promise<string | null> {
   try {
-    const query = encodeURIComponent(`track:"${trackName}" artist:"${artistName}"`)
-    const url = `${CORS_PROXY}${encodeURIComponent(`https://api.deezer.com/search?q=${query}&limit=1`)}`
+    const q = `track:"${trackName}" artist:"${artistName}"`
+    const deezerUrl = `https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=1`
+    // Use allorigins which works from any domain
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent(deezerUrl)}`
     const res = await fetch(url)
     if (!res.ok) return null
-    const data = await res.json()
+    const wrapper = await res.json()
+    const data = JSON.parse(wrapper.contents)
     return data?.data?.[0]?.preview ?? null
   } catch {
     return null
