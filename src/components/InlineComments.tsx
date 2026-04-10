@@ -64,6 +64,51 @@ function timeAgo(iso: string) {
   const days = Math.floor(hrs / 24); return days < 7 ? `${days}d ago` : new Date(iso).toLocaleDateString()
 }
 
+
+// ── Mobile bottom sheet ───────────────────────────────────────────────────────
+function MobileSheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  const [bottom, setBottom] = useState(0)
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    function onResize() {
+      // When keyboard opens, visual viewport shrinks — lift sheet above keyboard
+      const keyboardHeight = window.innerHeight - vv!.height - vv!.offsetTop
+      setBottom(Math.max(0, keyboardHeight))
+    }
+    vv.addEventListener('resize', onResize)
+    vv.addEventListener('scroll', onResize)
+    onResize()
+    return () => { vv.removeEventListener('resize', onResize); vv.removeEventListener('scroll', onResize) }
+  }, [])
+
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      const el = document.getElementById('mobile-sheet-content')
+      if (el && !el.contains(e.target as Node)) onClose()
+    }
+    const t = setTimeout(() => document.addEventListener('mousedown', onDown), 50)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', onDown) }
+  }, [onClose])
+
+  return createPortal(
+    <>
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 }} onClick={onClose}/>
+      <div id="mobile-sheet-content" style={{
+        position: 'fixed', bottom, left: 0, right: 0,
+        zIndex: 1000, padding: '0 0 env(safe-area-inset-bottom)',
+        transition: 'bottom 0.15s ease',
+      }}>
+        <div className="comment-thread" style={{ borderRadius: '16px 16px 0 0', width: '100%', maxHeight: '80vh', overflowY: 'auto' }}>
+          {children}
+        </div>
+      </div>
+    </>,
+    document.body
+  )
+}
+
 // ── Mini stars ────────────────────────────────────────────────────────────────
 function MiniStars({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hovered, setHovered] = useState(0)
@@ -290,12 +335,11 @@ function CommentStack({ comments, allComments, onReply, top }: {
       {/* Desktop: inline, positioned via CSS */}
       {open && !isMobile() && threadEl}
 
-      {/* Mobile: portal to body, position fixed */}
-      {open && isMobile() && portalPos && createPortal(
-        <div style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
+      {/* Mobile: bottom sheet */}
+      {open && isMobile() && (
+        <MobileSheet onClose={() => setOpen(false)}>
           {threadEl}
-        </div>,
-        document.body
+        </MobileSheet>
       )}
     </div>
   )
@@ -467,13 +511,11 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
         </div>
       )}
 
-      {/* Mobile popup: fixed via portal */}
-      {pending && isMobile() && createPortal(
-        <div ref={popupRef} className="comment-popup"
-          style={{ position: 'fixed', top: pending.viewportTop, left: pending.viewportLeft, width: 280, zIndex: 1000 }}>
+      {/* Mobile popup: bottom sheet */}
+      {pending && isMobile() && (
+        <MobileSheet onClose={() => { setPending(null); window.getSelection()?.removeAllRanges() }}>
           {popupForm}
-        </div>,
-        document.body
+        </MobileSheet>
       )}
 
       <div className="comment-margin">
@@ -494,33 +536,18 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
 // ── Track comment trigger ─────────────────────────────────────────────────────
 export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string; postSlug: string }) {
   const [open, setOpen] = useState(false)
-  const [portalPos, setPortalPos] = useState<{ top: number; left: number } | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
-  const portalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!open) return
+    if (!open || isMobile()) return
     function onMouseDown(e: MouseEvent) {
-      const target = e.target as Node
-      if (wrapRef.current?.contains(target)) return
-      if (portalRef.current?.contains(target)) return
+      if (wrapRef.current?.contains(e.target as Node)) return
       setOpen(false)
     }
     const t = setTimeout(() => document.addEventListener('mousedown', onMouseDown), 50)
     return () => { clearTimeout(t); document.removeEventListener('mousedown', onMouseDown) }
   }, [open])
-
-  function handleOpen() {
-    const rect = btnRef.current?.getBoundingClientRect()
-    if (rect) {
-      const popupWidth = 280
-      const left = Math.max(8, rect.left - popupWidth - 8)
-      const top = Math.max(8, Math.min(rect.top, window.innerHeight - 400))
-      setPortalPos({ top, left })
-    }
-    setOpen(o => !o)
-  }
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
@@ -534,7 +561,7 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
-      <button ref={btnRef} className="track-comment-btn" onClick={handleOpen} title="Comment on this track">
+      <button ref={btnRef} className="track-comment-btn" onClick={() => setOpen(o => !o)} title="Comment on this track">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
@@ -547,12 +574,11 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
         </div>
       )}
 
-      {/* Mobile: same portal + fixed approach as thread popup */}
-      {open && isMobile() && portalPos && createPortal(
-        <div ref={portalRef} style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
-          <div className="comment-thread">{form}</div>
-        </div>,
-        document.body
+      {/* Mobile: bottom sheet */}
+      {open && isMobile() && (
+        <MobileSheet onClose={() => setOpen(false)}>
+          {form}
+        </MobileSheet>
       )}
     </div>
   )
