@@ -504,40 +504,16 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     return () => { clearTimeout(t); document.removeEventListener('mousedown', h) }
   }, [open])
 
-  function calcPos() {
-    const rect = btnRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const popupWidth = 280
-    const left = Math.max(8, rect.left - popupWidth - 8)
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
-    const viewportTop = window.visualViewport?.offsetTop ?? 0
-    const top = Math.max(8, Math.min(rect.top - viewportTop - 60, viewportHeight - 360))
-    setPortalPos({ top: top + (window.visualViewport?.offsetTop ?? 0), left })
-  }
-
   function handleOpen() {
-    if (isMobile()) {
-      setOpen(o => {
-        if (!o) setTimeout(calcPos, 350)
-        return !o
-      })
-    } else {
-      setOpen(o => !o)
+    const rect = btnRef.current?.getBoundingClientRect()
+    if (rect && isMobile()) {
+      const popupWidth = 280
+      const left = Math.max(8, rect.left - popupWidth - 8)
+      const top = Math.max(8, Math.min(rect.top, window.innerHeight - 400))
+      setPortalPos({ top, left })
     }
+    setOpen(o => !o)
   }
-
-  // Reposition when keyboard opens/closes
-  useEffect(() => {
-    if (!open || !isMobile()) return
-    const vv = window.visualViewport
-    if (!vv) return
-    vv.addEventListener('resize', calcPos)
-    vv.addEventListener('scroll', calcPos)
-    return () => {
-      vv.removeEventListener('resize', calcPos)
-      vv.removeEventListener('scroll', calcPos)
-    }
-  }, [open])
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
