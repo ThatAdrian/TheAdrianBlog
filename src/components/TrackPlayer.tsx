@@ -1,13 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import './TrackPlayer.css'
 
-interface TrackPlayerProps {
-  previewUrl: string
-  trackName: string
-  rating?: number
-}
-
-// Global audio manager — only one track plays at a time
+// ── Global audio manager ──────────────────────────────────────────────────────
 const audioManager = {
   current: null as HTMLAudioElement | null,
   stop() {
@@ -20,7 +14,7 @@ const audioManager = {
   }
 }
 
-// Global volume state shared across all players
+// ── Global volume ─────────────────────────────────────────────────────────────
 let globalVolume = 0.8
 const volumeListeners = new Set<(v: number) => void>()
 function setGlobalVolume(v: number) {
@@ -29,6 +23,7 @@ function setGlobalVolume(v: number) {
   if (audioManager.current) audioManager.current.volume = v
 }
 
+// ── Rating colour ─────────────────────────────────────────────────────────────
 function getRatingColor(r: number): string {
   if (r >= 5)   return '#ff00ff'
   if (r >= 4.5) return '#dd00ff'
@@ -44,19 +39,94 @@ function getRatingColor(r: number): string {
 
 const BAR_COUNT = 40
 
+// Seeded pseudo-random for consistent bar shapes per track
+function seededRand(seed: number) {
+  let s = seed
+  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff }
+}
+
+interface TrackPlayerProps {
+  previewUrl: string
+  trackName: string
+  rating?: number
+}
+
 export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: TrackPlayerProps) {
   const [playing, setPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const analyserRef = useRef<AnalyserNode | null>(null)
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null)
-  const ctxRef = useRef<AudioContext | null>(null)
   const rafRef = useRef<number>(0)
-  const barsRef = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.05))
-  const color = rating > 0 ? getRatingColor(rating) : 'rgba(200,200,255,0.4)'
+  const barsRef = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.04))
+  const targetBarsRef = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(0.04))
+  const phaseRef = useRef<number>(0)
+  const color = rating > 0 ? getRatingColor(rating) : 'rgba(200,200,255,0.35)'
+
+  // Build idle bar shape from seed (track-specific, consistent)
+  const idleBars = useRef<Float32Array>(() => {
+    const rand = seededRand(trackName.split('').reduce((a, c) => a + c.charCodeAt(0), 0))
+    const arr = new Float32Array(BAR_COUNT)
+    for (let i = 0; i < BAR_COUNT; i++) arr[i] = 0.03 + rand() * 0.06
+    return arr
+  }())
+
+  const drawBars = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const W = canvas.width
+    const H = canvas.height
+    ctx.clearRect(0, 0, W, H)
+    const barW = W / BAR_COUNT
+    ctx.fillStyle = color
+
+    for (let i = 0; i < BAR_COUNT; i++) {
+      const h = Math.max(2, barsRef.current[i] * H)
+      ctx.globalAlpha = playing ? 0.9 : 0.2
+      ctx.fillRect(i * barW + 0.5, H - h, barW - 1, h)
+    }
+    ctx.globalAlpha = 1
+  }, [color, playing])
+
+  function animatePlaying() {
+    phaseRef.current += 0.04
+    const phase = phaseRef.current
+    const rand = seededRand(Math.floor(phase * 100))
+
+    for (let i = 0; i < BAR_COUNT; i++) {
+      // Combine sine waves at different frequencies for natural-looking bounce
+      const wave =
+        0.3 * Math.sin(phase * 2.1 + i * 0.4) +
+        0.2 * Math.sin(phase * 3.7 + i * 0.7) +
+        0.15 * Math.sin(phase * 1.3 + i * 1.1) +
+        0.1 * (rand() - 0.5)
+      targetBarsRef.current[i] = 0.25 + Math.abs(wave) * 0.55
+    }
+
+    // Smooth towards target
+    for (let i = 0; i < BAR_COUNT; i++) {
+      barsRef.current[i] = barsRef.current[i] * 0.65 + targetBarsRef.current[i] * 0.35
+    }
+
+    drawBars()
+    rafRef.current = requestAnimationFrame(animatePlaying)
+  }
+
+  function animateDecay() {
+    let allDone = true
+    for (let i = 0; i < BAR_COUNT; i++) {
+      barsRef.current[i] = barsRef.current[i] * 0.88 + idleBars.current[i] * 0.12
+      if (Math.abs(barsRef.current[i] - idleBars.current[i]) > 0.002) allDone = false
+    }
+    drawBars()
+    if (!allDone) rafRef.current = requestAnimationFrame(animateDecay)
+  }
 
   useEffect(() => {
-    const audio = new Audio(previewUrl)
+    // crossOrigin must be set BEFORE src for Web Audio API to work with cross-origin URLs
+    const audio = new Audio()
+    audio.crossOrigin = 'anonymous'
+    audio.src = previewUrl
     audio.preload = 'none'
     audio.volume = globalVolume
     audioRef.current = audio
@@ -64,80 +134,31 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
     audio.addEventListener('ended', () => {
       setPlaying(false)
       cancelAnimationFrame(rafRef.current)
-      drawIdleBars()
+      animateDecay()
     })
     audio.addEventListener('externalpause', () => {
       setPlaying(false)
       cancelAnimationFrame(rafRef.current)
-      drawIdleBars()
+      animateDecay()
     })
 
     return () => {
       audio.pause()
       cancelAnimationFrame(rafRef.current)
-      ctxRef.current?.close()
     }
   }, [previewUrl])
 
-  // Subscribe to global volume changes
   useEffect(() => {
     const fn = (v: number) => { if (audioRef.current) audioRef.current.volume = v }
     volumeListeners.add(fn)
     return () => { volumeListeners.delete(fn) }
   }, [])
 
-  function drawBars(active: boolean) {
-    const canvas = canvasRef.current
-    const analyser = analyserRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const W = canvas.width
-    const H = canvas.height
-    ctx.clearRect(0, 0, W, H)
-
-    if (active && analyser) {
-      const data = new Uint8Array(analyser.frequencyBinCount)
-      analyser.getByteFrequencyData(data)
-      const step = Math.floor(data.length / BAR_COUNT)
-      for (let i = 0; i < BAR_COUNT; i++) {
-        const raw = data[i * step] / 255
-        // Smooth bars
-        barsRef.current[i] = barsRef.current[i] * 0.7 + raw * 0.3
-      }
-    } else {
-      // Decay to idle
-      for (let i = 0; i < BAR_COUNT; i++) {
-        barsRef.current[i] = Math.max(0.03, barsRef.current[i] * 0.85)
-      }
-    }
-
-    const barW = W / BAR_COUNT
-    const hex = color.startsWith('#') ? color : color
-    ctx.fillStyle = hex
-
-    for (let i = 0; i < BAR_COUNT; i++) {
-      const h = Math.max(2, barsRef.current[i] * H)
-      const x = i * barW
-      ctx.globalAlpha = active ? 0.85 : 0.25
-      ctx.fillRect(x + 1, H - h, barW - 2, h)
-    }
-    ctx.globalAlpha = 1
-  }
-
-  function drawIdleBars() {
-    function decay() {
-      const allIdle = barsRef.current.every(v => v <= 0.031)
-      drawBars(false)
-      if (!allIdle) rafRef.current = requestAnimationFrame(decay)
-    }
-    decay()
-  }
-
-  function animate() {
-    drawBars(true)
-    rafRef.current = requestAnimationFrame(animate)
-  }
+  // Draw idle bars on mount
+  useEffect(() => {
+    for (let i = 0; i < BAR_COUNT; i++) barsRef.current[i] = idleBars.current[i]
+    drawBars()
+  }, [drawBars])
 
   async function toggle() {
     const audio = audioRef.current
@@ -147,38 +168,25 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
       audio.pause()
       cancelAnimationFrame(rafRef.current)
       setPlaying(false)
-      drawIdleBars()
+      animateDecay()
     } else {
       if (audioManager.current && audioManager.current !== audio) {
         audioManager.stop()
       }
-      // Safari: must create AND resume AudioContext synchronously in user gesture
-      if (!ctxRef.current) {
-        const ctx = new AudioContext()
-        ctxRef.current = ctx
-        const source = ctx.createMediaElementSource(audio)
-        const analyser = ctx.createAnalyser()
-        analyser.fftSize = 128
-        source.connect(analyser)
-        analyser.connect(ctx.destination)
-        sourceRef.current = source
-        analyserRef.current = analyser
-      }
-      // Resume must also be in the gesture handler for Safari
-      if (ctxRef.current.state === 'suspended') {
-        await ctxRef.current.resume()
-      }
       audioManager.current = audio
-      await audio.play()
-      setPlaying(true)
-      animate()
+      try {
+        await audio.play()
+        setPlaying(true)
+        cancelAnimationFrame(rafRef.current)
+        animatePlaying()
+      } catch (err) {
+        console.error('Play failed:', err)
+      }
     }
   }
 
-  // Draw idle bars on mount
-  useEffect(() => {
-    drawBars(false)
-  }, [color])
+  // Redraw when playing state changes
+  useEffect(() => { drawBars() }, [playing, drawBars])
 
   return (
     <div className="track-player">
@@ -222,24 +230,18 @@ export function VolumeControl() {
   }, [])
 
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const v = parseFloat(e.target.value)
-    setGlobalVolume(v)
+    setGlobalVolume(parseFloat(e.target.value))
   }
 
   const icon = volume === 0
-    ? <path d="M11 5L6 9H2v6h4l5 4V5z M23 9l-6 6M17 9l6 6"/>
+    ? <><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></>
     : volume < 0.5
-    ? <path d="M11 5L6 9H2v6h4l5 4V5z M15.54 8.46a5 5 0 0 1 0 7.07"/>
-    : <path d="M11 5L6 9H2v6h4l5 4V5z M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+    ? <><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></>
+    : <><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></>
 
   return (
     <div className="volume-control">
-      <button
-        className="volume-btn"
-        onClick={() => setVisible(v => !v)}
-        aria-label="Volume"
-        title="Volume"
-      >
+      <button className="volume-btn" onClick={() => setVisible(v => !v)} aria-label="Volume">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           {icon}
         </svg>
@@ -247,12 +249,9 @@ export function VolumeControl() {
       {visible && (
         <div className="volume-slider-wrap">
           <input
-            type="range"
-            min="0" max="1" step="0.01"
-            value={volume}
-            onChange={onChange}
-            className="volume-slider"
-            aria-label="Volume"
+            type="range" min="0" max="1" step="0.01"
+            value={volume} onChange={onChange}
+            className="volume-slider" aria-label="Volume"
           />
           <span className="volume-label">{Math.round(volume * 100)}%</span>
         </div>
