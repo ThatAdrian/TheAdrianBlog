@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import BorderGlow from './BorderGlow'
+import LikeButton from './LikeButton'
+import { useCommentCount } from '../hooks/useCommentCount'
 
 interface Post {
   slug: string
@@ -39,6 +41,7 @@ function getCatColors(cat: string): string[] {
 
 export default function PostCard({ post, fromPath = '/' }: PostCardProps) {
   const primaryCat = post.categories[0] ?? 'General'
+  const commentCount = useCommentCount(post.slug)
 
   return (
     <BorderGlow
@@ -72,11 +75,17 @@ export default function PostCard({ post, fromPath = '/' }: PostCardProps) {
         </div>
         <div className="post-card-footer">
           <span className="read-more">Read Article <span>→</span></span>
-          {post.categories.length > 1 && (
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'Space Mono, monospace' }}>
-              +{post.categories.length - 1} more
-            </span>
-          )}
+          <div className="post-card-meta">
+            {commentCount > 0 && (
+              <span className="post-card-comment-count">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {commentCount}
+              </span>
+            )}
+            <LikeButton postSlug={post.slug} compact={true} />
+          </div>
         </div>
       </Link>
     </BorderGlow>
