@@ -6,7 +6,7 @@ Everything you need to write, style, and publish posts.
 
 ## How publishing works
 
-Every post is a `.md` (Markdown) file inside `content/posts/`. When you commit a new or edited file to GitHub, the site rebuilds and goes live automatically in about 60 seconds. That's it — no dashboard, no CMS, no build limits.
+Every post is a `.md` (Markdown) file inside `content/posts/`. When you commit a new or edited file to GitHub, the site rebuilds and goes live automatically in a bout 60 seconds. That's it — no dashboard, no CMS, no build limits.
 
 ---
 
