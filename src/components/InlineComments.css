@@ -70,7 +70,8 @@
 /* ── Thread popup ─────────────────────────────────────────────────── */
 .comment-thread {
   position: absolute;
-  right: 44px;
+  left: 44px;
+  right: auto;
   top: 0;
   width: 280px;
   background: rgba(7,5,25,0.97);
