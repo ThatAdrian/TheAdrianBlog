@@ -493,34 +493,17 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
 // ── Track comment trigger ─────────────────────────────────────────────────────
 export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string; postSlug: string }) {
   const [open, setOpen] = useState(false)
-  const [portalPos, setPortalPos] = useState<{ top: number; left: number } | null>(null)
-  const btnRef = useRef<HTMLButtonElement>(null)
-  const portalRef = useRef<HTMLDivElement>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
     function onMouseDown(e: MouseEvent) {
-      const target = e.target as Node
-      // Close only if click is outside both the button AND the portal popup
-      if (btnRef.current?.contains(target)) return
-      if (portalRef.current?.contains(target)) return
+      if (wrapRef.current?.contains(e.target as Node)) return
       setOpen(false)
     }
     const t = setTimeout(() => document.addEventListener('mousedown', onMouseDown), 50)
     return () => { clearTimeout(t); document.removeEventListener('mousedown', onMouseDown) }
   }, [open])
-
-  function handleOpen() {
-    const rect = btnRef.current?.getBoundingClientRect()
-    if (rect) {
-      const popupWidth = 280
-      const left = Math.max(8, rect.left - popupWidth - 8)
-      const maxTop = window.innerHeight - 400
-      const top = Math.min(rect.top, maxTop)
-      setPortalPos({ top, left })
-    }
-    setOpen(o => !o)
-  }
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
@@ -531,21 +514,18 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
   }
 
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
-      <button ref={btnRef} className="track-comment-btn" onClick={handleOpen} title="Comment on this track">
+    <div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
+      <button className="track-comment-btn" onClick={() => setOpen(o => !o)} title="Comment on this track">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
 
-      {open && portalPos && createPortal(
-        <div ref={portalRef} style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
-          <div className="comment-popup">
-            <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
-          </div>
-        </div>,
-        document.body
+      {open && (
+        <div className="comment-popup track-comment-popup">
+          <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
+        </div>
       )}
-    </span>
+    </div>
   )
 }
