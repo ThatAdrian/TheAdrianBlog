@@ -8,7 +8,7 @@ image: posts/glamour.jpg
 rating: 3.5
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/19ClzLdW04etl8QWDIGMxB?si=0573127124154f64"
-tracklist: OMG~2.5 | Separation ft. onlywoke~4 | The Man~3.5 | Legroom~3.5 | What the Vibe Is~2.5 | I GOTTA~2 | Something 2 Prove~3 | The Sky~2 | Call Me the Devil~3 | Ur All Mine~4 | Hard to Breathe~2 | Painless ft. Gunnr~3.5 | Truth~4.5 | Devotion~3 | Crush Em Up~3.5 | Keep Me Up ft. imnotvrycreative and onlywoke~2.5 | My Tears Are Glitter~2.5 | What I Do~3 | Overtime~4 | Found Me~3 | Get There ft. pryme!~2
+tracklist: OMG~2.5 | Separation (feat. onlywoke)~4 | The Man~3.5 | Legroom~3.5 | What the Vibe Is~2.5 | I GOTTA~2 | Something 2 Prove~3 | The Sky~2 | Call Me the Devil~3 | Ur All Mine~4 | Hard to Breathe~2 | Painless ft. Gunnr~3.5 | Truth~4.5 | Devotion~3 | Crush Em Up~3.5 | Keep Me Up ft. imnotvrycreative and onlywoke~2.5 | My Tears Are Glitter~2.5 | What I Do~3 | Overtime~4 | Found Me~3 | Get There ft. pryme!~2
 ---
 
 
