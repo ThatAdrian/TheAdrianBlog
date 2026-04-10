@@ -65,21 +65,25 @@ function timeAgo(iso: string) {
 }
 
 // ── Bottom sheet (mobile only) ────────────────────────────────────────────────
-// Renders at bottom of screen, uses visualViewport to stay above keyboard
+// Tracks visualViewport offsetTop + height so it stays anchored to the visible
+// area on iOS regardless of scroll position or keyboard state
 function BottomSheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const sheetRef = useRef<HTMLDivElement>(null)
-  const [offset, setOffset] = useState(0)
+  const [vv, setVv] = useState({ top: 0, height: window.innerHeight })
 
   useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
+    const viewport = window.visualViewport
+    if (!viewport) return
     function update() {
-      // keyboard height = difference between window height and visual viewport height
-      setOffset(window.innerHeight - vv!.height)
+      setVv({ top: viewport!.offsetTop, height: viewport!.height })
     }
-    vv.addEventListener('resize', update)
+    viewport.addEventListener('resize', update)
+    viewport.addEventListener('scroll', update)
     update()
-    return () => vv.removeEventListener('resize', update)
+    return () => {
+      viewport.removeEventListener('resize', update)
+      viewport.removeEventListener('scroll', update)
+    }
   }, [])
 
   useEffect(() => {
@@ -91,13 +95,18 @@ function BottomSheet({ children, onClose }: { children: React.ReactNode; onClose
   }, [onClose])
 
   return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 900, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)' }} onClick={onClose}/>
-      <div
-        ref={sheetRef}
-        className="bottom-sheet"
-        style={{ marginBottom: offset }}
-      >
+    <div style={{
+      position: 'fixed',
+      top: vv.top,
+      height: vv.height,
+      left: 0, right: 0,
+      zIndex: 900,
+      display: 'flex',
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+    }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} onClick={onClose}/>
+      <div ref={sheetRef} className="bottom-sheet">
         {children}
       </div>
     </div>,

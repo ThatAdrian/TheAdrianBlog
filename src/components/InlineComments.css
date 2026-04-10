@@ -130,12 +130,15 @@
 .comment-item-text { font-size: 0.78rem; color: rgba(220,220,255,0.72); line-height: 1.5; margin: 0; word-break: break-word; }
 
 .comment-reply-btn {
-  font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.06em;
-  background: transparent; border: 0.5px solid rgba(255,255,255,0.1);
-  color: rgba(200,200,255,0.4); border-radius: 6px; padding: 3px 10px;
-  cursor: pointer; margin-top: 0.25rem; transition: all 0.15s;
+  font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 0.06em;
+  background: rgba(0,245,255,0.08);
+  border: 1px solid rgba(0,245,255,0.35);
+  color: var(--accent-cyan);
+  border-radius: 6px; padding: 5px 14px;
+  cursor: pointer; margin-top: 0.5rem; transition: all 0.15s;
+  align-self: flex-start;
 }
-.comment-reply-btn:hover { border-color: rgba(0,245,255,0.3); color: var(--accent-cyan); }
+.comment-reply-btn:hover { background: rgba(0,245,255,0.18); border-color: rgba(0,245,255,0.6); }
 
 .comment-reply-input {
   display: flex; flex-direction: column; gap: 6px;
