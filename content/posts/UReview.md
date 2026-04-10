@@ -7,6 +7,7 @@ categories:
 image: posts/u.jpg
 rating: 4
 draft: false
+spotifyAlbum: "https://open.spotify.com/album/1qSS0T6Ffrb3rFVpizzOuk?si=399fdc7e35114dc7"
 tracklist: Tell Me U Want It~4 | Music~5 | Hollywood Forever~4.5 | The Peace~3.5 | Innuendo I Get U~3.5 | Lovefield~4.5 | Do It~5 | Bodyfeeling~3.5 | Wish U Well~3
 ---
 
