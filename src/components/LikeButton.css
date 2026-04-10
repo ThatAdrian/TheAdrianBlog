@@ -1,0 +1,75 @@
+/* ── Compact (card view) ──────────────────────────────────────────── */
+.like-btn--compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: rgba(200,200,255,0.4);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.like-btn--compact:hover {
+  color: #ff6b9d;
+}
+
+.like-btn--compact.liked {
+  color: #ff6b9d;
+}
+
+/* ── Full (post page) ─────────────────────────────────────────────── */
+.like-btn--full {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0.5rem 1.2rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(200,200,255,0.6);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.like-btn--full:hover {
+  border-color: rgba(255,107,157,0.4);
+  color: #ff6b9d;
+  background: rgba(255,107,157,0.06);
+}
+
+.like-btn--full.liked {
+  border-color: rgba(255,107,157,0.5);
+  color: #ff6b9d;
+  background: rgba(255,107,157,0.1);
+}
+
+.like-count {
+  font-size: 0.65rem;
+  color: rgba(200,200,255,0.4);
+  background: rgba(255,255,255,0.06);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.like-btn--full.liked .like-count {
+  color: #ff6b9d;
+  background: rgba(255,107,157,0.12);
+}
+
+/* ── Heart pop animation ──────────────────────────────────────────── */
+.like-btn.animating svg {
+  animation: heartPop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
