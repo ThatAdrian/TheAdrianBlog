@@ -599,43 +599,44 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
   const [stackPositions, setStackPositions] = useState<Map<string, number>>(new Map())
 
   useEffect(() => {
-    const positions = new Map<string, number>()
-    grouped.forEach((_, key) => {
-      const isTrack = key.startsWith('__track__')
-      const searchText = isTrack ? key.replace('__track__', '') : key
+  const positions = new Map<string, number>()
+  const wrapEl = wrapRef.current
+  if (!wrapEl) return
 
-      if (isTrack) {
-        // Find the track row element
-        const trackEls = document.querySelectorAll('.track-rating')
-        trackEls.forEach(el => {
-          if (el.textContent?.includes(searchText)) {
-            const rect = el.getBoundingClientRect()
-            const wrapRect = wrapRef.current?.getBoundingClientRect() ?? { top: 0 }
-            positions.set(key, rect.top - wrapRect.top + rect.height / 2 - 16)
-          }
-        })
-      } else {
-        // Find the text in prose
-        const prose = document.querySelector('.prose-custom')
-        if (!prose) return
-        const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT)
-        while (walker.nextNode()) {
-          const node = walker.currentNode
-          const idx = node.textContent?.indexOf(searchText.slice(0, 40))
-          if (idx !== undefined && idx >= 0) {
-            const range = document.createRange()
-            range.setStart(node, idx)
-            range.setEnd(node, Math.min(idx + searchText.length, node.textContent!.length))
-            const rect = range.getBoundingClientRect()
-            const wrapRect = wrapRef.current?.getBoundingClientRect() ?? { top: 0 }
-            positions.set(key, rect.top - wrapRect.top + rect.height / 2 - 16)
-            break
-          }
+  grouped.forEach((_, key) => {
+    const isTrack = key.startsWith('__track__')
+    const searchText = isTrack ? key.replace('__track__', '') : key
+
+    if (isTrack) {
+      const trackEls = document.querySelectorAll('.track-rating')
+      trackEls.forEach(el => {
+        if (el.textContent?.includes(searchText)) {
+          const elRect = el.getBoundingClientRect()
+          const wrapRect = wrapEl.getBoundingClientRect()
+          positions.set(key, elRect.top - wrapRect.top + elRect.height / 2 - 16)
+        }
+      })
+    } else {
+      const prose = document.querySelector('.post-content-with-comments')
+      if (!prose) return
+      const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT)
+      while (walker.nextNode()) {
+        const node = walker.currentNode
+        const idx = node.textContent?.indexOf(searchText.slice(0, 30))
+        if (idx !== undefined && idx >= 0) {
+          const range = document.createRange()
+          range.setStart(node, idx)
+          range.setEnd(node, Math.min(idx + 30, node.textContent!.length))
+          const rect = range.getBoundingClientRect()
+          const wrapRect = wrapEl.getBoundingClientRect()
+          positions.set(key, rect.top - wrapRect.top + rect.height / 2 - 16)
+          break
         }
       }
-    })
-    setStackPositions(positions)
-  }, [comments])
+    }
+  })
+  setStackPositions(positions)
+}, [comments])
 
   return (
     <div ref={wrapRef} className="inline-comments-wrap">
