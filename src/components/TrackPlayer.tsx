@@ -4,6 +4,7 @@ import './TrackPlayer.css'
 // ── Global audio manager ──────────────────────────────────────────────────────
 const audioManager = {
   current: null as HTMLAudioElement | null,
+  gain: null as GainNode | null,
   stop() {
     if (this.current) {
       this.current.pause()
@@ -11,6 +12,7 @@ const audioManager = {
       this.current.dispatchEvent(new Event('externalpause'))
     }
     this.current = null
+    this.gain = null
   }
 }
 
@@ -19,6 +21,8 @@ let globalVolume = 0.8
 const volumeListeners = new Set<(v: number) => void>()
 function setGlobalVolume(v: number) {
   globalVolume = Math.max(0, Math.min(1, v))
+  // Directly set gain on the currently playing audio graph
+  if (audioManager.gain) audioManager.gain.gain.value = globalVolume
   volumeListeners.forEach(fn => fn(globalVolume))
 }
 
@@ -162,6 +166,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
       const gain = actx.createGain()
       gain.gain.value = globalVolume
       gainRef.current = gain
+      audioManager.gain = gain
       source.connect(analyser)
       analyser.connect(gain)
       gain.connect(actx.destination)
