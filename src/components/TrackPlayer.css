@@ -1,9 +1,8 @@
-/* ── Track player ─────────────────────────────────────────────────── */
+/* ── Track player button + waveform ──────────────────────────────── */
 .track-player {
   display: flex;
   align-items: center;
   gap: 8px;
-  position: relative;
   flex-shrink: 0;
 }
 
@@ -21,6 +20,8 @@
   flex-shrink: 0;
   transition: all 0.15s;
   padding: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .track-player-btn:hover {
@@ -33,39 +34,35 @@
 }
 
 .track-player-waveform {
-  display: block;
-  width: 80px;
-  height: 28px;
-  flex-shrink: 0;
+  display: none; /* hidden inline, shown via absolute positioning */
 }
 
-/* ── Track rating row — waveform on bottom edge ───────────────────── */
+/* ── Track rating row — boxed with waveform on bottom ────────────── */
 .track-rating-row {
   display: flex;
   align-items: center;
   position: relative;
-  padding-bottom: 32px; /* room for waveform */
-  border-bottom: 0.5px solid rgba(255,255,255,0.05);
-  margin-bottom: 2px;
+  padding: 10px 12px 36px 12px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(255,255,255,0.07);
+  overflow: hidden;
+  transition: border-color 0.2s;
 }
 
-.track-rating-row .track-player {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  position: static;
+.track-rating-row:hover {
+  border-color: rgba(255,255,255,0.12);
 }
 
-.track-rating-row .track-player-btn {
-  margin-bottom: 4px;
-}
-
+/* Waveform canvas — pinned to bottom of the row box */
 .track-rating-row .track-player-waveform {
+  display: block;
   position: absolute;
-  bottom: 2px;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: 28px;
+  height: 30px;
   pointer-events: none;
 }
 
@@ -79,7 +76,6 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  /* Ensure it escapes any parent transforms */
   transform: translateZ(0);
 }
 
@@ -152,7 +148,6 @@
   text-align: right;
 }
 
-/* Hide volume control on mobile */
 @media (max-width: 900px) {
   .volume-control { display: none; }
 }
