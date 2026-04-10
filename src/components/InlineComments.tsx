@@ -4,6 +4,7 @@ import './InlineComments.css'
 
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
+const isMobile = () => window.innerWidth <= 900
 
 export interface Comment {
   id: string
@@ -175,21 +176,15 @@ function ThreadPopup({ comments, allComments, onReply, onClose }: {
   const [replying, setReplying] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const comment = comments[idx]
-
   useEffect(() => {
-    const h = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
-    }
-    // slight delay so the click that opened it doesn't immediately close it
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
     const t = setTimeout(() => document.addEventListener('mousedown', h), 50)
     return () => { clearTimeout(t); document.removeEventListener('mousedown', h) }
   }, [onClose])
-
   if (!comment) return null
   const replies = allComments.filter(c => c.parent_id === comment.id)
   const isTrack = comment.selected_text.startsWith('__track__')
   const displayText = isTrack ? comment.selected_text.replace('__track__','') : comment.selected_text
-
   return (
     <div ref={ref} className="comment-thread">
       {comments.length > 1 && (
@@ -251,25 +246,30 @@ function CommentStack({ comments, allComments, onReply, top }: {
     const rect = btnRef.current?.getBoundingClientRect()
     if (rect) {
       const popupWidth = 280
-      const margin = 8
-      // Place to the left of the button, but clamp so it never goes off-screen left
-      const left = Math.max(margin, rect.left - popupWidth - 8)
-      // Align top with button, but clamp so it doesn't go off-screen bottom
+      const left = Math.max(8, rect.left - popupWidth - 8)
       const maxTop = window.innerHeight - 400
-      const top = Math.min(rect.top, maxTop)
-      setPortalPos({ top, left })
+      setPortalPos({ top: Math.min(rect.top, maxTop), left })
     }
     setOpen(o => !o)
   }
 
+  // Desktop: render inline (position absolute, to the left via CSS)
+  // Mobile: render via portal (position fixed, calculated from button rect)
+  const threadEl = open ? (
+    <ThreadPopup
+      comments={comments}
+      allComments={allComments}
+      onReply={() => { setOpen(false); onReply() }}
+      onClose={() => setOpen(false)}
+    />
+  ) : null
+
   return (
     <div className="comment-stack" style={{ top }}>
       {multiple && (
-        <button
-          className="comment-avatar comment-avatar--behind"
+        <button className="comment-avatar comment-avatar--behind"
           style={{'--avatar-color': getInitialColor(comments[1].display_name)} as React.CSSProperties}
-          onClick={handleOpen}
-        >
+          onClick={handleOpen}>
           {getInitial(comments[1].display_name)}
         </button>
       )}
@@ -283,20 +283,13 @@ function CommentStack({ comments, allComments, onReply, top }: {
         {multiple ? <span className="comment-stack-count">{comments.length}</span> : getInitial(first.display_name)}
       </button>
 
-      {open && portalPos && createPortal(
-        <div style={{
-          position: 'fixed',
-          top: portalPos.top,
-          left: portalPos.left,
-          width: 280,
-          zIndex: 1000,
-        }}>
-          <ThreadPopup
-            comments={comments}
-            allComments={allComments}
-            onReply={() => { setOpen(false); onReply() }}
-            onClose={() => setOpen(false)}
-          />
+      {/* Desktop: inline, positioned via CSS */}
+      {open && !isMobile() && threadEl}
+
+      {/* Mobile: portal to body, position fixed */}
+      {open && isMobile() && portalPos && createPortal(
+        <div style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
+          {threadEl}
         </div>,
         document.body
       )}
@@ -309,7 +302,13 @@ interface InlineCommentsProps { postSlug: string }
 
 export default function InlineComments({ postSlug }: InlineCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
-  const [pending, setPending] = useState<{ selectedText: string; viewportTop: number; viewportLeft: number } | null>(null)
+  const [pending, setPending] = useState<{
+    selectedText: string
+    // desktop: relative to wrap
+    relTop: number
+    // mobile: viewport fixed
+    viewportTop: number; viewportLeft: number
+  } | null>(null)
   const [stackPositions, setStackPositions] = useState<Map<string, number>>(new Map())
   const wrapRef = useRef<HTMLDivElement>(null)
   const popupRef = useRef<HTMLDivElement>(null)
@@ -339,13 +338,20 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     const range = sel.getRangeAt(0)
     const container = document.querySelector('.post-content-with-comments')
     if (!container || !container.contains(range.commonAncestorContainer)) return
+
     const rangeRect = range.getBoundingClientRect()
+    const wrapRect = wrapRef.current.getBoundingClientRect()
+
+    // Desktop: position relative to wrap (absolute)
+    const relTop = rangeRect.bottom - wrapRect.top
+
+    // Mobile: position fixed relative to viewport, to the left of the margin
     const popupWidth = 280
     const margin = 8
-    const left = Math.max(margin, Math.min(rangeRect.left, window.innerWidth - popupWidth - margin))
-    const maxTop = window.innerHeight - 420
-    const top = Math.min(rangeRect.bottom + 8, maxTop)
-    setPending({ selectedText: text, viewportTop: top, viewportLeft: left })
+    const viewportLeft = Math.max(margin, Math.min(rangeRect.left, window.innerWidth - popupWidth - margin))
+    const viewportTop = Math.min(rangeRect.bottom + 8, window.innerHeight - 420)
+
+    setPending({ selectedText: text, relTop, viewportTop, viewportLeft })
   }
 
   useEffect(() => {
@@ -398,11 +404,9 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     if (!wrap) return
     const positions = new Map<string, number>()
     const wrapRect = wrap.getBoundingClientRect()
-
     grouped.forEach((_, key) => {
       const isTrack = key.startsWith('__track__')
       const searchText = isTrack ? key.replace('__track__','') : key
-
       if (isTrack) {
         document.querySelectorAll('.track-rating').forEach(el => {
           if (el.textContent?.includes(searchText)) {
@@ -436,20 +440,31 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     setStackPositions(positions)
   }, [comments])
 
+  const popupForm = pending ? (
+    <CommentForm
+      selectedText={pending.selectedText}
+      isTrack={false}
+      onSubmit={handleSubmit}
+      onCancel={() => { setPending(null); window.getSelection()?.removeAllRanges() }}
+    />
+  ) : null
+
   return (
     <div ref={wrapRef} className="inline-comments-wrap">
-      {pending && createPortal(
-        <div
-          ref={popupRef}
-          className="comment-popup"
-          style={{ position: 'fixed', top: pending.viewportTop, left: pending.viewportLeft, width: 280, zIndex: 1000 }}
-        >
-          <CommentForm
-            selectedText={pending.selectedText}
-            isTrack={false}
-            onSubmit={handleSubmit}
-            onCancel={() => { setPending(null); window.getSelection()?.removeAllRanges() }}
-          />
+
+      {/* Desktop popup: absolute within wrap */}
+      {pending && !isMobile() && (
+        <div ref={popupRef} className="comment-popup"
+          style={{ position: 'absolute', top: pending.relTop + 8, left: 0, zIndex: 300 }}>
+          {popupForm}
+        </div>
+      )}
+
+      {/* Mobile popup: fixed via portal */}
+      {pending && isMobile() && createPortal(
+        <div ref={popupRef} className="comment-popup"
+          style={{ position: 'fixed', top: pending.viewportTop, left: pending.viewportLeft, width: 280, zIndex: 1000 }}>
+          {popupForm}
         </div>,
         document.body
       )}
@@ -472,7 +487,9 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
 // ── Track comment trigger ─────────────────────────────────────────────────────
 export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string; postSlug: string }) {
   const [open, setOpen] = useState(false)
+  const [portalPos, setPortalPos] = useState<{ top: number; left: number } | null>(null)
   const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -480,6 +497,19 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     const t = setTimeout(() => document.addEventListener('mousedown', h), 50)
     return () => { clearTimeout(t); document.removeEventListener('mousedown', h) }
   }, [open])
+
+  function handleOpen() {
+    if (isMobile()) {
+      const rect = btnRef.current?.getBoundingClientRect()
+      if (rect) {
+        const popupWidth = 280
+        const left = Math.max(8, Math.min(rect.left - popupWidth / 2, window.innerWidth - popupWidth - 8))
+        const top = Math.min(rect.bottom + 8, window.innerHeight - 420)
+        setPortalPos({ top, left })
+      }
+    }
+    setOpen(o => !o)
+  }
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
@@ -489,17 +519,33 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     document.dispatchEvent(new CustomEvent('comment-posted', { detail: { postSlug } }))
   }
 
+  const form = (
+    <div className="comment-popup">
+      <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
+    </div>
+  )
+
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
-      <button className="track-comment-btn" onClick={() => setOpen(o => !o)} title="Comment on this track">
+      <button ref={btnRef} className="track-comment-btn" onClick={handleOpen} title="Comment on this track">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
-      {open && (
-        <div className="comment-popup" style={{ position: 'absolute', right: 0, top: '110%', zIndex: 300 }}>
-          <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
+
+      {/* Desktop: absolute below button */}
+      {open && !isMobile() && (
+        <div style={{ position: 'absolute', right: 0, top: '110%', zIndex: 300 }}>
+          {form}
         </div>
+      )}
+
+      {/* Mobile: fixed via portal */}
+      {open && isMobile() && portalPos && createPortal(
+        <div style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
+          {form}
+        </div>,
+        document.body
       )}
     </div>
   )
