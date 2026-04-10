@@ -96,10 +96,11 @@ function MiniStars({ value, onChange }: { value: number; onChange: (v: number) =
 }
 
 // ── Comment form ──────────────────────────────────────────────────────────────
-function CommentForm({ selectedText, isTrack, onSubmit, onCancel }: {
+function CommentForm({ selectedText, isTrack, onSubmit, onCancel, autoFocusInput = true }: {
   selectedText: string; isTrack: boolean
   onSubmit: (name: string, content: string, rating: number|null) => Promise<void>
   onCancel: () => void
+  autoFocusInput?: boolean
 }) {
   const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
   const [content, setContent] = useState('')
@@ -118,7 +119,7 @@ function CommentForm({ selectedText, isTrack, onSubmit, onCancel }: {
       </div>
       {isTrack && <MiniStars value={rating} onChange={setRating}/>}
       <input type="text" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)}
-        className="comment-input comment-input--name" maxLength={30} autoFocus/>
+        className="comment-input comment-input--name" maxLength={30} autoFocus={autoFocusInput}/>
       <textarea placeholder={isTrack?'Comment on this track...':'Add a comment...'}
         value={content} onChange={e=>setContent(e.target.value)}
         className="comment-input comment-input--text" rows={3} maxLength={1000}/>
@@ -153,7 +154,7 @@ function ReplyForm({ comment, isTrack, onDone, onCancel }: {
     <div className="comment-reply-input">
       {isTrack && <MiniStars value={rating} onChange={setRating}/>}
       <input type="text" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)}
-        className="comment-input comment-input--name" maxLength={30} autoFocus/>
+        className="comment-input comment-input--name" maxLength={30} autoFocus={autoFocusInput}/>
       <textarea placeholder="Write a reply..." value={content} onChange={e=>setContent(e.target.value)}
         className="comment-input comment-input--text" rows={2} maxLength={1000}/>
       <div className="comment-form-actions">
@@ -493,17 +494,33 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
 // ── Track comment trigger ─────────────────────────────────────────────────────
 export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string; postSlug: string }) {
   const [open, setOpen] = useState(false)
+  const [portalPos, setPortalPos] = useState<{ top: number; left: number } | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const portalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
     function onMouseDown(e: MouseEvent) {
-      if (wrapRef.current?.contains(e.target as Node)) return
+      const target = e.target as Node
+      if (wrapRef.current?.contains(target)) return
+      if (portalRef.current?.contains(target)) return
       setOpen(false)
     }
     const t = setTimeout(() => document.addEventListener('mousedown', onMouseDown), 50)
     return () => { clearTimeout(t); document.removeEventListener('mousedown', onMouseDown) }
   }, [open])
+
+  function handleOpen() {
+    const rect = btnRef.current?.getBoundingClientRect()
+    if (rect) {
+      const popupWidth = 280
+      const left = Math.max(8, rect.left - popupWidth - 8)
+      const top = Math.max(8, Math.min(rect.top, window.innerHeight - 400))
+      setPortalPos({ top, left })
+    }
+    setOpen(o => !o)
+  }
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
@@ -513,18 +530,29 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     document.dispatchEvent(new CustomEvent('comment-posted', { detail: { postSlug } }))
   }
 
+  const form = <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)} autoFocusInput={false}/>
+
   return (
     <div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
-      <button className="track-comment-btn" onClick={() => setOpen(o => !o)} title="Comment on this track">
+      <button ref={btnRef} className="track-comment-btn" onClick={handleOpen} title="Comment on this track">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
 
-      {open && (
-        <div className="comment-popup track-comment-popup">
-          <CommentForm selectedText={trackName} isTrack={true} onSubmit={handleSubmit} onCancel={() => setOpen(false)}/>
+      {/* Desktop: inline absolute */}
+      {open && !isMobile() && (
+        <div style={{ position: 'absolute', right: 0, top: '110%', zIndex: 300 }}>
+          <div className="comment-popup">{form}</div>
         </div>
+      )}
+
+      {/* Mobile: same portal + fixed approach as thread popup */}
+      {open && isMobile() && portalPos && createPortal(
+        <div ref={portalRef} style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
+          <div className="comment-thread">{form}</div>
+        </div>,
+        document.body
       )}
     </div>
   )
