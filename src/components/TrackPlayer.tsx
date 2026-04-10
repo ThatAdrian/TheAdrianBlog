@@ -73,19 +73,17 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
       animateDecay()
     })
 
+    // Register volume listener with direct reference to this audio element
+    const fn = (v: number) => { audio.volume = v }
+    volumeListeners.add(fn)
+
     return () => {
       audio.pause()
       cancelAnimationFrame(rafRef.current)
       ctxRef.current?.close()
+      volumeListeners.delete(fn)
     }
   }, [previewUrl])
-
-  useEffect(() => {
-    const fn = (v: number) => { if (audioRef.current) audioRef.current.volume = v }
-    volumeListeners.add(fn)
-    if (audioRef.current) audioRef.current.volume = globalVolume
-    return () => { volumeListeners.delete(fn) }
-  }, [])
 
   const drawBars = useCallback((alpha: number) => {
     const canvas = canvasRef.current
