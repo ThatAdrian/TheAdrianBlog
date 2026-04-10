@@ -1061,3 +1061,19 @@ body {
     padding-right: 38px;
   }
 }
+
+/* ── Post card footer meta (likes + comment count) ───────────────── */
+.post-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.post-card-comment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(200,200,255,0.35);
+}
