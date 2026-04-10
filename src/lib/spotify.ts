@@ -56,22 +56,24 @@ export function parseSpotifyAlbumId(input: string): string {
   return match ? match[1] : input.trim()
 }
 
-// ── Deezer preview fetching ───────────────────────────────────────────────────
+// ── Deezer preview fetching via Supabase Edge Function ───────────────────────
+const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
+
 export async function getDeezerPreview(trackName: string, artistName: string): Promise<string | null> {
   try {
-    const q = `track:"${trackName}" artist:"${artistName}"`
-    const deezerUrl = `https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=1`
-    const url = `https://api.allorigins.win/get?url=${encodeURIComponent(deezerUrl)}`
-    const res = await fetch(url)
-    if (!res.ok) { console.error('[Deezer] proxy failed:', res.status); return null }
-    const wrapper = await res.json()
-    console.log('[Deezer] raw wrapper for', trackName, ':', wrapper.contents?.slice(0, 200))
-    const data = JSON.parse(wrapper.contents)
-    const preview = data?.data?.[0]?.preview ?? null
-    console.log('[Deezer] preview for', trackName, ':', preview)
-    return preview
-  } catch (err) {
-    console.error('[Deezer] error for', trackName, ':', err)
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/deezer-preview`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+      body: JSON.stringify({ trackName, artistName }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.preview ?? null
+  } catch {
     return null
   }
 }
