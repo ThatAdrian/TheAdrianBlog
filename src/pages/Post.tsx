@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { marked } from 'marked'
 import { usePosts } from '../hooks/usePosts'
@@ -8,6 +8,8 @@ import ShareButton from '../components/ShareButton'
 import RelatedPosts from '../components/RelatedPosts'
 import InlineComments, { TrackCommentTrigger } from '../components/InlineComments'
 import LikeButton from '../components/LikeButton'
+import TrackPlayer from '../components/TrackPlayer'
+import { getAlbum, parseSpotifyAlbumId, type SpotifyTrack } from '../lib/spotify'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -39,6 +41,7 @@ export default function Post() {
   const { posts, loading } = usePosts()
   const navigate = useNavigate()
   const location = useLocation()
+  const [previewMap, setPreviewMap] = useState<Map<string, string>>(new Map())
 
   const referrer = (location.state as any)?.from ?? '/'
   const post = posts.find(p => p.slug === slug)
@@ -46,6 +49,21 @@ export default function Post() {
   useEffect(() => {
     if (!loading && !post) navigate('/')
   }, [loading, post, navigate])
+
+  // Fetch Spotify previews if spotifyAlbum is set
+  useEffect(() => {
+    const albumField = (post as any)?.spotifyAlbum
+    if (!albumField) return
+    const albumId = parseSpotifyAlbumId(albumField)
+    getAlbum(albumId).then(album => {
+      if (!album) return
+      const map = new Map<string, string>()
+      album.tracks.items.forEach((t: SpotifyTrack) => {
+        if (t.preview_url) map.set(t.name.toLowerCase(), t.preview_url)
+      })
+      setPreviewMap(map)
+    })
+  }, [post])
 
   if (loading) return (
     <div className="post-detail">
@@ -64,20 +82,37 @@ export default function Post() {
     ? post.image.startsWith('http') ? post.image : `/${post.image}`
     : undefined
 
+  // Match track name to Spotify preview — fuzzy match by lowercase includes
+  function getPreview(trackName: string): string | null {
+    const key = trackName.toLowerCase()
+    if (previewMap.has(key)) return previewMap.get(key)!
+    // Fuzzy: find any key that contains the track name or vice versa
+    for (const [k, v] of previewMap) {
+      if (k.includes(key) || key.includes(k)) return v
+    }
+    return null
+  }
+
   const TrackListBlock = () => (
     <>
       <h2 style={trackHeadingStyle}>Track Ratings</h2>
       <div className="track-list">
-        {tracks.map((t, i) => (
-          <div key={t.id} className="track-rating-row">
-            <TrackRating
-              trackId={`${postSlug}-${i}`}
-              trackName={t.name}
-              artistRating={t.rating}
-            />
-            <TrackCommentTrigger trackName={t.name} postSlug={postSlug} />
-          </div>
-        ))}
+        {tracks.map((t, i) => {
+          const preview = getPreview(t.name)
+          return (
+            <div key={t.id} className="track-rating-row">
+              {preview && (
+                <TrackPlayer previewUrl={preview} trackName={t.name} />
+              )}
+              <TrackRating
+                trackId={`${postSlug}-${i}`}
+                trackName={t.name}
+                artistRating={t.rating}
+              />
+              <TrackCommentTrigger trackName={t.name} postSlug={postSlug} />
+            </div>
+          )
+        })}
       </div>
     </>
   )
