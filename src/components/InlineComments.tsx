@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import './InlineComments.css'
 
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
@@ -60,20 +61,6 @@ function timeAgo(iso: string) {
   if (mins < 1) return 'just now'; if (mins < 60) return `${mins}m ago`
   const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs}h ago`
   const days = Math.floor(hrs / 24); return days < 7 ? `${days}d ago` : new Date(iso).toLocaleDateString()
-}
-
-// ── Key function: get top of a range relative to a container element ──────────
-// Uses getBoundingClientRect — both measured at the same instant so scroll-safe
-function getRangeTopRelativeTo(range: Range, container: HTMLElement): number {
-  const rangeRect = range.getBoundingClientRect()
-  const containerRect = container.getBoundingClientRect()
-  return rangeRect.bottom - containerRect.top
-}
-
-function getElementTopRelativeTo(el: Element, container: HTMLElement): number {
-  const elRect = el.getBoundingClientRect()
-  const containerRect = container.getBoundingClientRect()
-  return elRect.top - containerRect.top + elRect.height / 2 - 16
 }
 
 // ── Mini stars ────────────────────────────────────────────────────────────────
@@ -188,15 +175,21 @@ function ThreadPopup({ comments, allComments, onReply, onClose }: {
   const [replying, setReplying] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const comment = comments[idx]
+
   useEffect(() => {
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose() }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    // slight delay so the click that opened it doesn't immediately close it
+    const t = setTimeout(() => document.addEventListener('mousedown', h), 50)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', h) }
   }, [onClose])
+
   if (!comment) return null
   const replies = allComments.filter(c => c.parent_id === comment.id)
   const isTrack = comment.selected_text.startsWith('__track__')
   const displayText = isTrack ? comment.selected_text.replace('__track__','') : comment.selected_text
+
   return (
     <div ref={ref} className="comment-thread">
       {comments.length > 1 && (
@@ -248,27 +241,64 @@ function CommentStack({ comments, allComments, onReply, top }: {
   comments: Comment[]; allComments: Comment[]; onReply: () => void; top: number
 }) {
   const [open, setOpen] = useState(false)
+  const [portalPos, setPortalPos] = useState<{ top: number; left: number } | null>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
   const first = comments[0]
   const color = getInitialColor(first.display_name)
   const multiple = comments.length > 1
+
+  function handleOpen() {
+    const rect = btnRef.current?.getBoundingClientRect()
+    if (rect) {
+      const popupWidth = 280
+      const margin = 8
+      // Place to the left of the button, but clamp so it never goes off-screen left
+      const left = Math.max(margin, rect.left - popupWidth - 8)
+      // Align top with button, but clamp so it doesn't go off-screen bottom
+      const maxTop = window.innerHeight - 400
+      const top = Math.min(rect.top, maxTop)
+      setPortalPos({ top, left })
+    }
+    setOpen(o => !o)
+  }
+
   return (
-    <div className="comment-stack" style={{top}}>
+    <div className="comment-stack" style={{ top }}>
       {multiple && (
-        <button className="comment-avatar comment-avatar--behind"
-          style={{'--avatar-color':getInitialColor(comments[1].display_name)} as React.CSSProperties}
-          onClick={()=>setOpen(o=>!o)}>
+        <button
+          className="comment-avatar comment-avatar--behind"
+          style={{'--avatar-color': getInitialColor(comments[1].display_name)} as React.CSSProperties}
+          onClick={handleOpen}
+        >
           {getInitial(comments[1].display_name)}
         </button>
       )}
-      <button className={`comment-avatar${multiple?' comment-avatar--stacked':''}`}
-        style={{'--avatar-color':color} as React.CSSProperties}
-        onClick={()=>setOpen(o=>!o)}
-        title={multiple?`${comments.length} comments`:`${first.display_name}: ${first.content}`}>
+      <button
+        ref={btnRef}
+        className={`comment-avatar${multiple ? ' comment-avatar--stacked' : ''}`}
+        style={{'--avatar-color': color} as React.CSSProperties}
+        onClick={handleOpen}
+        title={multiple ? `${comments.length} comments` : `${first.display_name}: ${first.content}`}
+      >
         {multiple ? <span className="comment-stack-count">{comments.length}</span> : getInitial(first.display_name)}
       </button>
-      {open && (
-        <ThreadPopup comments={comments} allComments={allComments}
-          onReply={()=>{setOpen(false);onReply()}} onClose={()=>setOpen(false)}/>
+
+      {open && portalPos && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: portalPos.top,
+          left: portalPos.left,
+          width: 280,
+          zIndex: 1000,
+        }}>
+          <ThreadPopup
+            comments={comments}
+            allComments={allComments}
+            onReply={() => { setOpen(false); onReply() }}
+            onClose={() => setOpen(false)}
+          />
+        </div>,
+        document.body
       )}
     </div>
   )
@@ -300,7 +330,6 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     return () => document.removeEventListener('comment-posted', h)
   }, [postSlug, loadComments])
 
-  // ── Selection handler ───────────────────────────────────────────────────────
   function tryCapture() {
     if (!wrapRef.current) return
     const sel = window.getSelection()
@@ -310,12 +339,9 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     const range = sel.getRangeAt(0)
     const container = document.querySelector('.post-content-with-comments')
     if (!container || !container.contains(range.commonAncestorContainer)) return
-
-    // getBoundingClientRect subtraction — both measured at same instant, scroll-safe
     const rangeRect = range.getBoundingClientRect()
     const wrapRect = wrapRef.current.getBoundingClientRect()
     const top = rangeRect.bottom - wrapRect.top
-
     setPending({ selectedText: text, top })
   }
 
@@ -344,8 +370,8 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
         setPending(null); window.getSelection()?.removeAllRanges()
       }
     }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
+    const t = setTimeout(() => document.addEventListener('mousedown', onDown), 50)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', onDown) }
   }, [pending])
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
@@ -357,7 +383,6 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     window.getSelection()?.removeAllRanges()
   }
 
-  // Group root comments
   const rootComments = comments.filter(c => !c.parent_id)
   const grouped = new Map<string, Comment[]>()
   rootComments.forEach(c => {
@@ -365,7 +390,6 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     grouped.get(c.selected_text)!.push(c)
   })
 
-  // Compute stack positions using pure getBoundingClientRect
   useEffect(() => {
     const wrap = wrapRef.current
     if (!wrap) return
@@ -384,7 +408,6 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
           }
         })
       } else {
-        // Walk text nodes inside the content to find the passage
         const container = document.querySelector('.post-content-with-comments')
         if (!container) return
         const needle = searchText.slice(0, 30)
@@ -398,7 +421,6 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
               range.setStart(node, idx)
               range.setEnd(node, Math.min(idx + needle.length, node.textContent!.length))
               const rangeRect = range.getBoundingClientRect()
-              // Only set if rect has real dimensions (not zero)
               if (rangeRect.height > 0) {
                 positions.set(key, rangeRect.top - wrapRect.top + rangeRect.height / 2 - 16)
               }
@@ -411,22 +433,13 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
     setStackPositions(positions)
   }, [comments])
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600
-
   return (
     <div ref={wrapRef} className="inline-comments-wrap">
       {pending && (
         <div
           ref={popupRef}
           className="comment-popup"
-          style={{
-            position: 'absolute',
-            top: pending.top + 8,
-            // On mobile: full width, left-aligned. On desktop: left-aligned near selection
-            left: 0,
-            right: isMobile ? 0 : 'auto',
-            zIndex: 300,
-          }}
+          style={{ position: 'absolute', top: pending.top + 8, left: 0, right: 0, zIndex: 300 }}
         >
           <CommentForm
             selectedText={pending.selectedText}
@@ -456,12 +469,14 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
 export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string; postSlug: string }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (!open) return
     const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
+    const t = setTimeout(() => document.addEventListener('mousedown', h), 50)
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', h) }
   }, [open])
+
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
     await postComment({ post_slug: postSlug, display_name: name, content,
@@ -469,6 +484,7 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     setOpen(false)
     document.dispatchEvent(new CustomEvent('comment-posted', { detail: { postSlug } }))
   }
+
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <button className="track-comment-btn" onClick={() => setOpen(o => !o)} title="Comment on this track">
