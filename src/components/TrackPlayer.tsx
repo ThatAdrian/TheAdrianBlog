@@ -20,7 +20,6 @@ const volumeListeners = new Set<(v: number) => void>()
 function setGlobalVolume(v: number) {
   globalVolume = v
   volumeListeners.forEach(fn => fn(v))
-  if (audioManager.current) audioManager.current.volume = v
 }
 
 // ── Rating colour ─────────────────────────────────────────────────────────────
@@ -84,6 +83,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
   useEffect(() => {
     const fn = (v: number) => { if (audioRef.current) audioRef.current.volume = v }
     volumeListeners.add(fn)
+    if (audioRef.current) audioRef.current.volume = globalVolume
     return () => { volumeListeners.delete(fn) }
   }, [])
 
