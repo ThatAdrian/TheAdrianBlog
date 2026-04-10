@@ -9,6 +9,7 @@ import YouTube from './pages/YouTube'
 import Adrian from './pages/Adrian'
 import NotFound from './pages/NotFound'
 import DotGrid from './components/DotGrid'
+import { VolumeControl } from './components/TrackPlayer'
 
 const NAV_ITEMS = [
   { label: 'home',    href: '/',        ariaLabel: 'Home',    rotation: -8, hoverStyles: { bgColor: '#00f5ff', textColor: '#03020f' } },
@@ -23,6 +24,7 @@ export default function App() {
   const isNotFound = !['/', '/music', '/youtube', '/adrian'].includes(location.pathname) &&
     !location.pathname.startsWith('/posts/') &&
     !location.pathname.startsWith('/category/')
+  const isPostPage = location.pathname.startsWith('/posts/')
 
   return (
     <>
@@ -71,6 +73,9 @@ export default function App() {
           <Route path="*"                   element={<NotFound />} />
         </Routes>
       </div>
+
+      {/* Volume control — desktop only, shown on post pages */}
+      {isPostPage && <VolumeControl />}
 
       <footer className="footer">
         <p>© {new Date().getFullYear()} TheAdrianBlog — built different</p>
