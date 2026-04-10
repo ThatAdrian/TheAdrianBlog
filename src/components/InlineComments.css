@@ -403,17 +403,23 @@
 }
 
 @media (max-width: 600px) {
-  .comment-margin { right: -36px; width: 30px; }
-  .comment-avatar { width: 26px; height: 26px; font-size: 0.55rem; }
   .comment-thread {
-    right: auto;
-    left: 0;
-    width: calc(100vw - 2rem);
-    max-width: 300px;
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    top: auto;
+    max-height: 70vh;
+    overflow-y: auto;
   }
+
   .comment-popup {
-    left: 0 !important;
-    width: calc(100vw - 2rem);
-    max-width: 280px;
+    position: fixed !important;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    width: auto !important;
+    top: auto !important;
   }
 }
