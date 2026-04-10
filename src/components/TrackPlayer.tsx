@@ -86,19 +86,6 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
     return () => { volumeListeners.delete(fn) }
   }, [])
 
-  function setupAnalyser(audio: HTMLAudioElement) {
-    if (analyserRef.current) return // already set up
-    const ctx = new AudioContext()
-    ctxRef.current = ctx
-    const source = ctx.createMediaElementSource(audio)
-    const analyser = ctx.createAnalyser()
-    analyser.fftSize = 128
-    source.connect(analyser)
-    analyser.connect(ctx.destination)
-    sourceRef.current = source
-    analyserRef.current = analyser
-  }
-
   function drawBars(active: boolean) {
     const canvas = canvasRef.current
     const analyser = analyserRef.current
@@ -152,7 +139,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
     rafRef.current = requestAnimationFrame(animate)
   }
 
-  function toggle() {
+  async function toggle() {
     const audio = audioRef.current
     if (!audio) return
 
@@ -165,10 +152,24 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
       if (audioManager.current && audioManager.current !== audio) {
         audioManager.stop()
       }
-      setupAnalyser(audio)
-      ctxRef.current?.resume()
+      // Safari: must create AND resume AudioContext synchronously in user gesture
+      if (!ctxRef.current) {
+        const ctx = new AudioContext()
+        ctxRef.current = ctx
+        const source = ctx.createMediaElementSource(audio)
+        const analyser = ctx.createAnalyser()
+        analyser.fftSize = 128
+        source.connect(analyser)
+        analyser.connect(ctx.destination)
+        sourceRef.current = source
+        analyserRef.current = analyser
+      }
+      // Resume must also be in the gesture handler for Safari
+      if (ctxRef.current.state === 'suspended') {
+        await ctxRef.current.resume()
+      }
       audioManager.current = audio
-      audio.play()
+      await audio.play()
       setPlaying(true)
       animate()
     }
