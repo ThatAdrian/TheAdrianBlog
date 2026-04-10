@@ -504,19 +504,40 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
     return () => { clearTimeout(t); document.removeEventListener('mousedown', h) }
   }, [open])
 
+  function calcPos() {
+    const rect = btnRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const popupWidth = 280
+    const left = Math.max(8, rect.left - popupWidth - 8)
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const viewportTop = window.visualViewport?.offsetTop ?? 0
+    const top = Math.max(8, Math.min(rect.top - viewportTop - 60, viewportHeight - 360))
+    setPortalPos({ top: top + (window.visualViewport?.offsetTop ?? 0), left })
+  }
+
   function handleOpen() {
     if (isMobile()) {
-      const rect = btnRef.current?.getBoundingClientRect()
-      if (rect) {
-        const popupWidth = 280
-        // Place to the left of the button, vertically centred on it
-        const left = Math.max(8, rect.left - popupWidth - 8)
-        const top = Math.max(8, Math.min(rect.top - 60, window.innerHeight - 360))
-        setPortalPos({ top, left })
-      }
+      setOpen(o => {
+        if (!o) setTimeout(calcPos, 350)
+        return !o
+      })
+    } else {
+      setOpen(o => !o)
     }
-    setOpen(o => !o)
   }
+
+  // Reposition when keyboard opens/closes
+  useEffect(() => {
+    if (!open || !isMobile()) return
+    const vv = window.visualViewport
+    if (!vv) return
+    vv.addEventListener('resize', calcPos)
+    vv.addEventListener('scroll', calcPos)
+    return () => {
+      vv.removeEventListener('resize', calcPos)
+      vv.removeEventListener('scroll', calcPos)
+    }
+  }, [open])
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
     localStorage.setItem('comment_name', name)
@@ -547,7 +568,7 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
         </div>
       )}
 
-      {/* Mobile: fixed via portal */}
+      {/* Mobile: fixed via portal, repositions with keyboard */}
       {open && isMobile() && portalPos && createPortal(
         <div style={{ position: 'fixed', top: portalPos.top, left: portalPos.left, width: 280, zIndex: 1000 }}>
           {form}
