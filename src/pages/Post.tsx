@@ -10,6 +10,7 @@ import InlineComments, { TrackCommentTrigger } from '../components/InlineComment
 import LikeButton from '../components/LikeButton'
 import TrackPlayer from '../components/TrackPlayer'
 import { getAlbum, getAlbumPreviews, parseSpotifyAlbumId } from '../lib/spotify'
+import { usePageView } from '../hooks/usePageView'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -76,6 +77,7 @@ export default function Post() {
   const tracks = parseTracklist((post as any).tracklist ?? '')
   const artistRating = parseFloat((post as any).rating ?? '0')
   const postSlug = slug ?? post.slug
+  usePageView(postSlug)
 
   const postImage = post.image && post.image !== 'placeholder.png'
     ? post.image.startsWith('http') ? post.image : `/${post.image}`
