@@ -8,6 +8,7 @@ import Music from './pages/Music'
 import YouTube from './pages/YouTube'
 import Adrian from './pages/Adrian'
 import NotFound from './pages/NotFound'
+import Dashboard from './dashboard/Dashboard'
 import DotGrid from './components/DotGrid'
 import { VolumeControl } from './components/TrackPlayer'
 
@@ -20,11 +21,21 @@ const NAV_ITEMS = [
 
 export default function App() {
   const location = useLocation()
-  const isAdrianPage = location.pathname === '/adrian'
-  const isNotFound = !['/', '/music', '/youtube', '/adrian'].includes(location.pathname) &&
+  const isAdrianPage   = location.pathname === '/adrian'
+  const isDashboard    = location.pathname.startsWith('/dashboard')
+  const isNotFound     = !['/', '/music', '/youtube', '/adrian', '/dashboard'].includes(location.pathname) &&
     !location.pathname.startsWith('/posts/') &&
     !location.pathname.startsWith('/category/')
-  const isPostPage = location.pathname.startsWith('/posts/')
+  const isPostPage     = location.pathname.startsWith('/posts/')
+
+  // Dashboard has its own full-screen layout — no nav, no footer, no dot grid
+  if (isDashboard) {
+    return (
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    )
+  }
 
   return (
     <>
@@ -41,12 +52,9 @@ export default function App() {
       <BubbleMenu
         logo={
           <span style={{
-            fontFamily: 'Orbitron, monospace',
-            fontWeight: 700,
-            fontSize: '0.72rem',
-            color: '#00f5ff',
-            letterSpacing: '0.06em',
-            whiteSpace: 'nowrap',
+            fontFamily: 'Orbitron, monospace', fontWeight: 700,
+            fontSize: '0.72rem', color: '#00f5ff',
+            letterSpacing: '0.06em', whiteSpace: 'nowrap',
             textShadow: '0 0 12px rgba(0,245,255,0.4)',
           }}>
             TheAdrianBlog
@@ -74,7 +82,6 @@ export default function App() {
         </Routes>
       </div>
 
-      {/* Volume control — desktop only, shown on post pages */}
       {isPostPage && <VolumeControl />}
 
       <footer className="footer">
