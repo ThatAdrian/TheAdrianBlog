@@ -57,6 +57,38 @@ export async function uploadImage(path: string, base64Data: string): Promise<str
   return data.content?.download_url ?? null
 }
 
+export interface GitHubFile {
+  name: string
+  path: string
+  sha: string
+}
+
+export async function listPostFiles(): Promise<GitHubFile[]> {
+  const res = await fetch(
+    `https://api.github.com/repos/${REPO}/contents/content/posts?ref=${BRANCH}`,
+    { headers: getHeaders() }
+  )
+  if (!res.ok) return []
+  const data = await res.json()
+  return (data as any[])
+    .filter(f => f.name.endsWith('.md'))
+    .map(f => ({ name: f.name, path: f.path, sha: f.sha }))
+}
+
+export async function getFileContent(path: string): Promise<string | null> {
+  const res = await fetch(
+    `https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`,
+    { headers: getHeaders() }
+  )
+  if (!res.ok) return null
+  const data = await res.json()
+  try {
+    return decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))))
+  } catch {
+    return null
+  }
+}
+
 export function slugify(title: string): string {
   return title.toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
