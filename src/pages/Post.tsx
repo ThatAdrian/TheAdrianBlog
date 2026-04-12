@@ -47,6 +47,9 @@ export default function Post() {
   const referrer = (location.state as any)?.from ?? '/'
   const post = posts.find(p => p.slug === slug)
 
+  // Must be called before any conditional returns (rules of hooks)
+  usePageView(slug ?? '')
+
   useEffect(() => {
     if (!loading && !post) navigate('/')
   }, [loading, post, navigate])
@@ -77,7 +80,6 @@ export default function Post() {
   const tracks = parseTracklist((post as any).tracklist ?? '')
   const artistRating = parseFloat((post as any).rating ?? '0')
   const postSlug = slug ?? post.slug
-  usePageView(postSlug)
 
   const postImage = post.image && post.image !== 'placeholder.png'
     ? post.image.startsWith('http') ? post.image : `/${post.image}`
