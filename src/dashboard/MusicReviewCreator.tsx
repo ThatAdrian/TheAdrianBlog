@@ -214,8 +214,22 @@ ${buildContent()}
     try {
       const postSlug = slugify(`${album.name} ${album.artist} Review`)
       if (coverFile) {
+        // User picked a custom cover
         const reader = new FileReader()
-        const b64 = await new Promise<string>(res => { reader.onload = () => res((reader.result as string).split(',')[1]); reader.readAsDataURL(coverFile) })
+        const b64 = await new Promise<string>(res => {
+          reader.onload = () => res((reader.result as string).split(',')[1])
+          reader.readAsDataURL(coverFile)
+        })
+        await uploadImage(`public/posts/${postSlug}.jpg`, b64)
+      } else if (album.image) {
+        // Auto-upload the Spotify album art
+        const imgRes = await fetch(album.image)
+        const blob = await imgRes.blob()
+        const b64 = await new Promise<string>(res => {
+          const reader = new FileReader()
+          reader.onload = () => res((reader.result as string).split(',')[1])
+          reader.readAsDataURL(blob)
+        })
         await uploadImage(`public/posts/${postSlug}.jpg`, b64)
       }
       const filePath = editingPath ?? `content/posts/${postSlug}.md`
