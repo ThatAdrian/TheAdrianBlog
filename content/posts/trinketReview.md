@@ -1,7 +1,7 @@
 ---
 date: 13/04/2026
 title: "trinket - tsubi club Review"
-summary: 'YOU WON BY A LANDSLIDE!!!'
+summary: 'YOU WON BY A LANDSLIDE!!! (songs are mismatched due to the album not being on deezer sorry guys)'
 categories:
   - Music Reviews
 image: posts/trinket-tsubi-club-review.jpg
