@@ -11,6 +11,7 @@ import LikeButton from '../components/LikeButton'
 import TrackPlayer from '../components/TrackPlayer'
 import { getAlbum, getAlbumPreviews, parseSpotifyAlbumId } from '../lib/spotify'
 import { usePageView } from '../hooks/usePageView'
+import JsonLd from '../components/JsonLd'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -153,6 +154,16 @@ export default function Post() {
         image={postImage}
         url={`/posts/${postSlug}`}
         type="article"
+      />
+
+      <JsonLd
+        title={post.title}
+        summary={post.summary}
+        slug={postSlug}
+        date={post.date}
+        image={post.image !== 'placeholder.png' ? post.image : undefined}
+        categories={post.categories}
+        rating={artistRating > 0 ? artistRating : undefined}
       />
 
       <Link to={referrer} className="back-link">← Back</Link>
