@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import BubbleMenu from './components/BubbleMenu'
 import Home from './pages/Home'
@@ -6,11 +6,13 @@ import Post from './pages/Post'
 import Category from './pages/Category'
 import Music from './pages/Music'
 import YouTube from './pages/YouTube'
-import Adrian from './pages/Adrian'
-import NotFound from './pages/NotFound'
 import Dashboard from './dashboard/Dashboard'
 import DotGrid from './components/DotGrid'
 import { VolumeControl } from './components/TrackPlayer'
+
+// Lazy load pages that use Three.js — only downloads when visited
+const Adrian   = lazy(() => import('./pages/Adrian'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 const NAV_ITEMS = [
   { label: 'home',    href: '/',        ariaLabel: 'Home',    rotation: -8, hoverStyles: { bgColor: '#00f5ff', textColor: '#03020f' } },
@@ -19,16 +21,20 @@ const NAV_ITEMS = [
   { label: 'adrian',  href: '/adrian',  ariaLabel: 'Adrian',  rotation: 8,  hoverStyles: { bgColor: '#00ff88', textColor: '#03020f' } },
 ]
 
+// Minimal fallback while lazy chunks load
+function PageFallback() {
+  return <div style={{ minHeight: '60vh' }} />
+}
+
 export default function App() {
   const location = useLocation()
-  const isAdrianPage   = location.pathname === '/adrian'
-  const isDashboard    = location.pathname.startsWith('/dashboard')
-  const isNotFound     = !['/', '/music', '/youtube', '/adrian', '/dashboard'].includes(location.pathname) &&
+  const isAdrianPage  = location.pathname === '/adrian'
+  const isDashboard   = location.pathname.startsWith('/dashboard')
+  const isNotFound    = !['/', '/music', '/youtube', '/adrian', '/dashboard'].includes(location.pathname) &&
     !location.pathname.startsWith('/posts/') &&
     !location.pathname.startsWith('/category/')
-  const isPostPage     = location.pathname.startsWith('/posts/')
+  const isPostPage    = location.pathname.startsWith('/posts/')
 
-  // Dashboard has its own full-screen layout — no nav, no footer, no dot grid
   if (isDashboard) {
     return (
       <Routes>
@@ -71,15 +77,17 @@ export default function App() {
       />
 
       <div className="page-content">
-        <Routes>
-          <Route path="/"                   element={<Home />} />
-          <Route path="/posts/:slug"        element={<Post />} />
-          <Route path="/category/:category" element={<Category />} />
-          <Route path="/music"              element={<Music />} />
-          <Route path="/youtube"            element={<YouTube />} />
-          <Route path="/adrian"             element={<Adrian />} />
-          <Route path="*"                   element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/"                   element={<Home />} />
+            <Route path="/posts/:slug"        element={<Post />} />
+            <Route path="/category/:category" element={<Category />} />
+            <Route path="/music"              element={<Music />} />
+            <Route path="/youtube"            element={<YouTube />} />
+            <Route path="/adrian"             element={<Adrian />} />
+            <Route path="*"                   element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </div>
 
       {isPostPage && <VolumeControl />}
