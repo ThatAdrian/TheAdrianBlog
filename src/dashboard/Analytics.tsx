@@ -12,14 +12,19 @@ async function sb(path: string) {
 
 // ── Umami ─────────────────────────────────────────────────────────────────────
 const UMAMI_BASE   = 'https://cloud.umami.is'
-const UMAMI_KEY    = 'api_hkLv9zgAPC4HgdhdFriTto9a4cWjP9et'
+const UMAMI_KEY    = 'api_6wqeHnuyBIR6qcM225U0zxaq7HVQej8p'
 const UMAMI_SITE   = '9f74e86c-18c2-4857-9b19-63a303455340'
 
 async function umami(endpoint: string, params: Record<string, string | number> = {}) {
   const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()
   const url = `${UMAMI_BASE}/api/websites/${UMAMI_SITE}/${endpoint}${qs ? '?' + qs : ''}`
-  const res = await fetch(url, { headers: { 'x-umami-api-key': UMAMI_KEY } })
-  if (!res.ok) return null
+  const res = await fetch(url, {
+    headers: {
+      'x-umami-api-key': UMAMI_KEY,
+      'Accept': 'application/json',
+    }
+  })
+  if (!res.ok) { console.error('Umami', endpoint, res.status); return null }
   return res.json()
 }
 
