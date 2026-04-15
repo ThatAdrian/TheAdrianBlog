@@ -18,7 +18,7 @@ const UMAMI_SITE   = '9f74e86c-18c2-4857-9b19-63a303455340'
 async function umami(endpoint: string, params: Record<string, string | number> = {}) {
   const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()
   const url = `${UMAMI_BASE}/api/websites/${UMAMI_SITE}/${endpoint}${qs ? '?' + qs : ''}`
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${UMAMI_KEY}` } })
+  const res = await fetch(url, { headers: { 'x-umami-api-key': UMAMI_KEY } })
   if (!res.ok) return null
   return res.json()
 }
