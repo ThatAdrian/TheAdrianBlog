@@ -1,13 +1,3 @@
-/* ── CSS variable fallbacks for dashboard (runs outside main app layout) ── */
-.db-login,
-.db-root {
-  --accent-cyan: #00f5ff;
-  --accent-purple: #b400ff;
-  --text-primary: rgba(220, 220, 255, 0.9);
-  --text-muted: rgba(200, 200, 255, 0.4);
-  font-family: 'Space Grotesk', sans-serif;
-}
-
 /* ── Login ───────────────────────────────────────────────────────── */
 .db-login {
   min-height: 100vh;
@@ -530,4 +520,86 @@
   .db-stats-row { grid-template-columns: 1fr 1fr; }
   .db-album-header { flex-direction: column !important; }
   .db-track-row { flex-direction: column; align-items: flex-start; }
+}
+
+/* ── Analytics: 5-col stats row ─────────────────────────────────── */
+.db-stats-row--5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* ── Active now badge ────────────────────────────────────────────── */
+.db-active-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: #00ff88;
+  background: rgba(0,255,136,0.08);
+  border: 0.5px solid rgba(0,255,136,0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  margin-left: auto;
+}
+
+/* ── Two column layout ───────────────────────────────────────────── */
+.db-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Bar list (top pages / referrers) ────────────────────────────── */
+.db-bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 0.25rem;
+}
+
+.db-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.db-bar-label {
+  font-size: 0.75rem;
+  color: rgba(200,200,255,0.7);
+  width: 140px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.db-bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.db-bar-fill {
+  height: 100%;
+  background: var(--accent-cyan, #00f5ff);
+  border-radius: 3px;
+  opacity: 0.7;
+  transition: width 0.4s ease;
+}
+
+.db-bar-fill--purple {
+  background: #b400ff;
+}
+
+.db-bar-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  color: rgba(200,200,255,0.4);
+  min-width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .db-two-col { grid-template-columns: 1fr; }
+  .db-stats-row--5 { grid-template-columns: 1fr 1fr; }
 }
