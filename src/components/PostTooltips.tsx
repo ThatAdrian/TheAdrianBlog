@@ -118,7 +118,7 @@ export default function PostTooltips({ isMusicReview }: { isMusicReview: boolean
       const isLargeContainer = rect.height > window.innerHeight * 0.8
       const targetScrollY = isLargeContainer
         ? window.scrollY + rect.top - 120
-        : window.scrollY + rect.top - window.innerHeight * 0.35
+        : window.scrollY + rect.top - window.innerHeight * 0.55
       window.scrollTo({ top: Math.max(0, targetScrollY), behavior: 'smooth' })
       setTimeout(() => {
         const result = getPos(s.selector, s.position)
@@ -192,9 +192,9 @@ export default function PostTooltips({ isMusicReview }: { isMusicReview: boolean
             width="100%"
             height="auto"
             borderRadius={14}
-            brightness={6}
-            opacity={0.55}
-            blur={8}
+            brightness={4}
+            opacity={0.38}
+            blur={6}
           >
             <div className="pt-bubble-inner">
               <div className="pt-bubble-header">

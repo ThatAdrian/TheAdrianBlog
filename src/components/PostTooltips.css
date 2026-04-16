@@ -29,7 +29,7 @@
 /* Dark tint overlay for readability */
 .pt-bubble-wrap .glass-surface-container,
 .pt-bubble-wrap [class*='glass'] {
-  background: rgba(5, 3, 18, 0.72) !important;
+  background: rgba(5, 3, 18, 0.52) !important;
 }
 
 /* Inner content */
