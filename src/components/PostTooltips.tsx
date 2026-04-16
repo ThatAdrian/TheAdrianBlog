@@ -39,7 +39,7 @@ const STEPS: TooltipStep[] = [
     id: 'text-comment',
     title: 'Inline Comments',
     text: 'Select any text in the article to leave a comment on that specific passage. Your comment appears as an avatar in the margin.',
-    selector: '.post-content-with-comments',
+    selector: '.post-detail-summary, .post-detail-header',
     position: 'bottom',
   },
 ]
