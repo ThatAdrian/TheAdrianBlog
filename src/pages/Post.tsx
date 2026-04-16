@@ -12,6 +12,7 @@ import TrackPlayer from '../components/TrackPlayer'
 import { getAlbum, getAlbumPreviews, parseSpotifyAlbumId } from '../lib/spotify'
 import { usePageView } from '../hooks/usePageView'
 import JsonLd from '../components/JsonLd'
+import PostTooltips from '../components/PostTooltips'
 
 function getCatClass(cat: string) {
   const c = cat.toLowerCase()
@@ -211,6 +212,8 @@ export default function Post() {
         {renderContent()}
         <InlineComments postSlug={postSlug} />
       </div>
+
+      <PostTooltips isMusicReview={isMusicReview} />
 
       <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <RelatedPosts
