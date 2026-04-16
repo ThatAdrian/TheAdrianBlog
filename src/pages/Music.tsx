@@ -3,10 +3,14 @@ import SEO from '../components/SEO'
 import GlassSurface from '../components/GlassSurface'
 import PostCard from '../components/PostCard'
 import { usePosts } from '../hooks/usePosts'
+import NowPlaying from '../components/NowPlaying'
+import AlbumSuggestion from '../components/AlbumSuggestion'
 
 const SPOTIFY_URL = 'https://open.spotify.com/user/realagamez123'
 const SPOTIFY_USER_ID = 'realagamez123'
-
+<NowPlaying />
+<AlbumSuggestion />
+  
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
