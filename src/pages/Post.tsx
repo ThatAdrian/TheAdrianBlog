@@ -45,6 +45,8 @@ export default function Post() {
   const navigate = useNavigate()
   const location = useLocation()
   const [previewMap, setPreviewMap] = useState<Map<string, string>>(new Map())
+  const [previewsLoading, setPreviewsLoading] = useState(false)
+  const [previewsReady, setPreviewsReady] = useState(false)
 
   const referrer = (location.state as any)?.from ?? '/'
   const post = posts.find(p => p.slug === slug)
@@ -60,13 +62,16 @@ export default function Post() {
   useEffect(() => {
     if (loading || !post) return
     const albumField = (post as any)?.spotifyAlbum
-    if (!albumField) return
+    if (!albumField) { setPreviewsReady(true); return }
     const albumId = parseSpotifyAlbumId(albumField)
+    setPreviewsLoading(true)
     getAlbum(albumId).then(async album => {
-      if (!album) return
+      if (!album) { setPreviewsLoading(false); setPreviewsReady(true); return }
       const artistName = album.artists[0]?.name ?? ''
       const map = await getAlbumPreviews(album.tracks.items, artistName)
       setPreviewMap(map)
+      setPreviewsLoading(false)
+      setPreviewsReady(true)
     })
   }, [loading, post?.slug])
 
@@ -106,8 +111,14 @@ export default function Post() {
           const preview = getPreview(t.name)
           return (
             <div key={t.id} className="track-rating-row">
-              {preview && (
-                <TrackPlayer previewUrl={preview} trackName={t.name} rating={t.rating} />
+              {(previewsLoading || previewsReady) && (
+                <TrackPlayer
+                  previewUrl={preview ?? ''}
+                  trackName={t.name}
+                  rating={t.rating}
+                  loading={previewsLoading}
+                  unavailable={previewsReady && !preview}
+                />
               )}
               <TrackRating
                 trackId={`${postSlug}-${i}`}
