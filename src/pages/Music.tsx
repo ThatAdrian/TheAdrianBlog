@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react'
 import SEO from '../components/SEO'
 import GlassSurface from '../components/GlassSurface'
 import PostCard from '../components/PostCard'
-import { usePosts } from '../hooks/usePosts'
 import NowPlaying from '../components/NowPlaying'
 import AlbumSuggestion from '../components/AlbumSuggestion'
+import { usePosts } from '../hooks/usePosts'
 
 const SPOTIFY_URL = 'https://open.spotify.com/user/realagamez123'
-const SPOTIFY_USER_ID = 'realagamez123'
-<NowPlaying />
-<AlbumSuggestion />
-  
+
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
@@ -57,7 +54,6 @@ export default function Music() {
     fetchAllCommunityRatings().then(setCommunityData)
   }, [])
 
-  // Build album stats from posts that have a rating field
   const albumStats: AlbumStat[] = musicReviews
     .filter(p => (p as any).rating)
     .map(p => ({
@@ -96,7 +92,7 @@ export default function Music() {
 
         {/* ── Spotify widget ── */}
         <GlassSurface width="100%" height={100} borderRadius={16} brightness={25} opacity={0.85} blur={12}
-          style={{ marginBottom: '2.5rem' }}>
+          style={{ marginBottom: '1.5rem' }}>
           <div className="spotify-widget">
             <div className="spotify-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="#1DB954">
@@ -113,8 +109,14 @@ export default function Music() {
           </div>
         </GlassSurface>
 
+        {/* ── Now Playing / Recently Listened ── */}
+        <NowPlaying />
+
+        {/* ── Album Suggestion ── */}
+        <AlbumSuggestion />
+
         {/* ── Top Albums stats ── */}
-        <div className="music-stats-header">
+        <div className="music-stats-header" style={{ marginTop: '2.5rem' }}>
           <div className="section-title" style={{ marginBottom: '1rem' }}>Top Albums</div>
           <div className="music-filter-tabs">
             <button
@@ -130,7 +132,7 @@ export default function Music() {
 
         {top5.length === 0 ? (
           <div className="no-posts" style={{ marginBottom: '2rem' }}>
-            <p>No rated reviews yet — publish some music reviews with a rating field to see stats here.</p>
+            <p>No rated reviews yet.</p>
           </div>
         ) : (
           <div className="top-albums-list">
