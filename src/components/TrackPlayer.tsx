@@ -46,9 +46,11 @@ interface TrackPlayerProps {
   previewUrl: string
   trackName: string
   rating?: number
+  loading?: boolean
+  unavailable?: boolean
 }
 
-export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: TrackPlayerProps) {
+export default function TrackPlayer({ previewUrl, trackName, rating = 0, loading = false, unavailable = false }: TrackPlayerProps) {
   const [playing, setPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -193,12 +195,19 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0 }: Track
   return (
     <div className="track-player">
       <button
-        className={`track-player-btn ${playing ? 'playing' : ''}`}
-        onClick={toggle}
-        style={{ '--player-color': color } as React.CSSProperties}
-        aria-label={playing ? `Pause ${trackName}` : `Play preview of ${trackName}`}
+        className={`track-player-btn ${playing ? 'playing' : ''} ${unavailable ? 'unavailable' : ''} ${loading ? 'loading' : ''}`}
+        onClick={(!loading && !unavailable) ? toggle : undefined}
+        disabled={loading || unavailable}
+        style={{ '--player-color': unavailable ? 'rgba(255,50,50,0.6)' : color } as React.CSSProperties}
+        aria-label={loading ? 'Loading preview...' : unavailable ? 'No preview available' : playing ? `Pause ${trackName}` : `Play preview of ${trackName}`}
       >
-        {playing ? (
+        {loading ? (
+          <span className="track-player-spinner" />
+        ) : unavailable ? (
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        ) : playing ? (
           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
           </svg>
