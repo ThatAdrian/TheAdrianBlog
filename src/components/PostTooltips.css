@@ -26,6 +26,12 @@
 .pt-arrow-left::before   { left: -5px;   top: 50%;  margin-top: -4px;  border-right: none;  border-top: none;   }
 .pt-arrow-right::before  { right: -5px;  top: 50%;  margin-top: -4px;  border-left: none;   border-bottom: none;}
 
+/* Dark tint overlay for readability */
+.pt-bubble-wrap .glass-surface-container,
+.pt-bubble-wrap [class*='glass'] {
+  background: rgba(5, 3, 18, 0.72) !important;
+}
+
 /* Inner content */
 .pt-bubble-inner {
   padding: 1rem;

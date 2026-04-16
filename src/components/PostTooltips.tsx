@@ -112,16 +112,19 @@ export default function PostTooltips({ isMusicReview }: { isMusicReview: boolean
     if (!s) return
     const el = document.querySelector(s.selector)
     if (el) {
-      // Scroll so the element is visible with some padding above
       const rect = el.getBoundingClientRect()
-      const targetScrollY = window.scrollY + rect.top - window.innerHeight * 0.35
+      // For large containers like post-content, scroll to show the top portion
+      // For smaller elements, centre them in the viewport
+      const isLargeContainer = rect.height > window.innerHeight * 0.8
+      const targetScrollY = isLargeContainer
+        ? window.scrollY + rect.top - 120
+        : window.scrollY + rect.top - window.innerHeight * 0.35
       window.scrollTo({ top: Math.max(0, targetScrollY), behavior: 'smooth' })
-      // After scroll settles, recalculate position
       setTimeout(() => {
         const result = getPos(s.selector, s.position)
         if (result) setPos(result.pos)
         else setPos({ top: window.scrollY + window.innerHeight * 0.4, left: window.innerWidth / 2 - BUBBLE_W / 2, arrowSide: 'top' })
-      }, 400)
+      }, 450)
     } else {
       setPos({ top: window.scrollY + window.innerHeight * 0.4, left: window.innerWidth / 2 - BUBBLE_W / 2, arrowSide: 'top' })
     }
@@ -189,9 +192,9 @@ export default function PostTooltips({ isMusicReview }: { isMusicReview: boolean
             width="100%"
             height="auto"
             borderRadius={14}
-            brightness={20}
-            opacity={0.9}
-            blur={16}
+            brightness={6}
+            opacity={0.55}
+            blur={8}
           >
             <div className="pt-bubble-inner">
               <div className="pt-bubble-header">
