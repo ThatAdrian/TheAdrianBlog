@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useState } from 'react'
 import PostCard from '../components/PostCard'
 import SEO from '../components/SEO'
+import AlbumSearch, { type AlbumResult } from '../components/AlbumSearch'
 import { usePosts } from '../hooks/usePosts'
 
 // Lazy load ASCIIText — pulls in Three.js only when the home page renders
@@ -55,14 +56,17 @@ export default function Home() {
       </div>
 
       <div className="section">
-        {/* Search */}
+        {/* Search with album autocomplete */}
         <div className="home-search-wrap">
-          <input
-            className="home-search"
-            type="text"
-            placeholder="Search posts..."
+          <AlbumSearch
+            placeholder="Search posts or albums..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={setSearch}
+            onSelect={(album: AlbumResult) => {
+              // Search by album or artist name when selected
+              setSearch(album.name)
+            }}
+            className="home-search-album"
           />
         </div>
 
