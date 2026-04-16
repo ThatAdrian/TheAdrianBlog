@@ -1,0 +1,200 @@
+/* ── Now Playing / Recently Listened ────────────────────────────── */
+.np-wrap {
+  margin-top: 2rem;
+  background: rgba(255,255,255,0.025);
+  border: 0.5px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.np-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.np-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.np-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00ff88;
+  box-shadow: 0 0 6px #00ff88;
+  animation: npPulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes npPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.np-lastfm-link {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  color: rgba(200,200,255,0.35);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.np-lastfm-link:hover { color: var(--accent-cyan); }
+
+/* Current track (now playing) */
+.np-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem;
+  background: rgba(0,245,255,0.05);
+  border: 0.5px solid rgba(0,245,255,0.15);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.np-current:hover { background: rgba(0,245,255,0.08); }
+
+.np-current-art {
+  width: 52px;
+  height: 52px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.np-current-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.np-current-track {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(240,240,255,0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-current-artist {
+  font-size: 0.78rem;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-current-album {
+  font-size: 0.7rem;
+  color: rgba(200,200,255,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Animated bars */
+.np-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.np-bars span {
+  display: block;
+  width: 3px;
+  background: var(--accent-cyan);
+  border-radius: 1px;
+  animation: npBar 0.8s ease-in-out infinite alternate;
+}
+
+.np-bars span:nth-child(1) { height: 6px;  animation-delay: 0s; }
+.np-bars span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+.np-bars span:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+.np-bars span:nth-child(4) { height: 16px; animation-delay: 0.45s; }
+
+@keyframes npBar {
+  from { transform: scaleY(0.4); opacity: 0.5; }
+  to   { transform: scaleY(1);   opacity: 1; }
+}
+
+/* Recent tracks list */
+.np-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.np-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.np-track:hover { background: rgba(255,255,255,0.04); }
+
+.np-track-art {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.np-track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.np-track-name {
+  font-size: 0.78rem;
+  color: rgba(220,220,255,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-track-artist {
+  font-size: 0.68rem;
+  color: rgba(200,200,255,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-track-time {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: rgba(200,200,255,0.25);
+  flex-shrink: 0;
+}
+
+.np-loading {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(200,200,255,0.3);
+}

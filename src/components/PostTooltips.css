@@ -1,0 +1,140 @@
+/* ── Tooltip bubble ──────────────────────────────────────────────── */
+.pt-bubble {
+  position: absolute;
+  width: 260px;
+  background: rgba(7, 5, 25, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 0.5px solid rgba(0, 245, 255, 0.2);
+  border-radius: 14px;
+  padding: 1rem;
+  z-index: 2000;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,245,255,0.05);
+  animation: ptFadeIn 0.2s ease;
+}
+
+@keyframes ptFadeIn {
+  from { opacity: 0; transform: scale(0.95) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Arrow */
+.pt-bubble::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(7, 5, 25, 0.92);
+  border: 0.5px solid rgba(0, 245, 255, 0.2);
+  transform: rotate(45deg);
+}
+
+.pt-arrow-top::before    { top: -5px;    left: 50%; margin-left: -4px; border-bottom: none; border-right: none; }
+.pt-arrow-bottom::before { bottom: -5px; left: 50%; margin-left: -4px; border-top: none;    border-left: none;  }
+.pt-arrow-left::before   { left: -5px;   top: 50%;  margin-top: -4px;  border-right: none; border-top: none;   }
+.pt-arrow-right::before  { right: -5px;  top: 50%;  margin-top: -4px;  border-left: none;  border-bottom: none;}
+
+.pt-bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.pt-step {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: rgba(0, 245, 255, 0.5);
+  letter-spacing: 0.06em;
+}
+
+.pt-skip {
+  background: transparent;
+  border: none;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: rgba(200, 200, 255, 0.3);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+.pt-skip:hover { color: rgba(200, 200, 255, 0.7); }
+
+.pt-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(240, 240, 255, 0.95);
+  margin: 0 0 0.35rem;
+}
+
+.pt-text {
+  font-size: 0.78rem;
+  color: rgba(200, 200, 255, 0.65);
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+}
+
+.pt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pt-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.pt-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.pt-dot.active { background: var(--accent-cyan, #00f5ff); }
+.pt-dot:hover  { background: rgba(255, 255, 255, 0.35); }
+
+.pt-next {
+  padding: 0.35rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 245, 255, 0.35);
+  background: rgba(0, 245, 255, 0.08);
+  color: var(--accent-cyan, #00f5ff);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pt-next:hover { background: rgba(0, 245, 255, 0.16); }
+
+/* ── Helper button (bottom left) ─────────────────────────────────── */
+.pt-helper {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(7, 5, 25, 0.85);
+  backdrop-filter: blur(8px);
+  color: rgba(200, 200, 255, 0.5);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: all 0.2s;
+}
+.pt-helper:hover {
+  border-color: rgba(0, 245, 255, 0.4);
+  color: var(--accent-cyan, #00f5ff);
+  background: rgba(7, 5, 25, 0.95);
+}
