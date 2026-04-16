@@ -1,15 +1,7 @@
-/* ── Tooltip bubble ──────────────────────────────────────────────── */
-.pt-bubble {
+/* ── Bubble wrapper (position only) ─────────────────────────────── */
+.pt-bubble-wrap {
   position: absolute;
-  width: 260px;
-  background: rgba(7, 5, 25, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 0.5px solid rgba(0, 245, 255, 0.2);
-  border-radius: 14px;
-  padding: 1rem;
   z-index: 2000;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,245,255,0.05);
   animation: ptFadeIn 0.2s ease;
 }
 
@@ -18,33 +10,40 @@
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Arrow */
-.pt-bubble::before {
+/* Arrow pointing at the target element */
+.pt-bubble-wrap::before {
   content: '';
   position: absolute;
-  width: 8px;
-  height: 8px;
-  background: rgba(7, 5, 25, 0.92);
-  border: 0.5px solid rgba(0, 245, 255, 0.2);
+  width: 9px;
+  height: 9px;
+  background: rgba(255,255,255,0.08);
+  border: 0.5px solid rgba(0,245,255,0.2);
   transform: rotate(45deg);
+  z-index: 1;
 }
-
 .pt-arrow-top::before    { top: -5px;    left: 50%; margin-left: -4px; border-bottom: none; border-right: none; }
 .pt-arrow-bottom::before { bottom: -5px; left: 50%; margin-left: -4px; border-top: none;    border-left: none;  }
-.pt-arrow-left::before   { left: -5px;   top: 50%;  margin-top: -4px;  border-right: none; border-top: none;   }
-.pt-arrow-right::before  { right: -5px;  top: 50%;  margin-top: -4px;  border-left: none;  border-bottom: none;}
+.pt-arrow-left::before   { left: -5px;   top: 50%;  margin-top: -4px;  border-right: none;  border-top: none;   }
+.pt-arrow-right::before  { right: -5px;  top: 50%;  margin-top: -4px;  border-left: none;   border-bottom: none;}
+
+/* Inner content */
+.pt-bubble-inner {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
 .pt-bubble-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
 }
 
 .pt-step {
   font-family: 'Space Mono', monospace;
   font-size: 0.6rem;
-  color: rgba(0, 245, 255, 0.5);
+  color: rgba(0,245,255,0.6);
   letter-spacing: 0.06em;
 }
 
@@ -53,32 +52,33 @@
   border: none;
   font-family: 'Space Mono', monospace;
   font-size: 0.6rem;
-  color: rgba(200, 200, 255, 0.3);
+  color: rgba(200,200,255,0.3);
   cursor: pointer;
   padding: 0;
   transition: color 0.15s;
 }
-.pt-skip:hover { color: rgba(200, 200, 255, 0.7); }
+.pt-skip:hover { color: rgba(200,200,255,0.7); }
 
 .pt-title {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.88rem;
   font-weight: 600;
-  color: rgba(240, 240, 255, 0.95);
-  margin: 0 0 0.35rem;
+  color: rgba(240,240,255,0.95);
+  margin: 0;
 }
 
 .pt-text {
-  font-size: 0.78rem;
-  color: rgba(200, 200, 255, 0.65);
+  font-size: 0.75rem;
+  color: rgba(200,200,255,0.65);
   line-height: 1.5;
-  margin: 0 0 0.75rem;
+  margin: 0;
 }
 
 .pt-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 0.25rem;
 }
 
 .pt-dots {
@@ -91,18 +91,18 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255,255,255,0.15);
   cursor: pointer;
   transition: background 0.15s;
 }
 .pt-dot.active { background: var(--accent-cyan, #00f5ff); }
-.pt-dot:hover  { background: rgba(255, 255, 255, 0.35); }
+.pt-dot:hover  { background: rgba(255,255,255,0.35); }
 
 .pt-next {
   padding: 0.35rem 0.9rem;
   border-radius: 6px;
-  border: 1px solid rgba(0, 245, 255, 0.35);
-  background: rgba(0, 245, 255, 0.08);
+  border: 1px solid rgba(0,245,255,0.35);
+  background: rgba(0,245,255,0.08);
   color: var(--accent-cyan, #00f5ff);
   font-family: 'Space Mono', monospace;
   font-size: 0.68rem;
@@ -110,9 +110,9 @@
   cursor: pointer;
   transition: all 0.15s;
 }
-.pt-next:hover { background: rgba(0, 245, 255, 0.16); }
+.pt-next:hover { background: rgba(0,245,255,0.16); }
 
-/* ── Helper button (bottom left) ─────────────────────────────────── */
+/* ── Helper button (bottom left, always visible) ─────────────────── */
 .pt-helper {
   position: fixed;
   bottom: 1.5rem;
@@ -120,10 +120,11 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
-  background: rgba(7, 5, 25, 0.85);
+  border: 0.5px solid rgba(255,255,255,0.15);
+  background: rgba(7,5,25,0.85);
   backdrop-filter: blur(8px);
-  color: rgba(200, 200, 255, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(200,200,255,0.5);
   font-family: 'Space Mono', monospace;
   font-size: 0.85rem;
   cursor: pointer;
@@ -134,7 +135,7 @@
   transition: all 0.2s;
 }
 .pt-helper:hover {
-  border-color: rgba(0, 245, 255, 0.4);
+  border-color: rgba(0,245,255,0.4);
   color: var(--accent-cyan, #00f5ff);
-  background: rgba(7, 5, 25, 0.95);
+  background: rgba(7,5,25,0.95);
 }
