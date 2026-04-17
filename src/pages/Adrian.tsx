@@ -12,7 +12,7 @@ const makeSvgUrl = (text: string) => {
     <rect width="820" height="190" fill="white"/>
     <text x="410" y="148" font-family="Arial Black,Impact,sans-serif" font-size="118" font-weight="900" fill="black" text-anchor="middle" letter-spacing="6">${text}</text>
   </svg>`
-  return `data:image/svg+xml;base64,${btoa(svg)}`
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
 const ADRIAN_SVG = makeSvgUrl('ADRIAN')
@@ -24,7 +24,7 @@ const makeSkillCard = (bg: string, emoji: string, label: string) => {
     <text x="100" y="95" font-family="Arial" font-size="52" text-anchor="middle">${emoji}</text>
     <text x="100" y="148" font-family="Arial Black,sans-serif" font-size="17" font-weight="900" fill="rgba(255,255,255,0.9)" text-anchor="middle">${label}</text>
   </svg>`
-  return `data:image/svg+xml;base64,${btoa(svg)}`
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
 const SKILL_IMAGES = [
@@ -143,7 +143,7 @@ function Section({ id, children, className = '' }: { id: string; children: React
   const ref = useRef<HTMLDivElement>(null)
   const visible = useReveal(ref)
   return (
-    <section id={id} ref={ref} className={`ap-section ${className} ${visible ? 'ap-visible' : ''}`}>
+    <section id={id} ref={ref} className={`ap-section ap-visible ${className} ${visible ? 'ap-animated' : ''}`}>
       {children}
     </section>
   )
@@ -232,7 +232,7 @@ export default function Adrian() {
             <div className="ap-about-left">
               <p className="ap-section-eyebrow">Who I am</p>
               <h2 className="ap-section-title">A bit about<br />me</h2>
-              <GlassSurface width="100%" height="auto" borderRadius={16} brightness={8} opacity={0.5} blur={10}>
+              <GlassSurface width="100%" borderRadius={16} brightness={8} opacity={0.5} blur={10}>
                 <div className="ap-bio-card">
                   <p>I'm Adrian — an EV Support Engineer based in Essex, working in the manufacturing of EV charging equipment and electrical components.</p>
                   <p>Outside of work I spend my time making music, building things on the web, developing a Roblox game, shooting videos, and fixing my car. I studied Computer Science and Electronics & Robotics in college which gave me a good foundation, but most of what I do now is self-taught.</p>
@@ -314,7 +314,7 @@ export default function Adrian() {
             <div className="ap-project-info">
               {PROJECTS.map((p, i) => (
                 <div key={p.title} className={`ap-project-detail ${i === activeProject ? 'active' : ''}`}>
-                  <GlassSurface width="100%" height="auto" borderRadius={16} brightness={6} opacity={0.45} blur={8}>
+                  <GlassSurface width="100%" borderRadius={16} brightness={6} opacity={0.45} blur={8}>
                     <div className="ap-project-card">
                       <div className="ap-project-header">
                         <h3 className="ap-project-title" style={{ color: p.color }}>{p.title}</h3>
