@@ -1,123 +1,387 @@
-import React from 'react'
-import SEO from '../components/SEO'
-import Particles from '../components/Particles'
-import GlassIcons from '../components/GlassIcons'
+import React, { useEffect, useRef, useState } from 'react'
+import MetallicPaint from '../components/MetallicPaint'
+import CardSwap, { Card } from '../components/CardSwap'
+import BounceCards from '../components/BounceCards'
+import MagicBento from '../components/MagicBento'
 import GlassSurface from '../components/GlassSurface'
+import './Adrian.css'
 
-// Social platform SVG icons
-const YouTubeIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-  </svg>
-)
-const SpotifyIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-  </svg>
-)
-const InstagramIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-  </svg>
-)
-const LinkedInIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-  </svg>
-)
-const DiscordIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-  </svg>
-)
-const SteamIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.297-.249-1.904-.05l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.013H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z"/>
-  </svg>
-)
-const RobloxIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M4.597 0L0 19.417 19.403 24 24 4.583zM15.17 17.3l-8.653-2.142 2.139-8.646 8.652 2.139z"/>
-  </svg>
-)
-const TwitchIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-    <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
-  </svg>
-)
+// ── Generate SVG data URL for MetallicPaint title ─────────────────────────────
+const makeSvgUrl = (text: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 190" width="820" height="190">
+    <rect width="820" height="190" fill="white"/>
+    <text x="410" y="148" font-family="Arial Black,Impact,sans-serif" font-size="118" font-weight="900" fill="black" text-anchor="middle" letter-spacing="6">${text}</text>
+  </svg>`
+  return `data:image/svg+xml;base64,${btoa(svg)}`
+}
 
-const SOCIAL_ITEMS = [
-  { icon: <YouTubeIcon />,   color: 'red',    label: 'YouTube',   href: 'https://www.youtube.com/@agamez123' },
-  { icon: <SpotifyIcon />,   color: 'green',  label: 'Spotify',   href: 'https://open.spotify.com/user/realagamez123' },
-  { icon: <InstagramIcon />, color: 'pink',   label: 'Instagram', href: 'https://www.instagram.com/thatadrian_' },
-  { icon: <LinkedInIcon />,  color: 'blue',   label: 'LinkedIn',  href: 'https://www.linkedin.com/in/adrian-dabrowski-379727251/' },
-  { icon: <DiscordIcon />,   color: 'indigo', label: 'Discord',   href: 'https://discord.com/users/agamez123' },
-  { icon: <SteamIcon />,     color: 'teal',   label: 'Steam',     href: 'https://steamcommunity.com/id/Agamez123/' },
-  { icon: <RobloxIcon />,    color: 'orange', label: 'Roblox',    href: 'https://www.roblox.com/users/search?keyword=agamez123' },
-  { icon: <TwitchIcon />,    color: 'purple', label: 'Twitch',    href: 'https://www.twitch.tv/agamez123' },
+const ADRIAN_SVG = makeSvgUrl('ADRIAN')
+
+// ── Skill card images (coloured SVGs) ─────────────────────────────────────────
+const makeSkillCard = (bg: string, emoji: string, label: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+    <rect width="200" height="200" fill="${bg}" rx="0"/>
+    <text x="100" y="95" font-family="Arial" font-size="52" text-anchor="middle">${emoji}</text>
+    <text x="100" y="148" font-family="Arial Black,sans-serif" font-size="17" font-weight="900" fill="rgba(255,255,255,0.9)" text-anchor="middle">${label}</text>
+  </svg>`
+  return `data:image/svg+xml;base64,${btoa(svg)}`
+}
+
+const SKILL_IMAGES = [
+  makeSkillCard('#0a1628', '🎵', 'Music'),
+  makeSkillCard('#12082a', '⚡', 'Dev'),
+  makeSkillCard('#0a1a12', '🎮', 'Games'),
+  makeSkillCard('#1a100a', '🔧', 'Hardware'),
+  makeSkillCard('#0e0a1a', '🎨', 'Design'),
 ]
 
-export default function Adrian() {
+// ── Skill data ─────────────────────────────────────────────────────────────────
+const SKILL_GROUPS = [
+  {
+    label: 'Music Production',
+    color: '#00f5ff',
+    skills: ['Ableton Live', 'FL Studio', 'Logic Pro', 'Sound Design', 'Mixing', 'Beatmaking', 'Composition', 'Vocals & Lyrics'],
+  },
+  {
+    label: 'Development',
+    color: '#b400ff',
+    skills: ['React', 'TypeScript', 'Vite', 'Supabase', 'HTML & CSS', 'Python', 'Git & GitHub'],
+  },
+  {
+    label: 'Creative Tools',
+    color: '#ff6b35',
+    skills: ['Photoshop', 'GIMP', 'Figma', 'DaVinci Resolve', 'Adobe Premiere', 'Sony Vegas', 'Illustrator'],
+  },
+  {
+    label: 'Game Development',
+    color: '#00ff88',
+    skills: ['Roblox Studio', 'Unity', 'Game Design', 'Level Design', 'Project Management', 'Scripting'],
+  },
+  {
+    label: 'Professional',
+    color: '#ffd700',
+    skills: ['EV Charging Systems', 'Technical Documentation', 'Customer Support', 'IT Support', 'DraftSight', 'Training Sessions'],
+  },
+  {
+    label: 'Hardware',
+    color: '#ff4466',
+    skills: ['Device Repair & Modding', 'Soldering & Electronics', 'PC Building', 'Building & Tinkering'],
+  },
+]
+
+// ── Interests for MagicBento ──────────────────────────────────────────────────
+const INTERESTS = [
+  { title: 'Music & Art', description: 'Always listening, always creating something', label: 'Core', emoji: '🎵', color: '#080514' },
+  { title: 'Skating', description: 'Any kind, any surface — board, blades, whatever', label: 'Sport', emoji: '🛹', color: '#060d0a' },
+  { title: 'Gaming', description: 'PC, console, and building my own games', label: 'Hobby', emoji: '🎮', color: '#06050f' },
+  { title: 'Collecting', description: 'Things worth keeping — records, gear, random finds', label: 'Habit', emoji: '📦', color: '#0d0806' },
+  { title: 'Concerts', description: 'Live music is a completely different experience', label: 'Culture', emoji: '🎤', color: '#0a0610' },
+  { title: 'Staying Productive', description: 'Always working on something new', label: 'Drive', emoji: '⚡', color: '#060a08' },
+]
+
+// ── Project data for CardSwap ──────────────────────────────────────────────────
+interface Project {
+  title: string
+  tag: string
+  description: string
+  link?: string
+  color: string
+}
+
+const PROJECTS: Project[] = [
+  {
+    title: 'TheAdrianBlog',
+    tag: 'Web · Live',
+    description: 'Full-stack blog platform with music reviews, track audio previews, community ratings, inline comments, and a custom publishing dashboard. Built with React, TypeScript, Vite, and Supabase.',
+    link: 'https://www.theadrianblog.com',
+    color: '#00f5ff',
+  },
+  {
+    title: 'Super Sumo Derby',
+    tag: 'Roblox Game',
+    description: 'A vehicle derby game built in Roblox Studio with a full dealership system, multiple vehicle tiers, Bucks/Robux purchases, custom garage UI, and A-Chassis physics. Cyberpunk aesthetic.',
+    color: '#b400ff',
+  },
+  {
+    title: 'YouTube Channel',
+    tag: 'Content',
+    description: 'Video production covering tech, gaming, music and lifestyle content. Full production from scripting to filming and editing in DaVinci Resolve and Adobe Premiere.',
+    color: '#ff0000',
+  },
+  {
+    title: 'Learning Ableton',
+    tag: 'Music Production',
+    description: 'Working through music production from scratch — composition, sound design, mixing, and beat-making. Aiming to release original music.',
+    color: '#00ff88',
+  },
+  {
+    title: 'Car Restoration',
+    tag: 'Hands-on',
+    description: 'Diagnosing and repairing my own car — learning mechanics, sourcing parts, and doing as much of the work as possible myself.',
+    color: '#ffd700',
+  },
+]
+
+// ── Reveal on scroll hook ─────────────────────────────────────────────────────
+function useReveal(ref: React.RefObject<Element | null>, threshold = 0.15) {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true) }, { threshold })
+    if (ref.current) obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [])
+  return visible
+}
+
+// ── Tag pill ──────────────────────────────────────────────────────────────────
+function Tag({ label, color }: { label: string; color: string }) {
+  return <span className="ap-tag" style={{ '--tag-color': color } as React.CSSProperties}>{label}</span>
+}
+
+// ── Section wrapper ───────────────────────────────────────────────────────────
+function Section({ id, children, className = '' }: { id: string; children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const visible = useReveal(ref)
   return (
-    <div className="adrian-page page-transition">
-      <SEO title="Adrian" description="Get in touch with Adrian — find me on YouTube, Spotify, Instagram and more." url="/adrian" />
+    <section id={id} ref={ref} className={`ap-section ${className} ${visible ? 'ap-visible' : ''}`}>
+      {children}
+    </section>
+  )
+}
 
-      {/* Particles background */}
-      <div className="adrian-particles">
-        <Particles
-          particleColors={['#00f5ff', '#b400ff', '#00ff88', '#ffffff']}
-          particleCount={180}
-          particleSpread={12}
-          speed={0.08}
-          particleBaseSize={80}
-          alphaParticles={true}
-          disableRotation={true}
-          pixelRatio={1}
-        />
-      </div>
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function Adrian() {
+  const [activeProject, setActiveProject] = useState(0)
+  const parallaxRef = useRef<HTMLDivElement>(null)
 
-      <div className="section" style={{ position: 'relative', zIndex: 1 }}>
+  // Subtle parallax on hero background
+  useEffect(() => {
+    const onScroll = () => {
+      if (parallaxRef.current) {
+        parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.3}px)`
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-        {/* ── Header ── */}
-        <div className="adrian-header">
-          <h1 className="adrian-title">Adrian</h1>
-          <p className="adrian-subtitle">Find me around the internet</p>
+  return (
+    <div className="ap-page">
+
+      {/* ── HERO ─────────────────────────────────────────────────────── */}
+      <section className="ap-hero">
+        <div ref={parallaxRef} className="ap-hero-bg" />
+
+        <div className="ap-hero-content">
+          {/* Metallic title */}
+          <div className="ap-metallic-wrap">
+            <MetallicPaint
+              imageSrc={ADRIAN_SVG}
+              scale={3.5}
+              speed={0.25}
+              liquid={0.6}
+              brightness={2.2}
+              contrast={0.55}
+              refraction={0.012}
+              blur={0.012}
+              tintColor="#00f5ff"
+              lightColor="#ffffff"
+              darkColor="#001a1a"
+              waveAmplitude={0.9}
+              noiseScale={0.45}
+              chromaticSpread={2.5}
+              distortion={0.8}
+              contour={0.15}
+            />
+          </div>
+
+          {/* Last name + role */}
+          <div className="ap-hero-sub">
+            <span className="ap-hero-surname">DABROWSKI</span>
+            <span className="ap-hero-dot">·</span>
+            <span className="ap-hero-role">EV Support Engineer</span>
+          </div>
+
+          {/* Location + languages */}
+          <div className="ap-hero-meta">
+            <span className="ap-hero-meta-item">📍 Essex, UK</span>
+            <span className="ap-hero-meta-item">🇬🇧 English</span>
+            <span className="ap-hero-meta-item">🇵🇱 Polish</span>
+            <span className="ap-hero-meta-item">🏍 Car & Motorbike</span>
+          </div>
+
+          {/* Social links — same as before */}
+          <div className="ap-hero-links">
+            <a href="https://github.com/ThatAdrian" target="_blank" rel="noopener noreferrer" className="ap-hero-link">GitHub</a>
+            <a href="https://www.linkedin.com/in/adriandabrowski" target="_blank" rel="noopener noreferrer" className="ap-hero-link">LinkedIn</a>
+            <a href="https://open.spotify.com/user/realagamez123" target="_blank" rel="noopener noreferrer" className="ap-hero-link">Spotify</a>
+            <a href="https://www.last.fm/user/agamez123" target="_blank" rel="noopener noreferrer" className="ap-hero-link">Last.fm</a>
+          </div>
         </div>
 
-        {/* ── Social icons ── */}
-        <GlassSurface
-          width="100%"
-          height="auto"
-          borderRadius={20}
-          brightness={20}
-          opacity={0.8}
-          blur={16}
-          style={{ marginBottom: '2.5rem', padding: '1rem' }}
-        >
-          <GlassIcons items={SOCIAL_ITEMS} className="adrian-icons" />
-        </GlassSurface>
+        <div className="ap-scroll-hint">
+          <span>scroll</span>
+          <div className="ap-scroll-line" />
+        </div>
+      </section>
 
-        {/* ── About section ── */}
-        <GlassSurface
-          width="100%"
-          height="auto"
-          borderRadius={16}
-          brightness={15}
-          opacity={0.75}
-          blur={12}
-          style={{ padding: '0.5rem' }}
-        >
-          <div className="adrian-about">
-            <h2 className="adrian-about-title">About</h2>
-            <div className="adrian-about-text">
-              {/* Edit this text whenever you want */}
-              <p>Hi, I'm Adrian. Welcome to my room</p>
-              <p>I write about music, tech, gaming and whatever else I want to. I always have some kind of projects running of random varying difficulties, usually out of boredom or wanting a challenge. If you want to chat, reach out on any of the platforms above.</p>
+      {/* ── ABOUT ────────────────────────────────────────────────────── */}
+      <Section id="about" className="ap-about-section">
+        <div className="ap-sticky-inner">
+          <div className="ap-about-grid">
+            <div className="ap-about-left">
+              <p className="ap-section-eyebrow">Who I am</p>
+              <h2 className="ap-section-title">A bit about<br />me</h2>
+              <GlassSurface width="100%" height="auto" borderRadius={16} brightness={8} opacity={0.5} blur={10}>
+                <div className="ap-bio-card">
+                  <p>I'm Adrian — an EV Support Engineer based in Essex, working in the manufacturing of EV charging equipment and electrical components.</p>
+                  <p>Outside of work I spend my time making music, building things on the web, developing a Roblox game, shooting videos, and fixing my car. I studied Computer Science and Electronics & Robotics in college which gave me a good foundation, but most of what I do now is self-taught.</p>
+                  <p>This site is one of those projects — built from scratch with React and TypeScript, with a custom dashboard, audio previews, community ratings, and a lot of other things I wanted to see on a blog.</p>
+                </div>
+              </GlassSurface>
+            </div>
+
+            <div className="ap-about-right">
+              <div className="ap-about-tags">
+                {['Self-taught', 'Music Producer', 'Game Dev', 'Tech Enthusiast', 'Content Creator', 'Hardware Tinkerer', 'Computer Science', 'Electronics & Robotics'].map(t => (
+                  <span key={t} className="ap-about-tag">{t}</span>
+                ))}
+              </div>
+
+              <div className="ap-stats-grid">
+                {[
+                  { value: '4+', label: 'Years in EV Industry' },
+                  { value: '∞', label: 'Things to learn' },
+                  { value: '2', label: 'Languages' },
+                  { value: '1', label: 'Blog built from scratch' },
+                ].map(s => (
+                  <div key={s.label} className="ap-stat">
+                    <span className="ap-stat-value">{s.value}</span>
+                    <span className="ap-stat-label">{s.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </GlassSurface>
+        </div>
+      </Section>
 
-      </div>
+      {/* ── SKILLS ───────────────────────────────────────────────────── */}
+      <Section id="skills" className="ap-skills-section">
+        <div className="ap-sticky-inner">
+          <p className="ap-section-eyebrow">What I work with</p>
+          <h2 className="ap-section-title">Skills</h2>
+
+          <div className="ap-skills-layout">
+            <BounceCards
+              images={SKILL_IMAGES}
+              containerWidth={420}
+              containerHeight={220}
+              animationDelay={0.3}
+              animationStagger={0.07}
+              transformStyles={[
+                'rotate(8deg) translate(-160px)',
+                'rotate(3deg) translate(-80px)',
+                'rotate(-2deg)',
+                'rotate(-8deg) translate(80px)',
+                'rotate(4deg) translate(160px)',
+              ]}
+              enableHover={true}
+            />
+
+            <div className="ap-skill-groups">
+              {SKILL_GROUPS.map(group => (
+                <div key={group.label} className="ap-skill-group">
+                  <span className="ap-skill-group-label" style={{ color: group.color }}>{group.label}</span>
+                  <div className="ap-skill-pills">
+                    {group.skills.map(s => <Tag key={s} label={s} color={group.color} />)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── PROJECTS ─────────────────────────────────────────────────── */}
+      <Section id="projects" className="ap-projects-section">
+        <div className="ap-sticky-inner">
+          <p className="ap-section-eyebrow">What I'm building</p>
+          <h2 className="ap-section-title">Projects</h2>
+
+          <div className="ap-projects-layout">
+            {/* Project info panel */}
+            <div className="ap-project-info">
+              {PROJECTS.map((p, i) => (
+                <div key={p.title} className={`ap-project-detail ${i === activeProject ? 'active' : ''}`}>
+                  <GlassSurface width="100%" height="auto" borderRadius={16} brightness={6} opacity={0.45} blur={8}>
+                    <div className="ap-project-card">
+                      <div className="ap-project-header">
+                        <h3 className="ap-project-title" style={{ color: p.color }}>{p.title}</h3>
+                        <span className="ap-project-tag">{p.tag}</span>
+                      </div>
+                      <p className="ap-project-desc">{p.description}</p>
+                      {p.link && (
+                        <a href={p.link} target="_blank" rel="noopener noreferrer" className="ap-project-link" style={{ color: p.color }}>
+                          Visit site →
+                        </a>
+                      )}
+                    </div>
+                  </GlassSurface>
+                </div>
+              ))}
+            </div>
+
+            {/* CardSwap */}
+            <div className="ap-cardswap-wrap">
+              <CardSwap
+                width={300}
+                height={360}
+                cardDistance={50}
+                verticalDistance={60}
+                delay={4000}
+                pauseOnHover={true}
+                skewAmount={4}
+                easing="elastic"
+                onCardClick={setActiveProject}
+              >
+                {PROJECTS.map((p, i) => (
+                  <Card key={p.title} style={{ padding: 0, overflow: 'hidden', background: '#080514', border: `1px solid ${p.color}30` }}>
+                    <div className="ap-swap-card-inner" style={{ '--card-accent': p.color } as React.CSSProperties}>
+                      <div className="ap-swap-card-top" style={{ background: `linear-gradient(135deg, ${p.color}15, transparent)` }}>
+                        <span className="ap-swap-card-num" style={{ color: p.color }}>0{i + 1}</span>
+                      </div>
+                      <div className="ap-swap-card-body">
+                        <h3 className="ap-swap-card-title">{p.title}</h3>
+                        <span className="ap-swap-card-tag">{p.tag}</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </CardSwap>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── INTERESTS ────────────────────────────────────────────────── */}
+      <Section id="interests" className="ap-interests-section">
+        <div className="ap-sticky-inner">
+          <p className="ap-section-eyebrow">Outside the work</p>
+          <h2 className="ap-section-title">Interests</h2>
+          <MagicBento
+            cards={INTERESTS}
+            glowColor="0, 245, 255"
+            enableStars={true}
+            enableSpotlight={true}
+            enableBorderGlow={true}
+            enableMagnetism={true}
+            clickEffect={true}
+            particleCount={6}
+          />
+        </div>
+      </Section>
+
     </div>
   )
 }
