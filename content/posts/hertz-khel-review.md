@@ -1,14 +1,14 @@
 ---
-date: 22/04/2026
+date: 28/04/2026
 title: "hertz - khel Review"
 summary: 'khel? khel! KHEL!!!'
 categories:
   - Music Reviews
 image: posts/hertz-khel-review.jpg
 rating: 3
-draft: true
+draft: false
 spotifyAlbum: "https://open.spotify.com/album/20UQOrH95A1K16ZXDkmWgP?si=Ihmzkn1mR3OSdIpnznZFKA"
-tracklist: does she know?~3.5 | super duper~3 | reek 2x~2.5 | steppin~3.5 | run for your life~2.5 | real girl~2 | ok im cool~3 | kill yourself~3 | poltergeist girl~3 | forget never forgive~3 | trust~3
+tracklist: does she know?~3.5 | super duper~3 | reek 2x~2.5 | steppin~3.5 | run for your life~2.5 | real girl~2 | ok im cool~2.5 | kill yourself~2.5 | poltergeist girl~3 | forget never forgive~2.5 | trust~2.5
 ---
 
 ## The Sound
@@ -23,4 +23,4 @@ Does she know?, super duper and steppin
 
 ## Verdict
 
-Listen to it, its decent, sounds a bit like lucy bedroque before unmusique, ill keep up with releases, i think they have potential.
+Listen to it, its decent, sounds a bit like lucy bedroque before unmusique, I'll keep up with releases, i think they have potential and i think there's a deluxe dropping very soon.
