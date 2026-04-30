@@ -1,29 +1,18 @@
 ---
-date: 28/03/2026
-title: "BULLY - YE Review"
+date: 30/04/2026
+title: "BULLY - Kanye West Review"
 summary: 'Is "Is my goat washed?" no longer a statement for just wandering travellers?'
 categories:
   - Music Reviews
-image: posts/bully.jpg
-rating: 3
+image: posts/bully-kanye-west-review.jpg
+rating: 2
 draft: true
-tracklist: KING,2 | THIS A MUST,3 | FATHER feat Travis Scott,3 | ALL THE LOVE,2.5 | PUNCH DRUNK,2 | WHATEVER WORKS,2 | MAMAS FAVOURITE,2 | SISTERS AND BROTHERS,1.5 | BULLY,3 | HIGHS AND LOWS,2.5 | I CANT WAIT,2 | WHITE LINES,3 | CIRCLES,3 | PREACHERMAN,3.5 | BEAUTY AND THE BEAST,3.5 | DAMN,4 | LAST BREATH,3 | THIS ONE HERE,2.5
+spotifyAlbum: "https://open.spotify.com/album/5poA9SAx0Xiz1cf17fWBLS?si=Hez2muNuTleL-nKyIQ5uTg"
+tracklist: KING~2.5 | THIS A MUST~2 | FATHER (feat. Travis Scott)~3 | ALL THE LOVE (feat. Andre Troutman)~2.5 | PUNCH DRUNK~2.5 | WHATEVER WORKS~1.5 | MAMA’S FAVORITE~2 | SISTERS AND BROTHERS~1.5 | BULLY (feat. CeeLo Green)~2 | HIGHS AND LOWS~3.5 | I CAN’T WAIT~1.5 | WHITE LINES (feat. Andre Troutman)~3.5 | CIRCLES~3 | PREACHER MAN~3.5 | BEAUTY AND THE BEAST~3.5 | DAMN~4 | LAST BREATH (feat. Peso Pluma)~3 | THIS ONE HERE~2.5
 ---
 
-Following a rough few years for Ye resulting in severe backlash and a reputation that will turn peoples heads if you tell them you've even listened to a single song of his recently begs the question of whether an album like this and an apology is enough to put him back on top.
-
-After all of these ridiculous delays it has nearly gone past the whole excitement and anticipation phase and although I've been a fan for a long time my expectations are kinda not very high, the singles that were released a long time ago are very good and I've had them on my playlist for a while.
-
-## The sound
-
-A somewhat repetitive collection of basic songs, I'm getting the impression that modern music and how the soundscape of the popular tracks nowadays may have surpassed the sound this album is projecting. by all means its not a bad album but a lot of these songs have no energy or much standout to them.
-
-Some songs which had crazy energy and i was genuienly excited for back when they were leaks or the strange prereleases have been amalgamised to ones of dare i say lower quality, for example CIRCLES, with Don Toliver, is a song i loved when i first heard it and now i listen to it it sounds like the vocals were mixed somehow worse.
-
-## Standout tracks
-
-FATHER, WHITE LINES, CIRCLES, PREACHER MAN,
+[TRACK_RATINGS]
 
 ## Verdict
 
-I expected better. 
+I expected better.
