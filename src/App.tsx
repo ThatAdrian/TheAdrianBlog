@@ -9,6 +9,8 @@ import YouTube from './pages/YouTube'
 import Dashboard from './dashboard/Dashboard'
 import DotGrid from './components/DotGrid'
 import { VolumeControl } from './components/TrackPlayer'
+import SubscribeModal from './components/SubscribeModal'
+import ConfirmSubscription from './pages/ConfirmSubscription'
 
 // Lazy load pages that use Three.js — only downloads when visited
 const Adrian   = lazy(() => import('./pages/Adrian'))
@@ -85,12 +87,14 @@ export default function App() {
             <Route path="/music"              element={<Music />} />
             <Route path="/youtube"            element={<YouTube />} />
             <Route path="/adrian"             element={<Adrian />} />
+            <Route path="/confirm"            element={<ConfirmSubscription />} />
             <Route path="*"                   element={<NotFound />} />
           </Routes>
         </Suspense>
       </div>
 
       {isPostPage && <VolumeControl />}
+      <SubscribeModal />
 
       <footer className="footer">
         <p>© {new Date().getFullYear()} TheAdrianBlog — built different</p>
