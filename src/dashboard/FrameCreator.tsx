@@ -307,7 +307,7 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
   ctx.letterSpacing = '0px'
 
   // Track list card
-  const PER = 10
+  const PER = Math.ceil(review.tracks.length / totalPages)
   const pageTracks = review.tracks.slice(page * PER, (page+1) * PER)
   const listY = labelY + (is ? 20 : 16)
   const listH = H - listY - (is ? 100 : 76)
@@ -362,46 +362,35 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
 
   drawBackground(ctx, W, H)
 
-  // Blurred art — very subtle, behind everything
+  // Square album art — correct aspect ratio, no stretching
   const img = await loadImg(review.imageUrl)
-  if (img) {
-    ctx.save(); ctx.filter = 'blur(80px)'; ctx.globalAlpha = 0.06
-    ctx.drawImage(img, -300, -300, W+600, H+600); ctx.restore()
-  }
-
-  // Top art strip — like a banner
-  const stripH = is ? 340 : 240
+  const artSz = is ? 220 : 160
+  const artX  = W/2 - artSz/2
+  const artY  = is ? 88 : 70
   if (img) {
     ctx.save()
-    ctx.beginPath(); ctx.rect(0, 0, W, stripH); ctx.clip()
-    ctx.drawImage(img, 0, 0, W, stripH)
+    rrect(ctx, artX, artY, artSz, artSz, 14); ctx.clip()
+    ctx.drawImage(img, artX, artY, artSz, artSz)
     ctx.restore()
-    // Fade strip into bg
-    const fade = ctx.createLinearGradient(0, stripH * 0.4, 0, stripH)
-    fade.addColorStop(0, 'rgba(7,5,26,0)')
-    fade.addColorStop(1, BG)
-    ctx.fillStyle = fade; ctx.fillRect(0, 0, W, stripH)
-    // Side vignettes
-    const lv = ctx.createLinearGradient(0, 0, W*0.25, 0)
-    lv.addColorStop(0, BG); lv.addColorStop(1, 'rgba(7,5,26,0)')
-    ctx.fillStyle = lv; ctx.fillRect(0, 0, W*0.25, stripH)
-    const rv = ctx.createLinearGradient(W*0.75, 0, W, 0)
-    rv.addColorStop(0, 'rgba(7,5,26,0)'); rv.addColorStop(1, BG)
-    ctx.fillStyle = rv; ctx.fillRect(W*0.75, 0, W*0.25, stripH)
+    ctx.save()
+    rrect(ctx, artX, artY, artSz, artSz, 14)
+    ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke()
+    ctx.restore()
   }
+  const stripH = artY + artSz
 
-  // Artist + album name over strip
-  ctx.fillStyle = CYAN + 'dd'
-  ctx.font = `700 ${is ? 34 : 24}px 'Orbitron', monospace`
-  ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
-  ctx.fillText(review.artist.toUpperCase(), W/2, stripH * 0.55)
+  // Artist + album name below art
+  ctx.fillStyle = CYAN + 'cc'
+  ctx.font = `700 ${is ? 30 : 22}px 'Orbitron', monospace`
+  ctx.textAlign = 'center'; ctx.letterSpacing = '3px'
+  ctx.fillText(review.artist.toUpperCase(), W/2, stripH + (is ? 44 : 34))
   ctx.letterSpacing = '0px'
   ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 64 : 46}px 'Space Grotesk', sans-serif`
-  ctx.fillText(clip(ctx, review.albumName, W - PAD*2), W/2, stripH * 0.85)
+  ctx.font = `bold ${is ? 56 : 40}px 'Space Grotesk', sans-serif`
+  ctx.fillText(clip(ctx, review.albumName, W - PAD*2), W/2, stripH + (is ? 106 : 78))
 
   // VERDICT label
-  const vLabelY = stripH + (is ? 52 : 38)
+  const vLabelY = stripH + (is ? 128 : 94)
   ctx.fillStyle = 'rgba(0,245,255,0.48)'
   ctx.font = `700 ${is ? 26 : 19}px 'Orbitron', monospace`
   ctx.letterSpacing = '5px'; ctx.textAlign = 'center'
