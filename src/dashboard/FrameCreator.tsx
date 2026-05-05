@@ -357,104 +357,123 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
-  const is = ratio === '9:16'
+  const is  = ratio === '9:16'
   const PAD = is ? 72 : 64
 
   drawBackground(ctx, W, H)
 
-  // Square album art — correct aspect ratio, no stretching
-  const img = await loadImg(review.imageUrl)
-  const artSz = is ? 220 : 160
-  const artX  = W/2 - artSz/2
-  const artY  = is ? 88 : 70
+  // ── Album art — full-bleed cinematic, same as intro frame ──────────────────
+  const artH = is ? 820 : 460
+  const img  = await loadImg(review.imageUrl)
   if (img) {
     ctx.save()
-    rrect(ctx, artX, artY, artSz, artSz, 14); ctx.clip()
-    ctx.drawImage(img, artX, artY, artSz, artSz)
+    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
+    ctx.drawImage(img, 0, 0, W, artH)
     ctx.restore()
-    ctx.save()
-    rrect(ctx, artX, artY, artSz, artSz, 14)
-    ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke()
-    ctx.restore()
+    // Bottom fade into background
+    const fadeH = is ? 380 : 240
+    const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
+    fade.addColorStop(0, 'rgba(7,5,26,0)')
+    fade.addColorStop(0.55, 'rgba(7,5,26,0.65)')
+    fade.addColorStop(1, BG)
+    ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
+    // Top vignette
+    const topF = ctx.createLinearGradient(0, 0, 0, is ? 180 : 100)
+    topF.addColorStop(0, 'rgba(7,5,26,0.45)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
+    ctx.fillStyle = topF; ctx.fillRect(0, 0, W, is ? 180 : 100)
   }
-  const stripH = artY + artSz
 
-  // Artist + album name below art
+  // ── Artist + album name — sits over the fade zone ─────────────────────────
+  const nameBaseY = artH - (is ? 60 : 40)
+
   ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `700 ${is ? 30 : 22}px 'Orbitron', monospace`
-  ctx.textAlign = 'center'; ctx.letterSpacing = '3px'
-  ctx.fillText(review.artist.toUpperCase(), W/2, stripH + (is ? 44 : 34))
+  ctx.font = `700 ${is ? 34 : 24}px 'Orbitron', monospace`
+  ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
+  ctx.fillText(review.artist.toUpperCase(), W/2, nameBaseY - (is ? 76 : 52))
   ctx.letterSpacing = '0px'
-  ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 56 : 40}px 'Space Grotesk', sans-serif`
-  ctx.fillText(clip(ctx, review.albumName, W - PAD*2), W/2, stripH + (is ? 106 : 78))
 
-  // VERDICT label
-  const vLabelY = stripH + (is ? 128 : 94)
+  ctx.fillStyle = TEXT_PRI
+  ctx.font = `bold ${is ? 68 : 48}px 'Space Grotesk', sans-serif`
+  ctx.fillText(clip(ctx, review.albumName, W - PAD * 2.2), W/2, nameBaseY)
+
+  // ── Anchor bottom elements first so nothing overflows ─────────────────────
+  // Watermark
+  const wmH    = is ? 50 : 38
+  // CTA box
+  const ctaH   = is ? 76 : 56
+  const ctaY   = H - wmH - ctaH - (is ? 24 : 18)
+  // Rating card — fixed height, above CTA
+  const rcardH = is ? 230 : 168
+  const rcardY = ctaY - (is ? 22 : 16) - rcardH
+  // Separator above rating card
+  const sepY   = rcardY - (is ? 22 : 16)
+
+  // ── VERDICT label — sits just below art ───────────────────────────────────
+  const vLabelY = artH + (is ? 52 : 38)
   ctx.fillStyle = 'rgba(0,245,255,0.48)'
   ctx.font = `700 ${is ? 26 : 19}px 'Orbitron', monospace`
   ctx.letterSpacing = '5px'; ctx.textAlign = 'center'
   ctx.fillText('VERDICT', W/2, vLabelY); ctx.letterSpacing = '0px'
-  drawSep(ctx, PAD, vLabelY + (is ? 16 : 12), W - PAD*2)
+  drawSep(ctx, PAD, vLabelY + (is ? 16 : 12), W - PAD * 2)
 
-  // Verdict card
-  const vcardY = vLabelY + (is ? 36 : 26)
-  const maxChars = is ? 460 : 360
-  const snippet = review.verdict.length > maxChars ? review.verdict.slice(0, maxChars).trim() + '...' : review.verdict
-  // Measure how tall the text will be
-  ctx.font = `${is ? 40 : 29}px 'Space Grotesk', sans-serif`
-  const lineH = is ? 58 : 42
-  const textPad = is ? 36 : 28
-  // Draw card — height calculated to fit text
-  const words = snippet.split(' ')
-  const maxTextW = W - PAD*2 - textPad*2
-  let line = '', lines = 0
+  // ── Verdict card — fills space between label and rating card ──────────────
+  const vcardY   = vLabelY + (is ? 32 : 24)
+  const vcardH   = sepY - vcardY - (is ? 8 : 6)
+  const textPad  = is ? 32 : 26
+  const lineH    = is ? 56 : 40
+  const maxTextW = W - PAD * 2 - textPad * 2
+
+  // Trim verdict to fit card height
+  ctx.font = `${is ? 38 : 28}px 'Space Grotesk', sans-serif`
+  const maxLines = Math.floor((vcardH - textPad * 2) / lineH)
+  let words = review.verdict.split(' ')
+  let lines: string[] = []; let line = ''
   for (const w of words) {
-    if (ctx.measureText(line + w + ' ').width > maxTextW && line) { lines++; line = w + ' ' } else line += w + ' '
+    const t = line + w + ' '
+    if (ctx.measureText(t).width > maxTextW && line) { lines.push(line.trim()); line = w + ' ' }
+    else line = t
   }
-  if (line.trim()) lines++
-  const vcardH = lines * lineH + textPad * 2 + (is ? 10 : 6)
-  drawCard(ctx, PAD, vcardY, W - PAD*2, vcardH, 14)
+  if (line.trim()) lines.push(line.trim())
+  if (lines.length > maxLines) lines = [...lines.slice(0, maxLines - 1), lines[maxLines - 1].replace(/\s*\w+$/, '…')]
+  const snippet = lines.join(' ')
+
+  drawCard(ctx, PAD, vcardY, W - PAD * 2, vcardH, 14)
   ctx.fillStyle = 'rgba(210,210,235,0.82)'
-  wrapText(ctx, snippet, PAD + textPad, vcardY + textPad + lineH * 0.7, maxTextW, lineH, 'left')
+  wrapText(ctx, snippet, PAD + textPad, vcardY + textPad + lineH * 0.72, maxTextW, lineH, 'left')
 
-  // Rating card
-  const rcardY = vcardY + vcardH + (is ? 36 : 26)
-  const rcardH = is ? 260 : 186
-  drawCard(ctx, PAD, rcardY, W - PAD*2, rcardH, 16)
-  // Subtle top accent line — cyan
-  ctx.fillStyle = 'rgba(0,245,255,0.18)'
-  ctx.fillRect(PAD + 2, rcardY, W - PAD*2 - 4, 1)
+  // ── Separator ─────────────────────────────────────────────────────────────
+  drawSep(ctx, PAD, sepY, W - PAD * 2)
 
-  const rmid = rcardY + rcardH/2
+  // ── Rating card ───────────────────────────────────────────────────────────
+  drawCard(ctx, PAD, rcardY, W - PAD * 2, rcardH, 16)
+  ctx.fillStyle = 'rgba(0,245,255,0.16)'
+  ctx.fillRect(PAD + 2, rcardY, W - PAD * 2 - 4, 1)
+
+  const rmid = rcardY + rcardH / 2
   const col  = ratingColor(review.rating)
 
-  // Big rating number
   ctx.save()
   if (review.rating >= 5) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 40 }
   ctx.fillStyle = col
-  ctx.font = `bold ${is ? 86 : 60}px 'Orbitron', monospace`
+  ctx.font = `bold ${is ? 82 : 58}px 'Orbitron', monospace`
   ctx.textAlign = 'center'
-  ctx.fillText(`${review.rating} / 5`, W/2, rmid + (is ? 14 : 10))
+  ctx.fillText(`${review.rating} / 5`, W/2, rmid + (is ? 18 : 12))
   ctx.restore()
 
-  // Stars
-  drawStars(ctx, review.rating, W/2, rmid + (is ? 84 : 60), is ? 24 : 17)
+  drawStars(ctx, review.rating, W/2, rmid + (is ? 82 : 58), is ? 22 : 16)
 
-  // "For more reviews" CTA box
-  const ctaY = rcardY + rcardH + (is ? 28 : 20)
-  const ctaH = is ? 72 : 52
-  drawCard(ctx, PAD, ctaY, W - PAD*2, ctaH, ctaH/2)
-  ctx.fillStyle = 'rgba(0,245,255,0.22)'
-  ctx.fillRect(PAD + 2, ctaY, W - PAD*2 - 4, 1)
-  ctx.fillStyle = 'rgba(200,200,255,0.55)'
-  ctx.font = `${is ? 26 : 19}px 'Space Grotesk', sans-serif`
+  // ── CTA box — anchored to bottom ──────────────────────────────────────────
+  drawCard(ctx, PAD, ctaY, W - PAD * 2, ctaH, ctaH / 2)
+  ctx.fillStyle = 'rgba(0,245,255,0.18)'
+  ctx.fillRect(PAD + 2, ctaY, W - PAD * 2 - 4, 1)
+  ctx.fillStyle = 'rgba(200,200,255,0.48)'
+  ctx.font = `${is ? 24 : 18}px 'Space Grotesk', sans-serif`
   ctx.textAlign = 'center'
-  ctx.fillText('for more reviews visit', W/2, ctaY + ctaH * 0.42)
+  ctx.fillText('for more reviews visit', W/2, ctaY + ctaH * 0.4)
   ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `bold ${is ? 30 : 22}px 'Orbitron', monospace`
+  ctx.font = `bold ${is ? 28 : 21}px 'Orbitron', monospace`
   ctx.letterSpacing = '1px'
-  ctx.fillText('TheAdrianBlog.com', W/2, ctaY + ctaH * 0.82)
+  ctx.fillText('TheAdrianBlog.com', W/2, ctaY + ctaH * 0.8)
   ctx.letterSpacing = '0px'
 
   drawWatermark(ctx, W, H, is ? 24 : 19)
