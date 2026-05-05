@@ -9,6 +9,29 @@ interface ReviewData {
 }
 type Ratio = '9:16' | '1:1'
 
+// ── Exact rating colors from Music.tsx — 5 star overridden to neon white ──────
+function ratingColor(r: number): string {
+  if (r >= 5)   return '#ffffff'  // neon white (overrides #ff00ff)
+  if (r >= 4.5) return '#dd00ff'
+  if (r >= 4)   return '#0088ff'
+  if (r >= 3.5) return '#00bbaa'
+  if (r >= 3)   return '#00cc44'
+  if (r >= 2.5) return '#aadd00'
+  if (r >= 2)   return '#ffd000'
+  if (r >= 1.5) return '#ff8c00'
+  if (r >= 1)   return '#ff6600'
+  return '#e63333'
+}
+
+// ── Blog exact palette ────────────────────────────────────────────────────────
+const BG        = '#07051a'
+const CYAN      = '#00f5ff'
+const TEXT_PRI  = 'rgba(220,220,255,0.92)'
+const TEXT_MUT  = 'rgba(200,200,255,0.42)'
+const CARD_BG   = 'rgba(255,255,255,0.025)'
+const CARD_BDR  = 'rgba(255,255,255,0.08)'
+const SEPARATOR = 'rgba(255,255,255,0.07)'
+
 // ── Parse helpers ─────────────────────────────────────────────────────────────
 function parseFrontmatter(raw: string): Record<string, string> {
   const match = raw.match(/^---\n([\s\S]*?)\n---/)
@@ -35,29 +58,31 @@ function extractSection(body: string, heading: string): string {
 }
 
 // ── Font loader ───────────────────────────────────────────────────────────────
-let fontsLoaded = false
-async function ensureFonts() {
-  if (fontsLoaded) return
+let fontsReady = false
+async function loadFonts() {
+  if (fontsReady) return
   try {
+    const load = (name: string, url: string, opts?: object) =>
+      new FontFace(name, `url(${url})`, opts).load().then(f => { document.fonts.add(f) })
     await Promise.all([
-      new FontFace('Space Grotesk', 'url(https://fonts.gstatic.com/s/spacegrotesk/v16/V8mDoQDjQSkFtoMM3T6r8E7mF71Q-gowFRntYZgAmQ.woff2)').load().then(f => { document.fonts.add(f); return f }),
-      new FontFace('Space Grotesk', 'url(https://fonts.gstatic.com/s/spacegrotesk/v16/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gowFRntYZgAmQ.woff2)', { weight: '700' }).load().then(f => { document.fonts.add(f); return f }),
-      new FontFace('Orbitron', 'url(https://fonts.gstatic.com/s/orbitron/v31/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nyGy6xpmIyXjU1pg.woff2)', { weight: '700' }).load().then(f => { document.fonts.add(f); return f }),
+      load('Space Grotesk', 'https://fonts.gstatic.com/s/spacegrotesk/v16/V8mDoQDjQSkFtoMM3T6r8E7mF71Q-gowFRntYZgAmQ.woff2'),
+      load('Space Grotesk', 'https://fonts.gstatic.com/s/spacegrotesk/v16/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gowFRntYZgAmQ.woff2', { weight: '700' }),
+      load('Orbitron',      'https://fonts.gstatic.com/s/orbitron/v31/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nyGy6xpmIyXjU1pg.woff2', { weight: '700' }),
+      load('Space Mono',    'https://fonts.gstatic.com/s/spacemono/v13/i7dPIFZifjKcF5UAWdDRYE98RXi4EwSsbg.woff2'),
     ])
-    fontsLoaded = true
-  } catch { fontsLoaded = true }
+  } catch { /* fonts fall back to system */ }
+  fontsReady = true
 }
 
-// ── Image loader ──────────────────────────────────────────────────────────────
-async function loadImage(url: string): Promise<HTMLImageElement | null> {
-  return new Promise(resolve => {
-    const img = new Image(); img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img); img.onerror = () => resolve(null); img.src = url
+async function loadImg(url: string): Promise<HTMLImageElement | null> {
+  return new Promise(r => {
+    const i = new Image(); i.crossOrigin = 'anonymous'
+    i.onload = () => r(i); i.onerror = () => r(null); i.src = url
   })
 }
 
-// ── Canvas utils ──────────────────────────────────────────────────────────────
-function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+// ── Canvas primitives ─────────────────────────────────────────────────────────
+function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath()
   ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r)
   ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h)
@@ -67,395 +92,413 @@ function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: n
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxW: number, lineH: number, align: CanvasTextAlign = 'left'): number {
   ctx.textAlign = align
-  const baseX = align === 'center' ? x : x
   const words = text.split(' '); let line = ''
   for (const word of words) {
-    const test = line + word + ' '
-    if (ctx.measureText(test).width > maxW && line) {
-      ctx.fillText(line.trim(), baseX, y); line = word + ' '; y += lineH
-    } else line = test
+    const t = line + word + ' '
+    if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line.trim(), x, y); line = word + ' '; y += lineH }
+    else line = t
   }
-  ctx.fillText(line.trim(), baseX, y)
-  return y + lineH
+  if (line.trim()) { ctx.fillText(line.trim(), x, y); y += lineH }
+  return y
 }
 
 function clip(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
   if (ctx.measureText(text).width <= maxW) return text
   let t = text
-  while (ctx.measureText(t + '…').width > maxW && t.length > 0) t = t.slice(0, -1)
+  while (ctx.measureText(t + '…').width > maxW && t.length) t = t.slice(0,-1)
   return t + '…'
 }
 
-// ── Rating colors — clear distinction, 5-star is neon white ──────────────────
-function rc(r: number): { fill: string; glow: string } {
-  if (r >= 5)   return { fill: '#ffffff', glow: 'rgba(255,255,255,0.8)' }
-  if (r >= 4.5) return { fill: '#00f5ff', glow: 'rgba(0,245,255,0.6)' }
-  if (r >= 4)   return { fill: '#00ccdd', glow: 'rgba(0,204,221,0.5)' }
-  if (r >= 3.5) return { fill: '#00ff88', glow: 'rgba(0,255,136,0.5)' }
-  if (r >= 3)   return { fill: '#aadd00', glow: 'rgba(170,221,0,0.4)' }
-  if (r >= 2)   return { fill: '#ffd700', glow: 'rgba(255,215,0,0.4)' }
-  return         { fill: '#ff4466', glow: 'rgba(255,68,102,0.4)' }
-}
-
-// ── Refined divider ───────────────────────────────────────────────────────────
-function drawDivider(ctx: CanvasRenderingContext2D, cx: number, y: number, halfW: number, color = 'rgba(255,255,255,0.12)') {
-  const gr = ctx.createLinearGradient(cx - halfW, 0, cx + halfW, 0)
-  gr.addColorStop(0, 'transparent')
-  gr.addColorStop(0.35, color)
-  gr.addColorStop(0.5, color)
-  gr.addColorStop(0.65, color)
-  gr.addColorStop(1, 'transparent')
-  ctx.fillStyle = gr; ctx.fillRect(cx - halfW, y, halfW * 2, 1)
-  // Centre diamond
-  ctx.save()
-  ctx.fillStyle = color
-  ctx.translate(cx, y + 0.5)
-  ctx.rotate(Math.PI / 4)
-  ctx.fillRect(-4, -4, 8, 8)
-  ctx.restore()
-}
-
-// ── Background ────────────────────────────────────────────────────────────────
-function drawBg(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  ctx.fillStyle = '#06041a'; ctx.fillRect(0, 0, W, H)
-  // Subtle noise-like grain effect via very small dots
-  ctx.fillStyle = 'rgba(255,255,255,0.018)'
-  const step = 44
-  for (let x = step/2; x < W; x += step)
-    for (let y = step/2; y < H; y += step) {
-      ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI*2); ctx.fill()
+// ── Shared background — matches blog DotGrid ──────────────────────────────────
+function drawBackground(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H)
+  // Dot grid — same as blog's DotGrid component
+  ctx.fillStyle = 'rgba(50,40,80,0.55)'
+  const gap = 56
+  for (let x = gap; x < W; x += gap)
+    for (let y = gap; y < H; y += gap) {
+      ctx.beginPath(); ctx.arc(x, y, 1.8, 0, Math.PI*2); ctx.fill()
     }
-  // Atmospheric glows
-  ;[[W*0.75, H*0.15, W*0.6, '0,245,255', 0.06], [W*0.25, H*0.85, W*0.55, '180,0,255', 0.05]].forEach(([gx, gy, gr2, col, op]) => {
-    const g = ctx.createRadialGradient(gx as number, gy as number, 0, gx as number, gy as number, gr2 as number)
-    g.addColorStop(0, `rgba(${col},${op})`); g.addColorStop(1, 'transparent')
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
-  })
+  // Active dots (bright) — sparse
+  ctx.fillStyle = 'rgba(155,40,123,0.5)'
+  for (let x = gap*3; x < W; x += gap*7)
+    for (let y = gap*3; y < H; y += gap*7) {
+      ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI*2); ctx.fill()
+    }
 }
 
-// ── Top accent bar ────────────────────────────────────────────────────────────
-function drawAccentBar(ctx: CanvasRenderingContext2D, W: number, y: number, PAD: number) {
-  const g = ctx.createLinearGradient(PAD, 0, W-PAD, 0)
-  g.addColorStop(0, 'transparent')
-  g.addColorStop(0.2, 'rgba(0,245,255,0.7)')
-  g.addColorStop(0.8, 'rgba(180,0,255,0.7)')
-  g.addColorStop(1, 'transparent')
-  ctx.fillStyle = g; ctx.fillRect(PAD, y, W-PAD*2, 2)
+// ── Card — matches blog .db-card / GlassSurface ───────────────────────────────
+function drawCard(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius = 16) {
+  rrect(ctx, x, y, w, h, radius)
+  ctx.fillStyle = CARD_BG; ctx.fill()
+  ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke()
 }
 
-// ── Star row — neon white for 5, color scale below ───────────────────────────
-function drawStars(ctx: CanvasRenderingContext2D, rating: number, cx: number, cy: number, sz: number) {
-  const starW = sz * 2.2
-  const gap = sz * 0.5
-  const total = 5 * starW + 4 * gap
-  let x = cx - total / 2 + starW / 2
+// ── Separator — blog's card border style ─────────────────────────────────────
+function drawSep(ctx: CanvasRenderingContext2D, x: number, y: number, w: number) {
+  ctx.fillStyle = SEPARATOR; ctx.fillRect(x, y, w, 1)
+}
+
+// ── Watermark ─────────────────────────────────────────────────────────────────
+function drawWatermark(ctx: CanvasRenderingContext2D, W: number, H: number, sz: number) {
+  ctx.font = `500 ${sz}px 'Space Mono', monospace`
+  ctx.fillStyle = 'rgba(0,245,255,0.28)'
+  ctx.textAlign = 'center'
+  ctx.fillText('theadrianblog.com', W/2, H - sz * 1.2)
+}
+
+// ── Rating pill — same visual language as blog's top-albums row ───────────────
+function drawRatingPill(ctx: CanvasRenderingContext2D, rating: number, cx: number, cy: number, pillW: number, pillH: number) {
+  const col = ratingColor(rating)
+  // Pill bg
+  rrect(ctx, cx - pillW/2, cy - pillH/2, pillW, pillH, pillH/2)
+  ctx.fillStyle = col + '1a'; ctx.fill()
+  ctx.strokeStyle = col + '55'; ctx.lineWidth = 1.2; ctx.stroke()
+  // Number
+  ctx.save()
+  if (rating >= 5) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 18 }
+  ctx.fillStyle = col
+  ctx.font = `bold ${pillH * 0.58}px 'Space Mono', monospace`
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-  for (let i = 0; i < 5; i++) {
+  ctx.fillText(`${rating}`, cx, cy + 1)
+  ctx.restore()
+  ctx.textBaseline = 'alphabetic'
+}
+
+// ── Stars row ─────────────────────────────────────────────────────────────────
+function drawStars(ctx: CanvasRenderingContext2D, rating: number, cx: number, cy: number, size: number) {
+  const count = 5
+  const gap = size * 0.3
+  const total = count * size * 2 + (count-1) * gap
+  let x = cx - total/2 + size
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'center'
+  ctx.font = `${size * 2}px Arial`
+  for (let i = 0; i < count; i++) {
     const filled = rating >= i + 1
     const half   = !filled && rating >= i + 0.5
-    if (filled || half) {
-      const { fill, glow } = rc(i < rating ? Math.min(5, rating) : i + 0.5)
-      ctx.save()
-      ctx.shadowColor = glow; ctx.shadowBlur = sz * 0.8
-      ctx.fillStyle = fill
-      ctx.font = `${sz * 2}px Arial`
-      ctx.fillText(half ? '⭐' : '★', x, cy)
-      ctx.restore()
-    } else {
-      ctx.fillStyle = 'rgba(255,255,255,0.1)'
-      ctx.font = `${sz * 2}px Arial`
-      ctx.fillText('☆', x, cy)
-    }
-    x += starW + gap
+    const col = filled || half ? ratingColor(Math.min(rating, i + 1)) : 'rgba(255,255,255,0.1)'
+    ctx.save()
+    if ((filled || half) && rating >= 5 && i < 5) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 16 }
+    ctx.fillStyle = col
+    ctx.fillText(filled ? '★' : half ? '⭐' : '☆', x, cy)
+    ctx.restore()
+    x += size * 2 + gap
   }
   ctx.textBaseline = 'alphabetic'
 }
 
-function drawWatermark(ctx: CanvasRenderingContext2D, W: number, H: number, PAD: number, sz: number) {
-  ctx.fillStyle = 'rgba(255,255,255,0.2)'
-  ctx.font = `500 ${sz}px 'Space Grotesk', Arial`
-  ctx.textAlign = 'center'
-  ctx.fillText('theadrianblog.com', W/2, H - PAD*0.55)
-}
-
-// ── FRAME 0: Intro ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// FRAME 0 — INTRO
+// Full-bleed album art with cinematic bottom fade, text section below
+// ─────────────────────────────────────────────────────────────────────────────
 async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
+  await loadFonts()
   const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
-  const PAD = ratio === '9:16' ? 88 : 76
   const is = ratio === '9:16'
-  await ensureFonts()
-  drawBg(ctx, W, H)
-  drawAccentBar(ctx, W, is ? 56 : 44, PAD)
+  const PAD = is ? 72 : 64
 
-  // Album art — large, centred
-  const artSz = is ? 740 : 480
-  const artX = (W - artSz) / 2
-  const artY = is ? 108 : 88
-  const img = await loadImage(review.imageUrl)
+  drawBackground(ctx, W, H)
+
+  // Album art — full-bleed top portion
+  const artH = is ? 1080 : 620
+  const img = await loadImg(review.imageUrl)
   if (img) {
-    // Shadow glow
     ctx.save()
-    ctx.shadowColor = 'rgba(0,245,255,0.18)'; ctx.shadowBlur = 100
-    rr(ctx, artX, artY, artSz, artSz, 24); ctx.clip()
-    ctx.drawImage(img, artX, artY, artSz, artSz)
+    // Clip to top section
+    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
+    ctx.drawImage(img, 0, 0, W, artH)
     ctx.restore()
-    // Frame border
-    ctx.save(); rr(ctx, artX, artY, artSz, artSz, 24)
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore()
+    // Cinematic fade — bottom of art bleeds into background
+    const fadeH = is ? 380 : 280
+    const fade = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
+    fade.addColorStop(0, 'rgba(7,5,26,0)')
+    fade.addColorStop(0.5, 'rgba(7,5,26,0.6)')
+    fade.addColorStop(1, BG)
+    ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
+    // Top vignette
+    const topFade = ctx.createLinearGradient(0, 0, 0, is ? 200 : 120)
+    topFade.addColorStop(0, 'rgba(7,5,26,0.5)')
+    topFade.addColorStop(1, 'rgba(7,5,26,0)')
+    ctx.fillStyle = topFade; ctx.fillRect(0, 0, W, is ? 200 : 120)
   }
 
-  const ty = artY + artSz + (is ? 68 : 50)
+  // Text section
+  const textY = artH - (is ? 80 : 50)
 
-  // Artist — small allcaps cyan
-  ctx.fillStyle = 'rgba(0,245,255,0.7)'
-  ctx.font = `600 ${is ? 44 : 30}px 'Orbitron', Arial`
+  // Artist — Orbitron cyan, small caps
+  ctx.fillStyle = CYAN + 'cc'
+  ctx.font = `700 ${is ? 36 : 26}px 'Orbitron', monospace`
   ctx.textAlign = 'center'
-  ctx.letterSpacing = '4px'
-  ctx.fillText(review.artist.toUpperCase(), W/2, ty)
+  ctx.letterSpacing = '5px'
+  ctx.fillText(review.artist.toUpperCase(), W/2, textY)
   ctx.letterSpacing = '0px'
 
-  // Album name — big, white
-  ctx.fillStyle = 'rgba(248,248,255,0.97)'
-  ctx.font = `bold ${is ? 78 : 54}px 'Space Grotesk', Arial`
-  const nameEndY = wrapText(ctx, review.albumName, W/2, ty + (is ? 86 : 60), W - PAD*2.4, is ? 90 : 64, 'center')
+  // Album name — Space Grotesk bold, large white
+  ctx.fillStyle = TEXT_PRI
+  ctx.font = `bold ${is ? 72 : 52}px 'Space Grotesk', sans-serif`
+  const nameEndY = wrapText(ctx, review.albumName, W/2, textY + (is ? 72 : 52), W - PAD*2, is ? 82 : 60, 'center')
 
-  // Refined divider
-  drawDivider(ctx, W/2, nameEndY + (is ? 24 : 18), W/2 - PAD * 1.2, 'rgba(255,255,255,0.18)')
+  // Thin separator
+  drawSep(ctx, PAD, nameEndY + (is ? 18 : 14), W - PAD*2)
 
-  // Summary — italic feel, lighter weight
+  // Summary
   if (review.summary) {
-    ctx.fillStyle = 'rgba(195,195,225,0.65)'
-    ctx.font = `${is ? 40 : 28}px 'Space Grotesk', Arial`
-    wrapText(ctx, `"${review.summary}"`, W/2, nameEndY + (is ? 80 : 58), W - PAD*2.2, is ? 56 : 40, 'center')
+    ctx.fillStyle = TEXT_MUT
+    ctx.font = `${is ? 36 : 26}px 'Space Grotesk', sans-serif`
+    wrapText(ctx, `"${review.summary}"`, W/2, nameEndY + (is ? 56 : 42), W - PAD*2.2, is ? 50 : 38, 'center')
   }
 
-  drawAccentBar(ctx, W, H - (is ? 76 : 58), PAD)
-  drawWatermark(ctx, W, H, PAD, is ? 28 : 22)
+  drawWatermark(ctx, W, H, is ? 26 : 20)
 }
 
-// ── FRAME 1+: Tracks ──────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// FRAME 1+ — TRACKS
+// 10 per page, clean list matching blog's top-albums visual style
+// ─────────────────────────────────────────────────────────────────────────────
 async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio, page: number) {
+  await loadFonts()
   const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
-  const PAD = ratio === '9:16' ? 88 : 76
   const is = ratio === '9:16'
-  await ensureFonts()
-  drawBg(ctx, W, H)
-  drawAccentBar(ctx, W, is ? 56 : 44, PAD)
+  const PAD = is ? 72 : 64
 
-  // Header — thumb + info
-  const thumbSz = is ? 120 : 96
-  const headerY  = is ? 96 : 78
-  const img = await loadImage(review.imageUrl)
+  drawBackground(ctx, W, H)
+
+  // Header card
+  const cardPad  = is ? 32 : 24
+  const thumbSz  = is ? 110 : 86
+  const headerH  = thumbSz + cardPad * 2
+  const headerY  = is ? 72 : 58
+  drawCard(ctx, PAD, headerY, W - PAD*2, headerH)
+
+  const img = await loadImg(review.imageUrl)
   if (img) {
-    ctx.save(); rr(ctx, PAD, headerY, thumbSz, thumbSz, 12); ctx.clip()
-    ctx.drawImage(img, PAD, headerY, thumbSz, thumbSz); ctx.restore()
-    ctx.save(); rr(ctx, PAD, headerY, thumbSz, thumbSz, 12)
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore()
+    ctx.save()
+    rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10); ctx.clip()
+    ctx.drawImage(img, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz)
+    ctx.restore()
+    ctx.save()
+    rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10)
+    ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke(); ctx.restore()
   }
 
-  const hx = PAD + thumbSz + (is ? 28 : 22)
-  ctx.fillStyle = 'rgba(248,248,255,0.95)'
-  ctx.font = `bold ${is ? 48 : 34}px 'Space Grotesk', Arial`
+  const hx = PAD + cardPad + thumbSz + (is ? 24 : 18)
+  const hmid = headerY + headerH/2
+  ctx.fillStyle = TEXT_PRI
+  ctx.font = `bold ${is ? 44 : 32}px 'Space Grotesk', sans-serif`
   ctx.textAlign = 'left'
-  ctx.fillText(clip(ctx, review.albumName, W - hx - PAD), hx, headerY + (is ? 50 : 38))
-  ctx.fillStyle = 'rgba(0,245,255,0.65)'
-  ctx.font = `500 ${is ? 34 : 24}px 'Orbitron', Arial`
-  ctx.fillText(clip(ctx, review.artist, W - hx - PAD - 20), hx, headerY + (is ? 100 : 74))
-
-  // Section label
-  const labelY = headerY + thumbSz + (is ? 48 : 36)
-  const totalPages = Math.ceil(review.tracks.length / 10)
-  ctx.fillStyle = 'rgba(0,245,255,0.45)'
-  ctx.font = `600 ${is ? 28 : 20}px 'Orbitron', Arial`
-  ctx.letterSpacing = '3px'
-  ctx.fillText(`TRACKS${totalPages > 1 ? `  ${page+1} / ${totalPages}` : ''}`, PAD, labelY)
+  ctx.fillText(clip(ctx, review.albumName, W - hx - PAD - cardPad), hx, hmid - (is ? 14 : 10))
+  ctx.fillStyle = CYAN + 'bb'
+  ctx.font = `700 ${is ? 28 : 20}px 'Orbitron', monospace`
+  ctx.letterSpacing = '2px'
+  ctx.fillText(clip(ctx, review.artist.toUpperCase(), W - hx - PAD - cardPad), hx, hmid + (is ? 26 : 18))
   ctx.letterSpacing = '0px'
 
-  drawDivider(ctx, PAD + (W - PAD*2)/2, labelY + (is ? 18 : 14), (W - PAD*2)/2, 'rgba(0,245,255,0.15)')
+  // Tracks section label
+  const totalPages = Math.ceil(review.tracks.length / 10)
+  const labelY = headerY + headerH + (is ? 44 : 32)
+  ctx.fillStyle = CYAN + '88'
+  ctx.font = `700 ${is ? 24 : 18}px 'Orbitron', monospace`
+  ctx.letterSpacing = '4px'; ctx.textAlign = 'left'
+  ctx.fillText(totalPages > 1 ? `TRACKS  ${page+1} / ${totalPages}` : 'TRACKS', PAD, labelY)
+  ctx.letterSpacing = '0px'
 
-  // Track list
+  // Track list card
   const PER = 10
   const pageTracks = review.tracks.slice(page * PER, (page+1) * PER)
-  const listStart = labelY + (is ? 42 : 32)
-  const listEnd   = H - (is ? 120 : 88)
-  const rowH      = (listEnd - listStart) / Math.max(pageTracks.length, 1)
+  const listY = labelY + (is ? 20 : 16)
+  const listH = H - listY - (is ? 100 : 76)
+  drawCard(ctx, PAD, listY, W - PAD*2, listH, 16)
 
+  const rowH = listH / pageTracks.length
   pageTracks.forEach((track, i) => {
-    const ry = listStart + i * rowH
-    const midY = ry + rowH * 0.5
-    const { fill, glow } = rc(track.rating)
+    const ry    = listY + i * rowH
+    const midY  = ry + rowH / 2
+    const col   = ratingColor(track.rating)
+    const isFive = track.rating >= 5
 
-    // Row bg — very subtle
-    ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.022)' : 'rgba(255,255,255,0.012)'
-    rr(ctx, PAD, ry + 2, W - PAD*2, rowH - 4, 10); ctx.fill()
+    // Separator between rows (not before first)
+    if (i > 0) drawSep(ctx, PAD + 16, ry, W - PAD*2 - 32)
 
-    // Left accent line — colored by rating
-    ctx.fillStyle = fill + '60'
-    ctx.fillRect(PAD, ry + 2, 3, rowH - 4)
+    // Left colored bar
+    ctx.fillStyle = col + '70'
+    ctx.fillRect(PAD, ry + (i === 0 ? 1 : 0), 3, rowH - (i === 0 ? 1 : 0) - (i === pageTracks.length-1 ? 1 : 0))
 
-    // Track index
-    ctx.fillStyle = 'rgba(255,255,255,0.22)'
-    ctx.font = `${is ? 26 : 19}px 'Space Mono', monospace`
+    // Track number
+    ctx.fillStyle = TEXT_MUT
+    ctx.font = `${is ? 24 : 18}px 'Space Mono', monospace`
     ctx.textAlign = 'left'
-    ctx.fillText(String(page * PER + i + 1).padStart(2, '0'), PAD + (is ? 18 : 14), midY + (is ? 9 : 7))
+    ctx.fillText(String(page * PER + i + 1).padStart(2, '0'), PAD + (is ? 18 : 14), midY + (is ? 8 : 6))
 
-    // Track name
-    const numW  = is ? 64 : 50
-    const pillW = is ? 108 : 82
-    const nameMaxW = W - PAD*2 - numW - pillW - (is ? 32 : 24)
-    ctx.fillStyle = track.rating >= 4.5 ? 'rgba(255,255,255,0.97)' : 'rgba(225,225,245,0.82)'
-    ctx.font = `${track.rating >= 4.5 ? 'bold ' : ''}${is ? 36 : 26}px 'Space Grotesk', Arial`
-    ctx.fillText(clip(ctx, track.name, nameMaxW), PAD + numW, midY + (is ? 11 : 8))
+    // Track name — brighter for high-rated tracks
+    const numW   = is ? 58 : 44
+    const pillW  = is ? 100 : 76
+    const nameW  = W - PAD*2 - numW - pillW - (is ? 36 : 28) - 16
+    ctx.fillStyle = isFive ? '#ffffff' : track.rating >= 4.5 ? TEXT_PRI : 'rgba(200,200,230,0.75)'
+    ctx.font = `${isFive ? 'bold ' : ''}${is ? 34 : 25}px 'Space Grotesk', sans-serif`
+    ctx.fillText(clip(ctx, track.name, nameW), PAD + numW + (is ? 16 : 12), midY + (is ? 10 : 8))
 
-    // Rating pill
-    const px = W - PAD - pillW
-    const ph = is ? 52 : 38
-    const py = midY - ph / 2
-    // Pill bg
-    ctx.fillStyle = fill + '18'
-    rr(ctx, px, py, pillW, ph, ph/2); ctx.fill()
-    // Pill border
-    ctx.strokeStyle = fill + '70'; ctx.lineWidth = 1.2
-    rr(ctx, px, py, pillW, ph, ph/2); ctx.stroke()
-    // Rating number — glow on 5-star
-    ctx.save()
-    if (track.rating >= 5) { ctx.shadowColor = glow; ctx.shadowBlur = 20 }
-    ctx.fillStyle = fill
-    ctx.font = `bold ${is ? 30 : 22}px 'Space Mono', monospace`
-    ctx.textAlign = 'center'
-    ctx.fillText(`${track.rating}`, px + pillW/2, py + ph * 0.68)
-    ctx.restore()
-
-    // Subtle row separator
-    if (i < pageTracks.length - 1) {
-      ctx.fillStyle = 'rgba(255,255,255,0.04)'
-      ctx.fillRect(PAD + 16, ry + rowH - 2, W - PAD*2 - 32, 1)
-    }
+    // Rating pill — blog's top-albums style
+    drawRatingPill(ctx, track.rating, W - PAD - pillW/2 - (is ? 4 : 3), midY, pillW, is ? 46 : 34)
   })
 
-  drawAccentBar(ctx, W, H - (is ? 76 : 58), PAD)
-  drawWatermark(ctx, W, H, PAD, is ? 26 : 20)
+  drawWatermark(ctx, W, H, is ? 24 : 19)
 }
 
-// ── LAST FRAME: Verdict ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// LAST FRAME — VERDICT
+// Album art header, verdict text, rating card with stars
+// ─────────────────────────────────────────────────────────────────────────────
 async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
+  await loadFonts()
   const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
-  const PAD = ratio === '9:16' ? 88 : 76
   const is = ratio === '9:16'
-  await ensureFonts()
-  drawBg(ctx, W, H)
+  const PAD = is ? 72 : 64
 
-  // Blurred art in background
-  const img = await loadImage(review.imageUrl)
+  drawBackground(ctx, W, H)
+
+  // Blurred art — very subtle, behind everything
+  const img = await loadImg(review.imageUrl)
   if (img) {
-    ctx.save(); ctx.filter = 'blur(70px)'; ctx.globalAlpha = 0.08
-    ctx.drawImage(img, -200, -200, W+400, H+400); ctx.restore()
+    ctx.save(); ctx.filter = 'blur(80px)'; ctx.globalAlpha = 0.06
+    ctx.drawImage(img, -300, -300, W+600, H+600); ctx.restore()
   }
 
-  drawAccentBar(ctx, W, is ? 56 : 44, PAD)
+  // Top art strip — like a banner
+  const stripH = is ? 340 : 240
+  if (img) {
+    ctx.save()
+    ctx.beginPath(); ctx.rect(0, 0, W, stripH); ctx.clip()
+    ctx.drawImage(img, 0, 0, W, stripH)
+    ctx.restore()
+    // Fade strip into bg
+    const fade = ctx.createLinearGradient(0, stripH * 0.4, 0, stripH)
+    fade.addColorStop(0, 'rgba(7,5,26,0)')
+    fade.addColorStop(1, BG)
+    ctx.fillStyle = fade; ctx.fillRect(0, 0, W, stripH)
+    // Side vignettes
+    const lv = ctx.createLinearGradient(0, 0, W*0.25, 0)
+    lv.addColorStop(0, BG); lv.addColorStop(1, 'rgba(7,5,26,0)')
+    ctx.fillStyle = lv; ctx.fillRect(0, 0, W*0.25, stripH)
+    const rv = ctx.createLinearGradient(W*0.75, 0, W, 0)
+    rv.addColorStop(0, 'rgba(7,5,26,0)'); rv.addColorStop(1, BG)
+    ctx.fillStyle = rv; ctx.fillRect(W*0.75, 0, W*0.25, stripH)
+  }
+
+  // Artist + album name over strip
+  ctx.fillStyle = CYAN + 'dd'
+  ctx.font = `700 ${is ? 34 : 24}px 'Orbitron', monospace`
+  ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
+  ctx.fillText(review.artist.toUpperCase(), W/2, stripH * 0.55)
+  ctx.letterSpacing = '0px'
+  ctx.fillStyle = TEXT_PRI
+  ctx.font = `bold ${is ? 64 : 46}px 'Space Grotesk', sans-serif`
+  ctx.fillText(clip(ctx, review.albumName, W - PAD*2), W/2, stripH * 0.85)
 
   // VERDICT label
-  const headY = is ? 140 : 108
-  ctx.fillStyle = 'rgba(0,245,255,0.5)'
-  ctx.font = `700 ${is ? 38 : 26}px 'Orbitron', Arial`
-  ctx.textAlign = 'center'; ctx.letterSpacing = '8px'
-  ctx.fillText('VERDICT', W/2, headY); ctx.letterSpacing = '0px'
+  const vLabelY = stripH + (is ? 52 : 38)
+  ctx.fillStyle = 'rgba(0,245,255,0.48)'
+  ctx.font = `700 ${is ? 26 : 19}px 'Orbitron', monospace`
+  ctx.letterSpacing = '5px'; ctx.textAlign = 'center'
+  ctx.fillText('VERDICT', W/2, vLabelY); ctx.letterSpacing = '0px'
+  drawSep(ctx, PAD, vLabelY + (is ? 16 : 12), W - PAD*2)
 
-  drawDivider(ctx, W/2, headY + (is ? 24 : 18), W/2 - PAD, 'rgba(0,245,255,0.2)')
-
-  // Opening quote mark
-  ctx.fillStyle = 'rgba(0,245,255,0.12)'
-  ctx.font = `bold ${is ? 200 : 140}px Georgia, serif`
-  ctx.textAlign = 'left'
-  ctx.fillText('"', PAD - (is ? 10 : 8), headY + (is ? 130 : 96))
-
-  // Verdict text — serif feel
-  const maxChars = is ? 420 : 340
-  const snippet  = review.verdict.length > maxChars ? review.verdict.slice(0, maxChars).trim() + '...' : review.verdict
-  ctx.fillStyle = 'rgba(218,218,240,0.88)'
-  ctx.font = `${is ? 44 : 32}px 'Space Grotesk', Arial`
-  const verdictEndY = wrapText(ctx, snippet, PAD, headY + (is ? 110 : 82), W - PAD*2, is ? 64 : 48, 'left')
-
-  // Refined divider
-  drawDivider(ctx, W/2, verdictEndY + (is ? 32 : 24), W/2 - PAD, 'rgba(255,255,255,0.1)')
+  // Verdict card
+  const vcardY = vLabelY + (is ? 36 : 26)
+  const maxChars = is ? 460 : 360
+  const snippet = review.verdict.length > maxChars ? review.verdict.slice(0, maxChars).trim() + '...' : review.verdict
+  // Measure how tall the text will be
+  ctx.font = `${is ? 40 : 29}px 'Space Grotesk', sans-serif`
+  const lineH = is ? 58 : 42
+  const textPad = is ? 36 : 28
+  // Draw card — height calculated to fit text
+  const words = snippet.split(' ')
+  const maxTextW = W - PAD*2 - textPad*2
+  let line = '', lines = 0
+  for (const w of words) {
+    if (ctx.measureText(line + w + ' ').width > maxTextW && line) { lines++; line = w + ' ' } else line += w + ' '
+  }
+  if (line.trim()) lines++
+  const vcardH = lines * lineH + textPad * 2 + (is ? 10 : 6)
+  drawCard(ctx, PAD, vcardY, W - PAD*2, vcardH, 14)
+  ctx.fillStyle = 'rgba(210,210,235,0.82)'
+  wrapText(ctx, snippet, PAD + textPad, vcardY + textPad + lineH * 0.7, maxTextW, lineH, 'left')
 
   // Rating card
-  const cardY  = verdictEndY + (is ? 72 : 54)
-  const cardH  = is ? 320 : 226
-  // Card bg
-  ctx.fillStyle = 'rgba(255,255,255,0.03)'
-  rr(ctx, PAD, cardY, W - PAD*2, cardH, 20); ctx.fill()
-  ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1.5
-  rr(ctx, PAD, cardY, W - PAD*2, cardH, 20); ctx.stroke()
-  // Top accent on card
-  const cg = ctx.createLinearGradient(PAD, 0, W-PAD, 0)
-  cg.addColorStop(0, 'transparent')
-  cg.addColorStop(0.3, 'rgba(0,245,255,0.4)')
-  cg.addColorStop(0.7, 'rgba(180,0,255,0.4)')
-  cg.addColorStop(1, 'transparent')
-  ctx.fillStyle = cg; ctx.fillRect(PAD + 20, cardY, W - PAD*2 - 40, 2)
+  const rcardY = vcardY + vcardH + (is ? 36 : 26)
+  const rcardH = is ? 260 : 186
+  drawCard(ctx, PAD, rcardY, W - PAD*2, rcardH, 16)
+  // Subtle top accent line — cyan
+  ctx.fillStyle = 'rgba(0,245,255,0.18)'
+  ctx.fillRect(PAD + 2, rcardY, W - PAD*2 - 4, 1)
 
-  const mid = cardY + cardH / 2
-  ctx.fillStyle = 'rgba(0,245,255,0.55)'
-  ctx.font = `600 ${is ? 32 : 22}px 'Orbitron', Arial`
-  ctx.textAlign = 'center'; ctx.letterSpacing = '3px'
-  ctx.fillText(review.artist.toUpperCase(), W/2, mid - (is ? 95 : 68)); ctx.letterSpacing = '0px'
+  const rmid = rcardY + rcardH/2
+  const col  = ratingColor(review.rating)
 
-  ctx.fillStyle = 'rgba(248,248,255,0.95)'
-  ctx.font = `bold ${is ? 58 : 40}px 'Space Grotesk', Arial`
-  ctx.fillText(clip(ctx, review.albumName, W - PAD*3), W/2, mid - (is ? 28 : 18))
-
-  // Rating number — big, neon white if perfect
-  const { fill, glow } = rc(review.rating)
+  // Big rating number
   ctx.save()
-  if (review.rating >= 5) { ctx.shadowColor = glow; ctx.shadowBlur = 50 }
-  ctx.fillStyle = fill
-  ctx.font = `bold ${is ? 80 : 56}px 'Orbitron', Arial`
+  if (review.rating >= 5) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 40 }
+  ctx.fillStyle = col
+  ctx.font = `bold ${is ? 86 : 60}px 'Orbitron', monospace`
   ctx.textAlign = 'center'
-  ctx.fillText(`${review.rating} / 5`, W/2, mid + (is ? 56 : 40))
+  ctx.fillText(`${review.rating} / 5`, W/2, rmid + (is ? 14 : 10))
   ctx.restore()
 
   // Stars
-  drawStars(ctx, review.rating, W/2, mid + (is ? 120 : 88), is ? 26 : 18)
+  drawStars(ctx, review.rating, W/2, rmid + (is ? 84 : 60), is ? 24 : 17)
 
-  drawAccentBar(ctx, W, H - (is ? 76 : 58), PAD)
-  drawWatermark(ctx, W, H, PAD, is ? 26 : 20)
+  // "For more reviews" CTA box
+  const ctaY = rcardY + rcardH + (is ? 28 : 20)
+  const ctaH = is ? 72 : 52
+  drawCard(ctx, PAD, ctaY, W - PAD*2, ctaH, ctaH/2)
+  ctx.fillStyle = 'rgba(0,245,255,0.22)'
+  ctx.fillRect(PAD + 2, ctaY, W - PAD*2 - 4, 1)
+  ctx.fillStyle = 'rgba(200,200,255,0.55)'
+  ctx.font = `${is ? 26 : 19}px 'Space Grotesk', sans-serif`
+  ctx.textAlign = 'center'
+  ctx.fillText('for more reviews visit', W/2, ctaY + ctaH * 0.42)
+  ctx.fillStyle = CYAN + 'cc'
+  ctx.font = `bold ${is ? 30 : 22}px 'Orbitron', monospace`
+  ctx.letterSpacing = '1px'
+  ctx.fillText('TheAdrianBlog.com', W/2, ctaY + ctaH * 0.82)
+  ctx.letterSpacing = '0px'
+
+  drawWatermark(ctx, W, H, is ? 24 : 19)
 }
 
 // ── Frame list ────────────────────────────────────────────────────────────────
-function getFrames(review: ReviewData) {
-  const f: { label: string; type: 'intro'|'tracks'|'verdict'; page?: number }[] = []
-  f.push({ label: 'Intro', type: 'intro' })
-  const pages = Math.ceil(review.tracks.length / 10)
+function getFrames(r: ReviewData) {
+  const f: { label: string; type: 'intro'|'tracks'|'verdict'; page?: number }[] = [{ label: 'Intro', type: 'intro' }]
+  const pages = Math.ceil(r.tracks.length / 10)
   for (let i = 0; i < pages; i++) f.push({ label: pages > 1 ? `Tracks ${i+1}/${pages}` : 'Tracks', type: 'tracks', page: i })
   f.push({ label: 'Verdict', type: 'verdict' })
   return f
 }
 
 async function renderFrame(canvas: HTMLCanvasElement, review: ReviewData, idx: number, ratio: Ratio) {
-  const frames = getFrames(review)
-  const f = frames[idx]; if (!f) return
-  if (f.type === 'intro')   await drawIntro(canvas, review, ratio)
-  else if (f.type === 'tracks') await drawTracks(canvas, review, ratio, f.page ?? 0)
-  else                          await drawVerdict(canvas, review, ratio)
+  const f = getFrames(review)[idx]; if (!f) return
+  if (f.type === 'intro')   return drawIntro(canvas, review, ratio)
+  if (f.type === 'tracks')  return drawTracks(canvas, review, ratio, f.page ?? 0)
+  return drawVerdict(canvas, review, ratio)
 }
 
-// ── Dashboard component ───────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────
 export default function FrameCreator() {
-  const [posts, setPosts]           = useState<{path:string;title:string}[]>([])
-  const [postsLoading, setPL]       = useState(false)
-  const [selectedPath, setSP]       = useState('')
-  const [review, setReview]         = useState<ReviewData | null>(null)
-  const [loading, setLoading]       = useState(false)
-  const [ratio, setRatio]           = useState<Ratio>('9:16')
-  const [activeFrame, setAF]        = useState(0)
-  const [rendering, setRendering]   = useState(false)
+  const [posts, setPosts]     = useState<{path:string;title:string}[]>([])
+  const [postsLoading, setPL] = useState(false)
+  const [selectedPath, setSP] = useState('')
+  const [review, setReview]   = useState<ReviewData | null>(null)
+  const [loading, setL]       = useState(false)
+  const [ratio, setRatio]     = useState<Ratio>('9:16')
+  const [activeFrame, setAF]  = useState(0)
+  const [rendering, setRend]  = useState(false)
+  const [caption, setCaption]   = useState('')
+  const [copied, setCopied]     = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -476,38 +519,58 @@ export default function FrameCreator() {
   }, [])
 
   async function loadReview(path: string) {
-    setLoading(true)
-    const raw = await getFileContent(path)
-    if (!raw) { setLoading(false); return }
-    const fm   = parseFrontmatter(raw)
+    setL(true)
+    const raw = await getFileContent(path); if (!raw) { setL(false); return }
+    const fm = parseFrontmatter(raw)
     const body = raw.replace(/^---[\s\S]*?---\n/,'').trim()
-    const tracks  = parseTracks(fm.tracklist || '')
+    const tracks = parseTracks(fm.tracklist||'')
     const verdict = extractSection(body,'Verdict')
-    const slug    = path.replace('content/posts/','').replace('.md','')
-    const title   = fm.title?.replace(/^"|"$/g,'') || ''
-    const di      = title.lastIndexOf(' - ')
+    const slug = path.replace('content/posts/','').replace('.md','')
+    const title = fm.title?.replace(/^"|"$/g,'')||''
+    const di = title.lastIndexOf(' - ')
     setReview({
       title, albumName: di>-1 ? title.slice(0,di).trim() : title,
       artist: di>-1 ? title.slice(di+3).replace(/ Review$/,'').trim() : '',
       rating: parseFloat(fm.rating||'0'), tracks, verdict,
-      summary: fm.summary||'', imageUrl:`https://www.theadrianblog.com/posts/${slug}.jpg`, slug,
+      summary: fm.summary||'',
+      imageUrl: `https://www.theadrianblog.com/posts/${slug}.jpg`, slug,
     })
-    setAF(0); setLoading(false)
+    setAF(0); setL(false)
+  }
+
+
+  function generateCaption(r: ReviewData): string {
+    const topTracks = [...r.tracks].sort((a, b) => b.rating - a.rating).slice(0, 3).map(t => t.name)
+    const ratingLabel =
+      r.rating >= 5   ? 'a perfect score' :
+      r.rating >= 4.5 ? 'an incredibly strong album' :
+      r.rating >= 4   ? 'a solid listen' :
+      r.rating >= 3.5 ? 'a decent album' :
+      r.rating >= 3   ? 'an ok record' : 'a mixed bag'
+    const trackMention = topTracks.length > 0
+      ? `Standout tracks include ${topTracks.slice(0,-1).join(', ')}${topTracks.length > 1 ? ` and ${topTracks[topTracks.length-1]}` : ''}.`
+      : ''
+    const verdict = r.verdict ? r.verdict.split('.')[0].trim() + '.' : ''
+    return `${r.albumName} by ${r.artist} — ${ratingLabel} at ${r.rating}/5. ${verdict} ${trackMention}
+
+Full review on TheAdrianBlog.com
+
+#${r.artist.replace(/[^a-zA-Z0-9]/g,'').toLowerCase()} #${r.albumName.replace(/[^a-zA-Z0-9]/g,'').toLowerCase()} #musicreview #albumreview #newmusic #music #indiemusic #musicblog #albumoftheweek #musictok #theadrianblog`.trim()
   }
 
   const render = useCallback(async () => {
     if (!review || !canvasRef.current) return
-    setRendering(true)
+    setRend(true)
     await renderFrame(canvasRef.current, review, activeFrame, ratio)
-    setRendering(false)
+    setRend(false)
   }, [review, activeFrame, ratio])
 
   useEffect(() => { render() }, [render])
+  useEffect(() => { if (review) setCaption(generateCaption(review)) }, [review])
 
   function download() {
     if (!canvasRef.current || !review) return
-    const frames = getFrames(review)
-    const label  = frames[activeFrame]?.label.toLowerCase().replace(/[^a-z0-9]/g,'-') || activeFrame
+    const label = getFrames(review)[activeFrame]?.label.toLowerCase().replace(/[^a-z0-9]/g,'-')||activeFrame
     const a = document.createElement('a')
     a.download = `${review.slug}-${label}-${ratio.replace(':','x')}.png`
     a.href = canvasRef.current.toDataURL('image/png'); a.click()
@@ -518,11 +581,10 @@ export default function FrameCreator() {
     const frames = getFrames(review)
     for (let i = 0; i < frames.length; i++) {
       await renderFrame(canvasRef.current, review, i, ratio)
-      const label = frames[i].label.toLowerCase().replace(/[^a-z0-9]/g,'-')
       const a = document.createElement('a')
-      a.download = `${review.slug}-${String(i+1).padStart(2,'0')}-${label}-${ratio.replace(':','x')}.png`
+      a.download = `${review.slug}-${String(i+1).padStart(2,'0')}-${frames[i].label.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${ratio.replace(':','x')}.png`
       a.href = canvasRef.current.toDataURL('image/png'); a.click()
-      await new Promise(r => setTimeout(r, 350))
+      await new Promise(r => setTimeout(r,350))
     }
     await renderFrame(canvasRef.current, review, activeFrame, ratio)
   }
@@ -541,7 +603,7 @@ export default function FrameCreator() {
             {posts.map(p => <option key={p.path} value={p.path}>{p.title}</option>)}
           </select>
         )}
-        {loading && <p className="db-hint" style={{marginTop:'0.5rem'}}>Loading review...</p>}
+        {loading && <p className="db-hint" style={{marginTop:'0.5rem'}}>Loading...</p>}
       </div>
 
       {review && (<>
@@ -572,14 +634,33 @@ export default function FrameCreator() {
 
         <div className="db-card" style={{padding:'1rem'}}>
           <p className="db-hint" style={{marginBottom:'0.75rem'}}>
-            {frames.length} frames · {review.tracks.length} tracks
-            {review.tracks.length > 10 ? ` · splits across ${Math.ceil(review.tracks.length/10)} track pages` : ''}
+            {frames.length} frames · {review.tracks.length} tracks{review.tracks.length > 10 ? ` · ${Math.ceil(review.tracks.length/10)} track pages` : ''}
           </p>
           <div className="fc-preview-wrap" style={{aspectRatio:ratio==='9:16'?'9/16':'1/1'}}>
             {rendering && <div className="fc-rendering">Rendering...</div>}
             <canvas ref={canvasRef} className="fc-canvas" />
           </div>
         </div>
+        <div className="db-card" style={{marginTop:'1rem'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.5rem'}}>
+            <label className="db-label" style={{marginBottom:0}}>Caption & Hashtags</label>
+            <button
+              className="db-btn db-btn--sm"
+              onClick={() => { navigator.clipboard.writeText(caption); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+            >
+              {copied ? '✓ Copied' : 'Copy'}
+            </button>
+          </div>
+          <textarea
+            className="db-textarea"
+            rows={8}
+            value={caption}
+            onChange={e => setCaption(e.target.value)}
+            style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'0.82rem', lineHeight:1.6}}
+          />
+          <p className="db-hint" style={{marginTop:'0.5rem'}}>Edit before copying — this is auto-generated from your review.</p>
+        </div>
+
       </>)}
     </div>
   )
