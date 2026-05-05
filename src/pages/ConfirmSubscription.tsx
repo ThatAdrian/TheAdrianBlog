@@ -15,7 +15,7 @@ export default function ConfirmSubscription() {
     if (!token) { setStatus('error'); return }
     fetch(`${SUPABASE_URL}/functions/v1/confirm-subscription`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY },
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
       body: JSON.stringify({ token }),
     })
       .then(r => r.json())
