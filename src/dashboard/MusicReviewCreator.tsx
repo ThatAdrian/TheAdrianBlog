@@ -2,6 +2,19 @@ import React, { useState, useRef } from 'react'
 import { getAlbum, parseSpotifyAlbumId } from '../lib/spotify'
 import { commitFile, uploadImage, slugify, listPostFiles, getFileContent } from './github'
 
+const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
+
+async function notifySubscribers(title: string, slug: string, summary: string, image: string) {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/notify-subscribers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY },
+      body: JSON.stringify({ title, slug, summary, categories: ['Music Reviews'], image }),
+    })
+  } catch (e) { console.error('Notify failed:', e) }
+}
+
 interface Track { name: string; rating: number }
 
 interface AlbumData {
@@ -63,6 +76,7 @@ export default function MusicReviewCreator() {
   const [verdict, setVerdict] = useState('')
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
+  const [notified, setNotified] = useState(false)
   const [draftSaved, setDraftSaved] = useState(false)
   const [error, setError] = useState('')
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -85,12 +99,7 @@ export default function MusicReviewCreator() {
       const raw = await getFileContent(f.path)
       if (!raw || !raw.includes('Music Reviews')) continue
       const fm = parseFrontmatter(raw)
-      entries.push({
-        filename: f.name,
-        path: f.path,
-        title: fm.title || f.name.replace('.md', ''),
-        isDraft: fm.draft === 'true',
-      })
+      entries.push({ filename: f.name, path: f.path, title: fm.title || f.name.replace('.md', ''), isDraft: fm.draft === 'true' })
     }
     setPosts(entries)
     setPostsLoaded(true)
@@ -116,6 +125,7 @@ export default function MusicReviewCreator() {
     setSummary(fm.summary || '')
     setEditingPath(path)
     setPublished(false)
+    setNotified(false)
     setDraftSaved(false)
     setActivePanel(null)
     setSoundReview(extractSection(body, 'The Sound'))
@@ -145,7 +155,7 @@ export default function MusicReviewCreator() {
     setSpotifyUrl(''); setAlbum(null); setAlbumRating(0); setSummary('')
     setSoundReview(''); setStandoutTracks(''); setVerdict('')
     setCoverFile(null); setCoverPreview(''); setPublished(false)
-    setError(''); setEditingPath(null); setDraftSaved(false)
+    setNotified(false); setError(''); setEditingPath(null); setDraftSaved(false)
   }
 
   async function fetchAlbum() {
@@ -157,7 +167,7 @@ export default function MusicReviewCreator() {
       if (!data) { setError('Could not fetch album.'); setLoading(false); return }
       setAlbum({ id, name: data.name, artist: data.artists[0]?.name ?? '', image: data.images[0]?.url ?? '', releaseDate: data.release_date, tracks: data.tracks.items.map(t => ({ name: t.name, rating: 3 })) })
       setCoverPreview(data.images[0]?.url ?? '')
-      setCoverFile(null); setPublished(false)
+      setCoverFile(null); setPublished(false); setNotified(false)
     } catch { setError('Failed to fetch album data.') }
     setLoading(false)
   }
@@ -214,7 +224,6 @@ ${buildContent()}
     try {
       const postSlug = slugify(`${album.name} ${album.artist} Review`)
       if (coverFile) {
-        // User picked a custom cover
         const reader = new FileReader()
         const b64 = await new Promise<string>(res => {
           reader.onload = () => res((reader.result as string).split(',')[1])
@@ -222,7 +231,6 @@ ${buildContent()}
         })
         await uploadImage(`public/posts/${postSlug}.jpg`, b64)
       } else if (album.image) {
-        // Auto-upload the Spotify album art
         const imgRes = await fetch(album.image)
         const blob = await imgRes.blob()
         const b64 = await new Promise<string>(res => {
@@ -232,11 +240,27 @@ ${buildContent()}
         })
         await uploadImage(`public/posts/${postSlug}.jpg`, b64)
       }
+
       const filePath = editingPath ?? `content/posts/${postSlug}.md`
       const action = editingPath ? 'Update' : (asDraft ? 'Save draft' : 'Add review')
       const ok = await commitFile(filePath, generateMarkdown(asDraft), `${action}: ${album.name} - ${album.artist}`)
+
       if (ok) {
-        asDraft ? (setDraftSaved(true), setTimeout(() => setDraftSaved(false), 2500)) : setPublished(true)
+        if (asDraft) {
+          setDraftSaved(true)
+          setTimeout(() => setDraftSaved(false), 2500)
+        } else {
+          setPublished(true)
+          // Only notify on publish, not draft saves
+          const postSlugFinal = slugify(`${album.name} ${album.artist} Review`)
+          await notifySubscribers(
+            `${album.name} - ${album.artist} Review`,
+            postSlugFinal,
+            summary || `${album.artist}'s ${album.name} reviewed`,
+            `posts/${postSlugFinal}.jpg`
+          )
+          setNotified(true)
+        }
         setPostsLoaded(false)
       } else {
         setError('GitHub commit failed — check token has repo write access.')
@@ -369,7 +393,10 @@ ${buildContent()}
 
         <div className="db-publish-row">
           {published ? (
-            <div className="db-success">✓ {editingPath ? 'Updated!' : 'Published!'} Deploying in ~1 minute.</div>
+            <div className="db-success">
+              ✓ {editingPath ? 'Updated!' : 'Published!'} Deploying in ~1 minute.
+              {notified && <span style={{marginLeft:'8px',opacity:0.6,fontSize:'0.75rem'}}>· Subscribers notified</span>}
+            </div>
           ) : (
             <div className="db-publish-btns">
               <button className="db-btn db-btn--secondary" onClick={() => publish(true)} disabled={publishing}>
