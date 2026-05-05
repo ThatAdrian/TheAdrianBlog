@@ -1,7 +1,7 @@
 ---
 date: 05/05/2026
 title: "The Blog's New Features!!!"
-summary: 'I've been getting to work on adding cool stuff since the first post hehe'
+summary: "I've been getting to work on adding cool stuff since the first post hehe"
 categories:
   - General
 image: posts/the-blogs-new-features.jpg
