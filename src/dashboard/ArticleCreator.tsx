@@ -1,6 +1,19 @@
 import React, { useState, useRef } from 'react'
 import { commitFile, uploadImage, slugify } from './github'
 
+const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
+
+async function notifySubscribers(title: string, slug: string, summary: string, categories: string[], image: string) {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/notify-subscribers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY },
+      body: JSON.stringify({ title, slug, summary, categories, image }),
+    })
+  } catch (e) { console.error('Notify failed:', e) }
+}
+
 type BlockType = 'heading' | 'subheading' | 'paragraph' | 'quote' | 'image' | 'divider'
 
 interface Block {
@@ -129,6 +142,7 @@ export default function ArticleCreator() {
   const [coverPreview, setCoverPreview] = useState('')
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
+  const [notified, setNotified] = useState(false)
   const [error, setError] = useState('')
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragTarget, setDragTarget] = useState<number | null>(null)
@@ -213,14 +227,19 @@ ${body}
       for (const block of blocks) {
         if (block.type === 'image' && block.imageFile) {
           const b64 = await fileToBase64(block.imageFile)
-          const path = `public/posts/${postSlug}-${block.id}.jpg`
-          await uploadImage(path, b64)
+          await uploadImage(`public/posts/${postSlug}-${block.id}.jpg`, b64)
         }
       }
 
       const ok = await commitFile(`content/posts/${postSlug}.md`, generateMarkdown(), `Add post: ${title}`)
-      if (ok) setPublished(true)
-      else setError('GitHub commit failed — check token permissions.')
+      if (ok) {
+        setPublished(true)
+        // Notify subscribers
+        await notifySubscribers(title, postSlug, summary, [category], `posts/${postSlug}.jpg`)
+        setNotified(true)
+      } else {
+        setError('GitHub commit failed — check token permissions.')
+      }
     } catch {
       setError('Publish failed.')
     }
@@ -293,7 +312,10 @@ ${body}
 
       <div className="db-publish-row">
         {published ? (
-          <div className="db-success">✓ Published! Deploying in ~1 minute.</div>
+          <div className="db-success">
+            ✓ Published! Deploying in ~1 minute.
+            {notified && <span style={{marginLeft:'8px',opacity:0.6,fontSize:'0.75rem'}}>· Subscribers notified</span>}
+          </div>
         ) : (
           <button className="db-btn db-btn--publish" onClick={publish} disabled={publishing}>
             {publishing ? 'Publishing...' : 'Publish Article'}
