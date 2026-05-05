@@ -201,7 +201,7 @@ export default function ArticleCreator() {
     return `---
 date: ${date}
 title: "${title}"
-summary: '${summary}'
+summary: "${summary.replace(/"/g, '\\"')}"
 categories:
   - ${category}
 image: posts/${postSlug}.jpg
