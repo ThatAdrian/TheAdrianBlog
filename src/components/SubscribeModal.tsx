@@ -45,7 +45,7 @@ export default function SubscribeModal() {
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/subscribe`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY },
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         body: JSON.stringify({ email: email.trim().toLowerCase(), categories: selected }),
       })
       const data = await res.json()
