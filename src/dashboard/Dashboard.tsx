@@ -3,6 +3,7 @@ import MusicReviewCreator from './MusicReviewCreator'
 import ArticleCreator from './ArticleCreator'
 import Analytics from './Analytics'
 import Suggestions from './Suggestions'
+import FrameCreator from './FrameCreator'
 import './Dashboard.css'
 
 function hashPassword(pw: string): string {
@@ -21,7 +22,7 @@ export default function Dashboard() {
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
   const [wrong, setWrong] = useState(false)
-  const [tab, setTab] = useState<'music' | 'article' | 'analytics' | 'suggestions'>('music')
+  const [tab, setTab] = useState<'music' | 'article' | 'analytics' | 'suggestions' | 'frames'>('music')
 
   useEffect(() => {
     if (sessionStorage.getItem('db_auth') === CORRECT_HASH) setAuthed(true)
@@ -112,6 +113,12 @@ export default function Dashboard() {
             </svg>
             Suggestions
           </button>
+          <button className={`db-nav-item ${tab === 'frames' ? 'active' : ''}`} onClick={() => setTab('frames')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Frames
+          </button>
         </nav>
         <button className="db-logout" onClick={logout}>Sign out</button>
       </aside>
@@ -121,6 +128,7 @@ export default function Dashboard() {
         {tab === 'article'   && <ArticleCreator />}
         {tab === 'analytics' && <Analytics />}
         {tab === 'suggestions' && <Suggestions />}
+        {tab === 'frames' && <FrameCreator />}
       </main>
     </div>
   )
