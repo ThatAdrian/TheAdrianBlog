@@ -92,7 +92,7 @@ export default function Dashboard() {
       </button>
       {/* Drawer overlay */}
       {drawerOpen && <div className="db-drawer-overlay" onClick={() => setDrawerOpen(false)} />}
-      <aside className="db-sidebar">
+      <aside className={`db-sidebar${drawerOpen ? ' open' : ''}`}>
         <div className="db-sidebar-logo">
           <span>TheAdrianBlog</span>
           <span className="db-sidebar-sub">Dashboard</span>

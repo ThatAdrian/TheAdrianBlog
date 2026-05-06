@@ -582,7 +582,7 @@
 }
 
 /* Hamburger hidden on desktop */
-.db-hamburger { display: none; }
+@media (min-width: 701px) { .db-hamburger { display: none; } }
 
 @keyframes dbFadeIn {
   from { opacity: 0; }
