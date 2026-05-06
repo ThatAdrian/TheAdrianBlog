@@ -36,7 +36,7 @@ const SEP_COL  = 'rgba(255,255,255,0.07)'
 // Bottom 350px: caption, username, sound (safe bottom = 1570)
 // Right 140px: like/comment/share buttons (safe right = 940)
 const TT_TOP  = 160
-const TT_BOT  = 1570
+const TT_BOT  = 1630
 const TT_RPAD = 140   // extra right padding on 9:16
 
 // ── Parse helpers ─────────────────────────────────────────────────────────────
@@ -269,7 +269,7 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
   const cardPad = is ? 28 : 22
   const thumbSz = is ? 108 : 84
   const headerH = thumbSz + cardPad * 2
-  const headerY = TOP + (is ? 16 : 12)
+  const headerY = TOP + (is ? 100 : 14)
   drawCard(ctx, PAD, headerY, RW - PAD*2, headerH)
 
   const img = await loadImg(review.imageUrl)
@@ -285,25 +285,31 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
 
   const hx   = PAD + cardPad + thumbSz + (is ? 22 : 16)
   const hmid = headerY + headerH/2
-  ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 42 : 30}px 'Space Grotesk', sans-serif`
-  ctx.textAlign = 'left'
-  ctx.fillText(clip(ctx, review.albumName, RW - hx - PAD - cardPad), hx, hmid - (is ? 16 : 12))
-  ctx.fillStyle = CYAN + 'bb'
-  ctx.font = `700 ${is ? 27 : 19}px 'Orbitron', monospace`
-  ctx.letterSpacing = '2px'
-  ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - hx - PAD - cardPad), hx, hmid + (is ? 24 : 17))
+  ctx.fillStyle = CYAN + 'cc'
+  ctx.font = `700 ${is ? 26 : 18}px 'Orbitron', monospace`
+  ctx.textAlign = 'left'; ctx.letterSpacing = '2px'
+  ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - hx - PAD - cardPad), hx, hmid - (is ? 20 : 14))
   ctx.letterSpacing = '0px'
+  ctx.fillStyle = TEXT_PRI
+  ctx.font = `bold ${is ? 46 : 32}px 'Space Grotesk', sans-serif`
+  ctx.fillText(clip(ctx, review.albumName, RW - hx - PAD - cardPad), hx, hmid + (is ? 22 : 16))
 
   // Label
   const totalPages = Math.ceil(review.tracks.length / 10)
   const PER        = Math.ceil(review.tracks.length / totalPages)
   const pageTracks = review.tracks.slice(page * PER, (page+1) * PER)
   const labelY     = headerY + headerH + (is ? 36 : 26)
-  ctx.fillStyle = CYAN + '80'
+  // Label pill background
+  const labelText = totalPages > 1 ? `TRACKS  ${page+1} / ${totalPages}` : 'TRACKS'
   ctx.font = `700 ${is ? 22 : 16}px 'Orbitron', monospace`
-  ctx.letterSpacing = '4px'; ctx.textAlign = 'left'
-  ctx.fillText(totalPages > 1 ? `TRACKS  ${page+1} / ${totalPages}` : 'TRACKS', PAD, labelY)
+  ctx.letterSpacing = '4px'
+  const labelW = ctx.measureText(labelText).width + (is ? 36 : 28)
+  rrect(ctx, PAD, labelY - (is ? 28 : 20), labelW, is ? 38 : 28, is ? 10 : 8)
+  ctx.fillStyle = 'rgba(0,245,255,0.08)'; ctx.fill()
+  ctx.strokeStyle = 'rgba(0,245,255,0.2)'; ctx.lineWidth = 1; ctx.stroke()
+  ctx.fillStyle = CYAN + 'cc'
+  ctx.textAlign = 'left'
+  ctx.fillText(labelText, PAD + (is ? 18 : 14), labelY)
   ctx.letterSpacing = '0px'
 
   // Track list card
@@ -319,13 +325,26 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
 
     if (i > 0) drawSep(ctx, PAD + 14, ry, RW - PAD*2 - 28)
 
-    // Left accent bar
-    ctx.fillStyle = col + '65'
-    ctx.fillRect(PAD, ry + (i===0?1:0), 3, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0))
+    // Row glow for high-rated tracks
+    if (track.rating >= 4.5) {
+      const rowGlow = ctx.createLinearGradient(PAD, 0, PAD + (is ? 320 : 240), 0)
+      rowGlow.addColorStop(0, col + '12')
+      rowGlow.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = rowGlow
+      rrect(ctx, PAD, ry + (i===0?1:0), RW - PAD*2, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0), 10)
+      ctx.fill()
+    }
+    // Left accent bar — thicker for high rated
+    const barW = track.rating >= 5 ? 5 : track.rating >= 4 ? 4 : 3
+    ctx.save()
+    if (track.rating >= 5) { ctx.shadowColor = col; ctx.shadowBlur = 12 }
+    ctx.fillStyle = col + (track.rating >= 4 ? 'cc' : '65')
+    ctx.fillRect(PAD, ry + (i===0?1:0), barW, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0))
+    ctx.restore()
 
     // Track number
-    ctx.fillStyle = TEXT_MUT
-    ctx.font = `${is ? 28 : 20}px 'Space Mono', monospace`
+    ctx.fillStyle = col + '80'
+    ctx.font = `bold ${is ? 28 : 20}px 'Space Mono', monospace`
     ctx.textAlign = 'left'
     ctx.fillText(String(page * PER + i + 1).padStart(2, '0'), PAD + (is ? 16 : 12), midY + (is ? 10 : 7))
 
@@ -367,7 +386,7 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   // ── Square album art — correct aspect ratio, dimmed so text overlaps nicely ─
   const artSz = is ? 560 : 380   // square, centred
   const artX  = (W - artSz) / 2
-  const artY  = is ? TOP + 20 : TOP + 16
+  const artY  = is ? TOP + 80 : TOP + 16
   const artH  = artY + artSz     // bottom of art
   const img   = await loadImg(review.imageUrl)
   if (img) {
@@ -397,8 +416,8 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - PAD*2), RW/2, artistY)
   ctx.letterSpacing = '0px'
   ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 64 : 44}px 'Space Grotesk', sans-serif`
-  ctx.fillText(clip(ctx, review.albumName, RW - PAD*2), RW/2, artistY + (is ? 70 : 48))
+  ctx.font = `bold ${is ? 72 : 50}px 'Space Grotesk', sans-serif`
+  const albumEndY2 = wrapText(ctx, review.albumName, RW/2, artistY + (is ? 72 : 50), RW - PAD*2, is ? 82 : 58, 'center')
 
   // ── Fixed bottom elements — anchored from BOT upward ─────────────────────
   const wmY    = BOT - (is ? 28 : 22)
@@ -445,8 +464,16 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
     fontSize -= (is ? 2 : 2)
   }
 
-  drawCard(ctx, PAD, vcardY, RW - PAD*2, vcardH, 14)
-  ctx.fillStyle = 'rgba(212,212,238,0.84)'
+  // Verdict card with cyan top accent
+  ctx.save()
+  rrect(ctx, PAD, vcardY, RW - PAD*2, vcardH, 14)
+  ctx.fillStyle = CARD_BG; ctx.fill()
+  ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke()
+  ctx.restore()
+  // Cyan top line accent
+  ctx.fillStyle = CYAN + '30'
+  ctx.fillRect(PAD + 2, vcardY, RW - PAD*2 - 4, 1.5)
+  ctx.fillStyle = 'rgba(212,212,238,0.87)'
   ctx.font = `${fontSize}px 'Space Grotesk', sans-serif`
   ctx.textAlign = 'left'
   let ty = vcardY + tPad + lineH * 0.72
@@ -464,11 +491,11 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   ctx.save()
   if (review.rating >= 5) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 40 }
   ctx.fillStyle = col
-  ctx.font = `bold ${is ? 78 : 54}px 'Orbitron', monospace`
+  ctx.font = `bold ${is ? 88 : 60}px 'Orbitron', monospace`
   ctx.textAlign = 'center'
-  ctx.fillText(`${review.rating} / 5`, RW/2, rmid + (is ? 14 : 10))
+  ctx.fillText(`${review.rating} / 5`, RW/2, rmid + (is ? 18 : 12))
   ctx.restore()
-  drawStars(ctx, review.rating, RW/2, rmid + (is ? 76 : 54), is ? 21 : 15)
+  drawStars(ctx, review.rating, RW/2, rmid + (is ? 84 : 58), is ? 23 : 16)
 
   // ── CTA ───────────────────────────────────────────────────────────────────
   drawCard(ctx, PAD, ctaY, RW - PAD*2, ctaH, ctaH/2)
