@@ -515,11 +515,78 @@
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 700px) {
-  .db-sidebar { display: none; }
-  .db-main { padding: 1rem; }
+  /* Sidebar becomes a slide-out drawer */
+  .db-sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    width: 240px;
+    box-shadow: 4px 0 32px rgba(0,0,0,0.5);
+  }
+  .db-sidebar.open { transform: translateX(0); }
+
+  /* Overlay behind drawer */
+  .db-drawer-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 999;
+    animation: dbFadeIn 0.2s ease;
+  }
+
+  /* Hamburger button */
+  .db-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 14px; left: 14px;
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.12);
+    background: rgba(3,2,15,0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(200,200,255,0.7);
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.15s;
+  }
+  .db-hamburger:hover {
+    border-color: rgba(0,245,255,0.35);
+    color: var(--accent-cyan, #00f5ff);
+  }
+
+  .db-main {
+    padding: 1rem;
+    padding-top: 4rem; /* space for hamburger */
+  }
+
   .db-stats-row { grid-template-columns: 1fr 1fr; }
   .db-album-header { flex-direction: column !important; }
   .db-track-row { flex-direction: column; align-items: flex-start; }
+  .db-two-col { grid-template-columns: 1fr; }
+  .db-stats-row--5 { grid-template-columns: 1fr 1fr; }
+  .db-publish-btns { flex-direction: column; }
+  .db-row { flex-direction: column; }
+  .db-rating-row { flex-wrap: wrap; }
+
+  /* Comments on mobile */
+  .comments-post-header { padding: 0.85rem 1rem; }
+  .comment-row { padding: 0.85rem 1rem; }
+  .comment-row--reply { padding-left: 1.5rem; }
+}
+
+/* Hamburger hidden on desktop */
+.db-hamburger { display: none; }
+
+@keyframes dbFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Analytics: 5-col stats row ─────────────────────────────────── */
@@ -731,3 +798,5 @@
   margin: 0;
   word-break: break-word;
 }
+
+.db-drawer-overlay { display: none; }
