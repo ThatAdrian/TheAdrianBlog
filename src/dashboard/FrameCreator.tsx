@@ -436,24 +436,25 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
 
   // ── Verdict card — fills space between label and rating card ──────────────
   const vcardY   = vLabelY + (is ? 32 : 24)
-  const vcardH   = sepY - vcardY - (is ? 8 : 6)
+  const vcardH   = Math.max(120, sepY - vcardY - (is ? 8 : 6))
   const textPad  = is ? 32 : 26
   const lineH    = is ? 56 : 40
   const maxTextW = W - PAD * 2 - textPad * 2
 
-  // Trim verdict to fit card height
+  // Trim verdict to fit available space
   ctx.font = `${is ? 38 : 28}px 'Space Grotesk', sans-serif`
-  const maxLines = Math.floor((vcardH - textPad * 2) / lineH)
-  let words = review.verdict.split(' ')
-  let lines: string[] = []; let line = ''
-  for (const w of words) {
-    const t = line + w + ' '
-    if (ctx.measureText(t).width > maxTextW && line) { lines.push(line.trim()); line = w + ' ' }
-    else line = t
+  const maxLines = Math.max(1, Math.floor((vcardH - textPad * 2) / lineH))
+  const verdictWords = (review.verdict || '').split(' ')
+  const verdictLines: string[] = []
+  let curLine = ''
+  for (const w of verdictWords) {
+    const t = curLine + w + ' '
+    if (ctx.measureText(t).width > maxTextW && curLine) { verdictLines.push(curLine.trim()); curLine = w + ' ' }
+    else curLine = t
   }
-  if (line.trim()) lines.push(line.trim())
-  if (lines.length > maxLines) lines = [...lines.slice(0, maxLines - 1), lines[maxLines - 1].replace(/\s*\w+$/, '…')]
-  const snippet = lines.join(' ')
+  if (curLine.trim()) verdictLines.push(curLine.trim())
+  let snippet = verdictLines.slice(0, maxLines).join(' ')
+  if (verdictLines.length > maxLines) snippet = snippet.replace(/\s+\S+$/, '') + '…'
 
   drawCard(ctx, PAD, vcardY, W - PAD * 2, vcardH, 14)
   ctx.fillStyle = 'rgba(210,210,235,0.82)'
