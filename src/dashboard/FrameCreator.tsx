@@ -193,7 +193,7 @@ function drawStars(ctx: CanvasRenderingContext2D, rating: number, cx: number, cy
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
   await loadFonts()
-  const W = 1080, H = ratio === '9:16' ? 1776 : 1080
+  const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is = ratio === '9:16'
@@ -259,7 +259,7 @@ async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: R
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio, page: number) {
   await loadFonts()
-  const W = 1080, H = ratio === '9:16' ? 1776 : 1080
+  const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is = ratio === '9:16'
@@ -310,7 +310,7 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
   const PER = Math.ceil(review.tracks.length / totalPages)
   const pageTracks = review.tracks.slice(page * PER, (page+1) * PER)
   const listY = labelY + (is ? 20 : 16)
-  const listH = H - listY - (is ? 100 : 76)
+  const listH = (is ? SAFE_BOTTOM : H) - listY - (is ? 32 : 76)
   drawCard(ctx, PAD, listY, W - PAD*2, listH, 16)
 
   const rowH = listH / pageTracks.length
@@ -345,7 +345,10 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
     drawRatingPill(ctx, track.rating, W - PAD - pillW/2 - (is ? 4 : 3), midY, pillW, is ? 46 : 34)
   })
 
-  drawWatermark(ctx, W, H, is ? 24 : 19)
+  ctx.font = `500 ${is ? 24 : 19}px 'Space Mono', monospace`
+  ctx.fillStyle = 'rgba(0,245,255,0.28)'
+  ctx.textAlign = 'center'
+  ctx.fillText('theadrianblog.com', W/2, is ? SAFE_BOTTOM - 20 : H - 28)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -354,21 +357,26 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
   await loadFonts()
-  const W = 1080, H = ratio === '9:16' ? 1776 : 1080
+  const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is  = ratio === '9:16'
   const PAD = is ? 72 : 64
+  // TikTok safe zone — keep content inside these bounds
+  const SAFE_TOP    = is ? 160 : 0
+  const SAFE_BOTTOM = is ? 1570 : H   // 350px clear at bottom
+  const SAFE_RIGHT  = is ? 940 : W    // 140px clear on right
+  const SAFE_H      = SAFE_BOTTOM - SAFE_TOP
 
   drawBackground(ctx, W, H)
 
   // ── Album art — full-bleed cinematic, same as intro frame ──────────────────
-  const artH = is ? 820 : 460
+  const artH = is ? SAFE_TOP + 820 : 460
   const img  = await loadImg(review.imageUrl)
   if (img) {
     ctx.save()
-    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
-    ctx.drawImage(img, 0, 0, W, artH)
+    ctx.beginPath(); ctx.rect(0, SAFE_TOP, W, artH - SAFE_TOP); ctx.clip()
+    ctx.drawImage(img, 0, SAFE_TOP, W, artH - SAFE_TOP)
     ctx.restore()
     // Bottom fade into background
     const fadeH = is ? 380 : 240
@@ -384,7 +392,7 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   }
 
   // ── Artist + album name — sits over the fade zone ─────────────────────────
-  const nameBaseY = artH - (is ? 60 : 40)
+  const nameBaseY = is ? Math.min(artH - 60, SAFE_BOTTOM - 240) : artH - 40
 
   ctx.fillStyle = CYAN + 'cc'
   ctx.font = `700 ${is ? 34 : 24}px 'Orbitron', monospace`
@@ -399,9 +407,9 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   // ── Anchor bottom elements first so nothing overflows ─────────────────────
   // Watermark
   const wmH    = is ? 50 : 38
-  // CTA box
+  // CTA box — anchored inside safe zone
   const ctaH   = is ? 76 : 56
-  const ctaY   = H - wmH - ctaH - (is ? 24 : 18)
+  const ctaY   = (is ? SAFE_BOTTOM : H) - wmH - ctaH - (is ? 24 : 18)
   // Rating card — fixed height, above CTA
   const rcardH = is ? 230 : 168
   const rcardY = ctaY - (is ? 22 : 16) - rcardH
@@ -409,7 +417,7 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   const sepY   = rcardY - (is ? 22 : 16)
 
   // ── VERDICT label — sits just below art ───────────────────────────────────
-  const vLabelY = artH + (is ? 52 : 38)
+  const vLabelY = artH + (is ? 40 : 38)
   ctx.fillStyle = 'rgba(0,245,255,0.48)'
   ctx.font = `700 ${is ? 26 : 19}px 'Orbitron', monospace`
   ctx.letterSpacing = '5px'; ctx.textAlign = 'center'
@@ -476,7 +484,11 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   ctx.fillText('TheAdrianBlog.com', W/2, ctaY + ctaH * 0.8)
   ctx.letterSpacing = '0px'
 
-  drawWatermark(ctx, W, H, is ? 24 : 19)
+  // Watermark inside safe zone
+  ctx.font = `500 ${is ? 24 : 19}px 'Space Mono', monospace`
+  ctx.fillStyle = 'rgba(0,245,255,0.28)'
+  ctx.textAlign = 'center'
+  ctx.fillText('theadrianblog.com', W/2, is ? SAFE_BOTTOM - 20 : H - 28)
 }
 
 // ── Frame list ────────────────────────────────────────────────────────────────
