@@ -193,7 +193,7 @@ function drawStars(ctx: CanvasRenderingContext2D, rating: number, cx: number, cy
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
   await loadFonts()
-  const W = 1080, H = ratio === '9:16' ? 1920 : 1080
+  const W = 1080, H = ratio === '9:16' ? 1776 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is = ratio === '9:16'
@@ -259,7 +259,7 @@ async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: R
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio, page: number) {
   await loadFonts()
-  const W = 1080, H = ratio === '9:16' ? 1920 : 1080
+  const W = 1080, H = ratio === '9:16' ? 1776 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is = ratio === '9:16'
@@ -354,7 +354,7 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
   await loadFonts()
-  const W = 1080, H = ratio === '9:16' ? 1920 : 1080
+  const W = 1080, H = ratio === '9:16' ? 1776 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is  = ratio === '9:16'
