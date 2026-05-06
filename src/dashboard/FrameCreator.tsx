@@ -541,7 +541,7 @@ export default function FrameCreator() {
       artist: di>-1 ? title.slice(di+3).replace(/ Review$/,'').trim() : '',
       rating: parseFloat(fm.rating||'0'), tracks, verdict,
       summary: fm.summary||'',
-      imageUrl: `https://www.theadrianblog.com/posts/${slug}.jpg`, slug,
+      imageUrl: fm.image ? `https://www.theadrianblog.com/${fm.image}` : `https://www.theadrianblog.com/posts/${slug}.jpg`, slug,
     })
     setAF(0); setL(false)
   }
