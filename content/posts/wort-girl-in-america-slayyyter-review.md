@@ -1,5 +1,5 @@
 ---
-date: 01/05/2026
+date: 06/05/2026
 title: "WOR$T GIRL IN AMERICA - Slayyyter Review"
 summary: 'Crank it'
 categories:
@@ -25,6 +25,6 @@ Old Technology, Crank it, Dance, Beat up Chanels
 
 ## Verdict
 
-Now looking at this it seems like a bit of an industry plant, its very hit and miss.
+Now looking at this it seems a bit plain and a bit sloppy, its very hit and miss. It has a strong start with the first 4-5 songs and then drops off drastically. Sorry for calling her an industry plant, guys i just meant that hearing it on the radio made me think of the first time i heard sombr on the radio.
 
 shrug emoji
