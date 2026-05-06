@@ -635,3 +635,99 @@
   letter-spacing: 0.08em;
   z-index: 2;
 }
+
+/* ── Comments tab ────────────────────────────────────────────── */
+.comments-post-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 0.5px solid rgba(255,255,255,0.06);
+}
+.comments-post-header:hover { background: rgba(255,255,255,0.025); }
+
+.comments-post-slug {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(220,220,255,0.9);
+}
+.comments-post-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  color: rgba(200,200,255,0.35);
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+  border-bottom: 0.5px solid rgba(255,255,255,0.05);
+}
+.comment-row:last-child { border-bottom: none; }
+.comment-row--reply { padding-left: 2.5rem; background: rgba(255,255,255,0.015); }
+
+.comment-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.comment-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(220,220,255,0.85);
+}
+
+.comment-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+}
+.comment-tag--inline  { background: rgba(0,245,255,0.08); color: rgba(0,245,255,0.6); border: 0.5px solid rgba(0,245,255,0.2); }
+.comment-tag--reply   { background: rgba(180,0,255,0.08); color: rgba(180,0,255,0.6); border: 0.5px solid rgba(180,0,255,0.2); }
+.comment-tag--rating  { background: rgba(255,215,0,0.08); color: rgba(255,215,0,0.6); border: 0.5px solid rgba(255,215,0,0.2); }
+
+.comment-time {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: rgba(200,200,255,0.25);
+  margin-left: auto;
+}
+
+.comment-selected-text {
+  font-size: 0.75rem;
+  color: rgba(0,245,255,0.45);
+  font-style: italic;
+  margin: 0;
+  padding: 4px 10px;
+  border-left: 2px solid rgba(0,245,255,0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comment-content {
+  font-size: 0.82rem;
+  color: rgba(200,200,255,0.65);
+  line-height: 1.5;
+  margin: 0;
+  word-break: break-word;
+}

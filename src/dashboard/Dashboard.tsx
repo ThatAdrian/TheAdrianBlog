@@ -4,6 +4,7 @@ import ArticleCreator from './ArticleCreator'
 import Analytics from './Analytics'
 import Suggestions from './Suggestions'
 import FrameCreator from './FrameCreator'
+import Comments from './Comments'
 import './Dashboard.css'
 
 function hashPassword(pw: string): string {
@@ -22,7 +23,7 @@ export default function Dashboard() {
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
   const [wrong, setWrong] = useState(false)
-  const [tab, setTab] = useState<'music' | 'article' | 'analytics' | 'suggestions' | 'frames'>('music')
+  const [tab, setTab] = useState<'music' | 'article' | 'analytics' | 'suggestions' | 'frames' | 'comments'>('music')
 
   useEffect(() => {
     if (sessionStorage.getItem('db_auth') === CORRECT_HASH) setAuthed(true)
@@ -119,6 +120,12 @@ export default function Dashboard() {
             </svg>
             Frames
           </button>
+          <button className={`db-nav-item ${tab === 'comments' ? 'active' : ''}`} onClick={() => setTab('comments')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Comments
+          </button>
         </nav>
         <button className="db-logout" onClick={logout}>Sign out</button>
       </aside>
@@ -129,6 +136,7 @@ export default function Dashboard() {
         {tab === 'analytics' && <Analytics />}
         {tab === 'suggestions' && <Suggestions />}
         {tab === 'frames' && <FrameCreator />}
+        {tab === 'comments' && <Comments />}
       </main>
     </div>
   )
