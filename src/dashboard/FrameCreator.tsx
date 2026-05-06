@@ -347,16 +347,9 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LAST FRAME — VERDICT
-// Layout (9:16, 1920px, safe zone TT_TOP=160 to TT_BOT=1570):
-//   Art:         160 → 620   (460px tall — compact, leaves room for content)
-//   Artist/name: 620 → 720   (100px)
-//   VERDICT lbl: 740 → 780   (40px)
-//   Verdict card:780 → ~1130 (350px — ~5 lines of text)
-//   Gap:        1130 → 1160
-//   Rating card:1160 → 1390  (230px)
-//   Gap:        1390 → 1415
-//   CTA box:    1415 → 1495  (80px)
-//   Watermark:  1495 → 1545
+// Art: cinematic full-bleed top (same as intro), compact 380px
+// Everything else: fills the remaining safe zone
+// Font auto-scales so full verdict always fits
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
   await loadFonts()
@@ -371,120 +364,124 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
 
   drawBg(ctx, W, H)
 
-  // ── Compact art banner at top ─────────────────────────────────────────────
-  const artStart = TOP
-  const artEnd   = is ? TOP + 460 : 280
-  const img = await loadImg(review.imageUrl)
+  // ── Cinematic art banner — same style as intro ────────────────────────────
+  const artH = is ? TOP + 400 : TOP + 300   // compact: 560px total on 9:16
+  const img  = await loadImg(review.imageUrl)
   if (img) {
+    // Full-bleed draw
     ctx.save()
-    ctx.beginPath(); ctx.rect(0, artStart, W, artEnd - artStart); ctx.clip()
-    ctx.drawImage(img, 0, artStart, W, artEnd - artStart)
+    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
+    ctx.drawImage(img, 0, 0, W, artH)
     ctx.restore()
-    const fade = ctx.createLinearGradient(0, artEnd - (is ? 200 : 120), 0, artEnd)
-    fade.addColorStop(0, 'rgba(7,5,26,0)'); fade.addColorStop(1, BG)
-    ctx.fillStyle = fade; ctx.fillRect(0, artEnd - (is ? 200 : 120), W, is ? 200 : 120)
-    // Side vignettes to keep text readable
-    const lv = ctx.createLinearGradient(0, 0, PAD*1.5, 0)
-    lv.addColorStop(0, BG); lv.addColorStop(1, 'rgba(7,5,26,0)')
-    ctx.fillStyle = lv; ctx.fillRect(0, artStart, PAD*1.5, artEnd - artStart)
+    // Cinematic bottom fade — same as intro
+    const fadeH = is ? 280 : 180
+    const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
+    fade.addColorStop(0, 'rgba(7,5,26,0)')
+    fade.addColorStop(0.45, 'rgba(7,5,26,0.6)')
+    fade.addColorStop(1, BG)
+    ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
+    // Top vignette
+    const topF = ctx.createLinearGradient(0, 0, 0, is ? 200 : 100)
+    topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
+    ctx.fillStyle = topF; ctx.fillRect(0, 0, W, is ? 200 : 100)
   }
 
-  // ── Artist + album name ───────────────────────────────────────────────────
-  const nameY = artEnd + (is ? 36 : 26)
+  // ── Artist + album name over fade zone ────────────────────────────────────
+  const artistY = artH - (is ? 112 : 72)
   ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `700 ${is ? 32 : 22}px 'Orbitron', monospace`
+  ctx.font = `700 ${is ? 34 : 23}px 'Orbitron', monospace`
   ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
-  ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - PAD*2), RW/2, nameY)
+  ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - PAD*2), RW/2, artistY)
   ctx.letterSpacing = '0px'
   ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 62 : 44}px 'Space Grotesk', sans-serif`
-  ctx.fillText(clip(ctx, review.albumName, RW - PAD*2), RW/2, nameY + (is ? 68 : 48))
+  ctx.font = `bold ${is ? 64 : 44}px 'Space Grotesk', sans-serif`
+  ctx.fillText(clip(ctx, review.albumName, RW - PAD*2), RW/2, artistY + (is ? 70 : 48))
 
-  // ── Anchor bottom elements from BOT upward ────────────────────────────────
-  const wmY     = BOT - (is ? 28 : 22)
-  const ctaH    = is ? 80 : 58
-  const ctaGap  = is ? 20 : 16
-  const ctaY    = wmY - (is ? 36 : 26) - ctaH
-  const rcardH  = is ? 230 : 170
-  const rcardGap= is ? 20 : 16
-  const rcardY  = ctaY - rcardGap - rcardH
-  const sepY    = rcardY - (is ? 20 : 14)
+  // ── Fixed bottom elements — anchored from BOT upward ─────────────────────
+  const wmY    = BOT - (is ? 28 : 22)
+  const ctaH   = is ? 78 : 56
+  const ctaY   = wmY - (is ? 36 : 28) - ctaH
+  const rcardH = is ? 222 : 162
+  const rcardY = ctaY - (is ? 18 : 14) - rcardH
+  const sepY   = rcardY - (is ? 18 : 14)
 
   // ── VERDICT label ─────────────────────────────────────────────────────────
-  const vLabelY = nameY + (is ? 122 : 88)
+  const vLabelY = artH + (is ? 28 : 20)
   ctx.fillStyle = 'rgba(0,245,255,0.5)'
-  ctx.font = `700 ${is ? 25 : 18}px 'Orbitron', monospace`
+  ctx.font = `700 ${is ? 24 : 17}px 'Orbitron', monospace`
   ctx.letterSpacing = '6px'; ctx.textAlign = 'center'
   ctx.fillText('VERDICT', RW/2, vLabelY); ctx.letterSpacing = '0px'
-  drawSep(ctx, PAD, vLabelY + (is ? 16 : 12), RW - PAD*2)
+  drawSep(ctx, PAD, vLabelY + (is ? 14 : 10), RW - PAD*2)
 
-  // ── Verdict text card — fills all available space ─────────────────────────
-  const vcardY  = vLabelY + (is ? 30 : 22)
-  const vcardH  = Math.max(is ? 160 : 100, sepY - vcardY - (is ? 12 : 8))
-  const tPad    = is ? 30 : 24
-  const lineH   = is ? 54 : 40
-  const maxW    = RW - PAD*2 - tPad*2
-  const maxLine = Math.max(1, Math.floor((vcardH - tPad * 2) / lineH))
+  // ── Verdict card — ALL remaining space ────────────────────────────────────
+  const vcardY = vLabelY + (is ? 28 : 20)
+  const vcardH = Math.max(is ? 200 : 140, sepY - vcardY - (is ? 10 : 8))
+  const tPad   = is ? 28 : 22
+  const maxW   = RW - PAD*2 - tPad*2
+  const verdictText = (review.verdict || 'No verdict written yet.').trim()
 
-  ctx.font = `${is ? 37 : 27}px 'Space Grotesk', sans-serif`
-  const vWords = (review.verdict || 'No verdict written yet.').split(' ')
-  const vLines: string[] = []; let cur = ''
-  for (const w of vWords) {
-    const t = cur + w + ' '
-    if (ctx.measureText(t).width > maxW && cur) { vLines.push(cur.trim()); cur = w + ' ' } else cur = t
-  }
-  if (cur.trim()) vLines.push(cur.trim())
-  const trimmed = vLines.slice(0, maxLine)
-  if (vLines.length > maxLine && trimmed.length > 0) {
-    const last = trimmed[trimmed.length - 1]
-    const words = last.split(' ')
-    let shortened = last
-    while (ctx.measureText(shortened + '…').width > maxW && words.length > 1) {
-      words.pop(); shortened = words.join(' ')
+  // Auto-scale font to fit full verdict text
+  let fontSize = is ? 38 : 27
+  let lineH    = is ? 54 : 40
+  let fittedLines: string[] = []
+
+  while (fontSize >= (is ? 24 : 18)) {
+    ctx.font = `${fontSize}px 'Space Grotesk', sans-serif`
+    lineH = Math.round(fontSize * 1.45)
+    const avail = Math.floor((vcardH - tPad * 2) / lineH)
+    // Wrap all text
+    const words  = verdictText.split(' ')
+    const lines: string[] = []; let cur = ''
+    for (const w of words) {
+      const t = cur + w + ' '
+      if (ctx.measureText(t).width > maxW && cur) { lines.push(cur.trim()); cur = w + ' ' } else cur = t
     }
-    trimmed[trimmed.length - 1] = shortened + '…'
+    if (cur.trim()) lines.push(cur.trim())
+    if (lines.length <= avail) { fittedLines = lines; break }
+    if (fontSize === (is ? 24 : 18)) { fittedLines = lines.slice(0, avail); break }
+    fontSize -= (is ? 2 : 2)
   }
 
   drawCard(ctx, PAD, vcardY, RW - PAD*2, vcardH, 14)
   ctx.fillStyle = 'rgba(212,212,238,0.84)'
-  let ty = vcardY + tPad + lineH * 0.72
+  ctx.font = `${fontSize}px 'Space Grotesk', sans-serif`
   ctx.textAlign = 'left'
-  for (const line of trimmed) { ctx.fillText(line, PAD + tPad, ty); ty += lineH }
+  let ty = vcardY + tPad + lineH * 0.72
+  for (const line of fittedLines) { ctx.fillText(line, PAD + tPad, ty); ty += lineH }
 
-  // ── Sep ───────────────────────────────────────────────────────────────────
+  // ── Separator ─────────────────────────────────────────────────────────────
   drawSep(ctx, PAD, sepY, RW - PAD*2)
 
   // ── Rating card ───────────────────────────────────────────────────────────
   drawCard(ctx, PAD, rcardY, RW - PAD*2, rcardH, 16)
   ctx.fillStyle = 'rgba(0,245,255,0.15)'
   ctx.fillRect(PAD + 2, rcardY, RW - PAD*2 - 4, 1)
-
   const rmid = rcardY + rcardH / 2
   const col  = ratingColor(review.rating)
   ctx.save()
   if (review.rating >= 5) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 40 }
   ctx.fillStyle = col
-  ctx.font = `bold ${is ? 80 : 56}px 'Orbitron', monospace`
+  ctx.font = `bold ${is ? 78 : 54}px 'Orbitron', monospace`
   ctx.textAlign = 'center'
   ctx.fillText(`${review.rating} / 5`, RW/2, rmid + (is ? 14 : 10))
   ctx.restore()
-  drawStars(ctx, review.rating, RW/2, rmid + (is ? 78 : 56), is ? 22 : 16)
+  drawStars(ctx, review.rating, RW/2, rmid + (is ? 76 : 54), is ? 21 : 15)
 
-  // ── CTA box ───────────────────────────────────────────────────────────────
+  // ── CTA ───────────────────────────────────────────────────────────────────
   drawCard(ctx, PAD, ctaY, RW - PAD*2, ctaH, ctaH/2)
-  ctx.fillStyle = 'rgba(0,245,255,0.16)'
+  ctx.fillStyle = 'rgba(0,245,255,0.15)'
   ctx.fillRect(PAD + 2, ctaY, RW - PAD*2 - 4, 1)
-  ctx.fillStyle = 'rgba(200,200,255,0.45)'
-  ctx.font = `${is ? 24 : 17}px 'Space Grotesk', sans-serif`
+  ctx.fillStyle = 'rgba(200,200,255,0.44)'
+  ctx.font = `${is ? 23 : 16}px 'Space Grotesk', sans-serif`
   ctx.textAlign = 'center'
-  ctx.fillText('for more reviews visit', RW/2, ctaY + ctaH * 0.38)
+  ctx.fillText('for more reviews visit', RW/2, ctaY + ctaH * 0.37)
   ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `bold ${is ? 28 : 20}px 'Orbitron', monospace`
+  ctx.font = `bold ${is ? 27 : 19}px 'Orbitron', monospace`
   ctx.letterSpacing = '1px'
-  ctx.fillText('TheAdrianBlog.com', RW/2, ctaY + ctaH * 0.78)
+  ctx.fillText('TheAdrianBlog.com', RW/2, ctaY + ctaH * 0.77)
   ctx.letterSpacing = '0px'
 
-  drawWM(ctx, W, wmY, is ? 24 : 19)
+  drawWM(ctx, W, wmY, is ? 23 : 18)
 }
 
 // ── Frame list ────────────────────────────────────────────────────────────────
