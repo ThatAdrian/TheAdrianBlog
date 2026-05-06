@@ -384,7 +384,7 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   drawBg(ctx, W, H)
 
   // ── Full-bleed cinematic art — identical to intro frame ─────────────────────
-  const artH = is ? 1020 : 560
+  const artH = is ? 880 : 480
   const img  = await loadImg(review.imageUrl)
   if (img) {
     ctx.save()
@@ -420,11 +420,11 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   const ctaH   = is ? 78 : 56
   const ctaY   = wmY - (is ? 36 : 28) - ctaH
   const rcardH = is ? 222 : 162
-  const rcardY = ctaY - (is ? 18 : 14) - rcardH
-  const sepY   = rcardY - (is ? 18 : 14)
+  const rcardY = ctaY - (is ? 24 : 16) - rcardH
+  const sepY   = rcardY - (is ? 24 : 16)
 
   // ── VERDICT label ─────────────────────────────────────────────────────────
-  const vLabelY = artH + (is ? 28 : 20)
+  const vLabelY = artH + (is ? 36 : 24)
   ctx.fillStyle = 'rgba(0,245,255,0.5)'
   ctx.font = `700 ${is ? 24 : 17}px 'Orbitron', monospace`
   ctx.letterSpacing = '6px'; ctx.textAlign = 'center'
@@ -432,7 +432,7 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   drawSep(ctx, PAD, vLabelY + (is ? 14 : 10), RW - PAD*2)
 
   // ── Verdict card — ALL remaining space ────────────────────────────────────
-  const vcardY = vLabelY + (is ? 28 : 20)
+  const vcardY = vLabelY + (is ? 32 : 22)
   const vcardH = Math.max(is ? 200 : 140, sepY - vcardY - (is ? 10 : 8))
   const tPad   = is ? 28 : 22
   const maxW   = RW - PAD*2 - tPad*2
