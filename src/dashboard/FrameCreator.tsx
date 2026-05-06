@@ -198,6 +198,11 @@ async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: R
   const ctx = canvas.getContext('2d')!
   const is = ratio === '9:16'
   const PAD = is ? 72 : 64
+  // TikTok safe zone
+  const SAFE_TOP    = is ? 160 : 0
+  const SAFE_BOTTOM = is ? 1570 : H
+  const SAFE_RIGHT  = is ? 940 : W
+  const SAFE_H      = SAFE_BOTTOM - SAFE_TOP
 
   drawBackground(ctx, W, H)
 
@@ -264,6 +269,11 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
   const ctx = canvas.getContext('2d')!
   const is = ratio === '9:16'
   const PAD = is ? 72 : 64
+  // TikTok safe zone
+  const SAFE_TOP    = is ? 160 : 0
+  const SAFE_BOTTOM = is ? 1570 : H
+  const SAFE_RIGHT  = is ? 940 : W
+  const SAFE_H      = SAFE_BOTTOM - SAFE_TOP
 
   drawBackground(ctx, W, H)
 
