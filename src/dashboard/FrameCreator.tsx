@@ -325,19 +325,19 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
 
     // Track number
     ctx.fillStyle = TEXT_MUT
-    ctx.font = `${is ? 23 : 17}px 'Space Mono', monospace`
+    ctx.font = `${is ? 28 : 20}px 'Space Mono', monospace`
     ctx.textAlign = 'left'
-    ctx.fillText(String(page * PER + i + 1).padStart(2, '0'), PAD + (is ? 16 : 12), midY + (is ? 8 : 6))
+    ctx.fillText(String(page * PER + i + 1).padStart(2, '0'), PAD + (is ? 16 : 12), midY + (is ? 10 : 7))
 
     // Track name
-    const numW  = is ? 54 : 42
-    const pillW = is ? 96 : 72
-    const pillH = is ? 44 : 32
-    const nameW = RW - PAD*2 - numW - pillW - (is ? 32 : 24)
+    const numW  = is ? 62 : 46
+    const pillW = is ? 110 : 80
+    const pillH = is ? 54 : 38
+    const nameW = RW - PAD*2 - numW - pillW - (is ? 36 : 26)
     const isFive = track.rating >= 5
-    ctx.fillStyle = isFive ? '#ffffff' : track.rating >= 4.5 ? TEXT_PRI : 'rgba(200,200,230,0.78)'
-    ctx.font = `${isFive ? 'bold ' : ''}${is ? 33 : 24}px 'Space Grotesk', sans-serif`
-    ctx.fillText(clip(ctx, track.name, nameW), PAD + numW + (is ? 14 : 10), midY + (is ? 10 : 7))
+    ctx.fillStyle = isFive ? '#ffffff' : track.rating >= 4.5 ? TEXT_PRI : 'rgba(205,205,235,0.82)'
+    ctx.font = `${isFive ? 'bold ' : ''}${is ? 40 : 27}px 'Space Grotesk', sans-serif`
+    ctx.fillText(clip(ctx, track.name, nameW), PAD + numW + (is ? 16 : 11), midY + (is ? 13 : 9))
 
     drawRatingPill(ctx, track.rating, RW - PAD - pillW/2 - (is ? 4 : 3), midY, pillW, pillH)
   })
@@ -364,29 +364,32 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
 
   drawBg(ctx, W, H)
 
-  // ── Cinematic art banner — same style as intro ────────────────────────────
-  const artH = is ? TOP + 400 : TOP + 300   // compact: 560px total on 9:16
-  const img  = await loadImg(review.imageUrl)
+  // ── Square album art — correct aspect ratio, dimmed so text overlaps nicely ─
+  const artSz = is ? 560 : 380   // square, centred
+  const artX  = (W - artSz) / 2
+  const artY  = is ? TOP + 20 : TOP + 16
+  const artH  = artY + artSz     // bottom of art
+  const img   = await loadImg(review.imageUrl)
   if (img) {
-    // Full-bleed draw
     ctx.save()
-    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
-    ctx.drawImage(img, 0, 0, W, artH)
+    ctx.globalAlpha = 0.55        // lowered opacity for contrast
+    rrect(ctx, artX, artY, artSz, artSz, 20); ctx.clip()
+    ctx.drawImage(img, artX, artY, artSz, artSz)
     ctx.restore()
-    // Cinematic bottom fade — same as intro
-    const fadeH = is ? 280 : 180
-    const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
-    fade.addColorStop(0, 'rgba(7,5,26,0)')
-    fade.addColorStop(0.45, 'rgba(7,5,26,0.6)')
-    fade.addColorStop(1, BG)
-    ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
-    // Top vignette
-    const topF = ctx.createLinearGradient(0, 0, 0, is ? 200 : 100)
-    topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
-    ctx.fillStyle = topF; ctx.fillRect(0, 0, W, is ? 200 : 100)
+    // Gradient overlay — darkens bottom half so text is readable
+    const ov = ctx.createLinearGradient(0, artY + artSz * 0.3, 0, artH + (is ? 60 : 40))
+    ov.addColorStop(0, 'rgba(7,5,26,0)')
+    ov.addColorStop(0.6, 'rgba(7,5,26,0.72)')
+    ov.addColorStop(1, BG)
+    ctx.fillStyle = ov; ctx.fillRect(artX, artY + artSz * 0.3, artSz, artH - (artY + artSz * 0.3) + (is ? 60 : 40))
+    // Subtle border
+    ctx.save()
+    rrect(ctx, artX, artY, artSz, artSz, 20)
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1.5; ctx.stroke()
+    ctx.restore()
   }
 
-  // ── Artist + album name over fade zone ────────────────────────────────────
+  // ── Artist + album name — overlaid on lower portion of art ───────────────
   const artistY = artH - (is ? 112 : 72)
   ctx.fillStyle = CYAN + 'cc'
   ctx.font = `700 ${is ? 34 : 23}px 'Orbitron', monospace`
