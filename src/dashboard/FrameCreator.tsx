@@ -383,33 +383,29 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
 
   drawBg(ctx, W, H)
 
-  // ── Square album art — correct aspect ratio, dimmed so text overlaps nicely ─
-  const artSz = is ? 560 : 380   // square, centred
-  const artX  = (W - artSz) / 2
-  const artY  = is ? TOP + 80 : TOP + 16
-  const artH  = artY + artSz     // bottom of art
-  const img   = await loadImg(review.imageUrl)
+  // ── Full-bleed cinematic art — identical to intro frame ─────────────────────
+  const artH = is ? 1020 : 560
+  const img  = await loadImg(review.imageUrl)
   if (img) {
     ctx.save()
-    ctx.globalAlpha = 0.55        // lowered opacity for contrast
-    rrect(ctx, artX, artY, artSz, artSz, 20); ctx.clip()
-    ctx.drawImage(img, artX, artY, artSz, artSz)
+    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
+    ctx.drawImage(img, 0, 0, W, artH)
     ctx.restore()
-    // Gradient overlay — darkens bottom half so text is readable
-    const ov = ctx.createLinearGradient(0, artY + artSz * 0.3, 0, artH + (is ? 60 : 40))
-    ov.addColorStop(0, 'rgba(7,5,26,0)')
-    ov.addColorStop(0.6, 'rgba(7,5,26,0.72)')
-    ov.addColorStop(1, BG)
-    ctx.fillStyle = ov; ctx.fillRect(artX, artY + artSz * 0.3, artSz, artH - (artY + artSz * 0.3) + (is ? 60 : 40))
-    // Subtle border
-    ctx.save()
-    rrect(ctx, artX, artY, artSz, artSz, 20)
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1.5; ctx.stroke()
-    ctx.restore()
+    // Same cinematic bottom fade as intro
+    const fadeH = is ? 420 : 260
+    const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
+    fade.addColorStop(0, 'rgba(7,5,26,0)')
+    fade.addColorStop(0.45, 'rgba(7,5,26,0.65)')
+    fade.addColorStop(1, BG)
+    ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
+    // Top vignette
+    const topF = ctx.createLinearGradient(0, 0, 0, is ? 220 : 120)
+    topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
+    ctx.fillStyle = topF; ctx.fillRect(0, 0, W, is ? 220 : 120)
   }
 
-  // ── Artist + album name — overlaid on lower portion of art ───────────────
-  const artistY = artH - (is ? 112 : 72)
+  // ── Artist + album name — same position as intro, over fade zone ──────────
+  const artistY = artH - (is ? 120 : 72)
   ctx.fillStyle = CYAN + 'cc'
   ctx.font = `700 ${is ? 34 : 23}px 'Orbitron', monospace`
   ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
