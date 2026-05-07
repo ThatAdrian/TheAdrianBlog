@@ -32,6 +32,13 @@ export default function Dashboard() {
   }, [])
 
   function login() {
+    if (saveLogin) {
+      localStorage.setItem('db_saved_pass', password)
+      localStorage.setItem('db_saved_token', token)
+    } else {
+      localStorage.removeItem('db_saved_pass')
+      localStorage.removeItem('db_saved_token')
+    }
     if (hashPassword(password) === CORRECT_HASH) {
       sessionStorage.setItem('db_auth', CORRECT_HASH)
       sessionStorage.setItem('db_token', token)
@@ -73,6 +80,17 @@ export default function Dashboard() {
             onKeyDown={e => e.key === 'Enter' && login()}
           />
           {wrong && <p className="db-error">Incorrect password</p>}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={saveLogin}
+              onChange={e => setSaveLogin(e.target.checked)}
+              style={{ width: '16px', height: '16px', accentColor: '#00f5ff', cursor: 'pointer' }}
+            />
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.7rem', color: 'rgba(200,200,255,0.45)' }}>
+              Save login on this device
+            </span>
+          </label>
           <button className="db-btn db-btn--primary db-btn--full" onClick={login}>
             Enter
           </button>
