@@ -38,14 +38,14 @@ export default function Analytics() {
           const [lRes, cRes, rRes] = await Promise.all([
             sb(`likes?post_slug=eq.${enc}&select=id`),
             sb(`comments?post_slug=eq.${enc}&parent_id=is.null&select=id`),
-            sb(`comments?post_slug=eq.${enc}&user_rating=not.is.null&select=user_rating`),
+            sb(`ratings?album_id=eq.${enc}&select=rating`),
           ])
           const likes    = parseInt(lRes.headers.get('content-range')?.split('/')[1] ?? '0')
           const comments = parseInt(cRes.headers.get('content-range')?.split('/')[1] ?? '0')
           let avgRating: number | null = null
           if (rRes.ok) {
-            const rData: { user_rating: number }[] = await rRes.json()
-            if (rData.length > 0) avgRating = rData.reduce((s, r) => s + r.user_rating, 0) / rData.length
+            const rData: { rating: number }[] = await rRes.json()
+            if (rData.length > 0) avgRating = rData.reduce((s, r) => s + r.rating, 0) / rData.length
           }
           return { slug: post.slug, title: post.title, likes, comments, avgRating }
         }))
