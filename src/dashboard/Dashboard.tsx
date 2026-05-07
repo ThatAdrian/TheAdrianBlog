@@ -20,9 +20,10 @@ const CORRECT_HASH = hashPassword('Adrian200567.Tiko2017!')
 
 export default function Dashboard() {
   const [authed, setAuthed] = useState(false)
-  const [password, setPassword] = useState('')
-  const [token, setToken] = useState('')
-  const [wrong, setWrong] = useState(false)
+  const [password, setPassword] = useState(() => localStorage.getItem('db_saved_pass') || '')
+  const [token, setToken]       = useState(() => localStorage.getItem('db_saved_token') || '')
+  const [saveLogin, setSaveLogin] = useState(() => !!localStorage.getItem('db_saved_pass'))
+  const [wrong, setWrong]       = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [tab, setTab] = useState<'music' | 'article' | 'analytics' | 'suggestions' | 'frames' | 'comments'>('music')
 
