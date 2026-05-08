@@ -305,13 +305,13 @@ async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: R
     const artistH = 40  // height of artist text
     const artistGap = 14
     const totalTextH = artistH + artistGap + albumBlockH
-    const albumStartY = sepY1 - 32 - albumBlockH  // 32px gap below sep
-    const artistY1 = albumStartY - artistGap - artistH
-    // Draw artist
+    const albumStartY = sepY1 - 40 - albumBlockH  // 40px gap above sep
+    // Artist sits clearly above album — 72px above album baseline guarantees no overlap
+    const artistBaseY = albumStartY - 72
     ctx.fillStyle = CYAN + 'dd'
     ctx.font = `700 32px 'Orbitron', monospace`
     ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
-    ctx.fillText(clip(ctx, review.artist.toUpperCase(), W - PAD*2), W/2, artistY1 + artistH * 0.8)
+    ctx.fillText(clip(ctx, review.artist.toUpperCase(), W - PAD*2), W/2, artistBaseY)
     ctx.letterSpacing = '0px'
     // Draw album lines
     aLines.forEach((line, i) => {
