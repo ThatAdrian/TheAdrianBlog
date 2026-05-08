@@ -116,6 +116,18 @@ function clip(ctx: CanvasRenderingContext2D, text: string, maxW: number): string
   return t + '…'
 }
 
+// Draw image cover-fit — maintains aspect ratio, crops to fill target area
+function coverDraw(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+  const iw = img.naturalWidth || img.width
+  const ih = img.naturalHeight || img.height
+  const iRatio = iw / ih
+  const tRatio = w / h
+  let sx = 0, sy = 0, sw = iw, sh = ih
+  if (iRatio > tRatio) { sw = ih * tRatio; sx = (iw - sw) / 2 }
+  else                  { sh = iw / tRatio; sy = (ih - sh) / 2 }
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h)
+}
+
 function drawBg(ctx: CanvasRenderingContext2D, W: number, H: number) {
   ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H)
   ctx.fillStyle = 'rgba(50,40,80,0.5)'
@@ -207,7 +219,7 @@ async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: R
   if (img) {
     ctx.save()
     ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
-    ctx.drawImage(img, 0, 0, W, artH)
+    coverDraw(ctx, img, 0, 0, W, artH)
     ctx.restore()
     const fadeH = is ? 420 : 260
     const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
@@ -276,7 +288,7 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
   if (img) {
     ctx.save()
     rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10); ctx.clip()
-    ctx.drawImage(img, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz)
+    coverDraw(ctx, img, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz)
     ctx.restore()
     ctx.save()
     rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10)
@@ -384,12 +396,12 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   drawBg(ctx, W, H)
 
   // ── Full-bleed cinematic art — identical to intro frame ─────────────────────
-  const artH = is ? 880 : 480
+  const artH = is ? 880 : 580
   const img  = await loadImg(review.imageUrl)
   if (img) {
     ctx.save()
     ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
-    ctx.drawImage(img, 0, 0, W, artH)
+    coverDraw(ctx, img, 0, 0, W, artH)
     ctx.restore()
     // Same cinematic bottom fade as intro
     const fadeH = is ? 420 : 260
