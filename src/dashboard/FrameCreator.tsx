@@ -249,56 +249,77 @@ async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: R
   } else {
     // ── 1:1: Full-frame art with strong bottom overlay — poster style ─────────
     if (img) {
-      // Full bleed — covers entire 1080x1080
       coverDraw(ctx, img, 0, 0, W, H)
-      // Strong bottom gradient — bottom 45% darkens for text
-      const fade = ctx.createLinearGradient(0, H * 0.42, 0, H)
+      // Dark gradient — bottom 52% of frame
+      const fade = ctx.createLinearGradient(0, H * 0.38, 0, H)
       fade.addColorStop(0, 'rgba(7,5,26,0)')
-      fade.addColorStop(0.35, 'rgba(7,5,26,0.78)')
-      fade.addColorStop(1, 'rgba(7,5,26,0.97)')
+      fade.addColorStop(0.3, 'rgba(7,5,26,0.82)')
+      fade.addColorStop(1, 'rgba(7,5,26,0.98)')
       ctx.fillStyle = fade; ctx.fillRect(0, 0, W, H)
-      // Subtle top vignette
-      const topF = ctx.createLinearGradient(0, 0, 0, 140)
-      topF.addColorStop(0, 'rgba(7,5,26,0.55)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
-      ctx.fillStyle = topF; ctx.fillRect(0, 0, W, 140)
+      const topF = ctx.createLinearGradient(0, 0, 0, 130)
+      topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
+      ctx.fillStyle = topF; ctx.fillRect(0, 0, W, 130)
     }
-    // Text positioned in bottom third
-    const textBase = H - 80
+    // Anchor all text from bottom up with fixed gaps
     // Watermark
-    drawWM(ctx, W, textBase, 22)
-    // Summary just above watermark
+    const wmY1 = H - 28
+    drawWM(ctx, W, wmY1, 20)
+    // Summary
+    const summaryLineH = 40
+    const summaryLines: string[] = []
     if (review.summary) {
-      ctx.fillStyle = 'rgba(195,195,225,0.6)'
-      ctx.font = `30px 'Space Grotesk', sans-serif`
-      ctx.textAlign = 'center'
-      wrapText(ctx, `"${review.summary}"`, W/2, textBase - 105, W - PAD*2.2, 42, 'center')
+      ctx.font = `28px 'Space Grotesk', sans-serif`
+      const sumWords = review.summary.split(' '); let sumLine = ''
+      for (const w of sumWords) {
+        const t = sumLine + w + ' '
+        if (ctx.measureText(t).width > W - PAD*2.4 && sumLine) { summaryLines.push(sumLine.trim()); sumLine = w + ' ' }
+        else sumLine = t
+      }
+      if (sumLine.trim()) summaryLines.push(sumLine.trim())
     }
-    // Separator
-    drawSep(ctx, PAD, textBase - (review.summary ? 128 : 80), W - PAD*2)
-    const sepY = textBase - (review.summary ? 128 : 80)
-    // Album name — big bold
-    ctx.fillStyle = 'rgba(248,248,255,0.97)'
-    ctx.font = `bold 72px 'Space Grotesk', sans-serif`
-    ctx.textAlign = 'center'
-    const albumLines = review.albumName.split(' ').reduce((acc: string[], word) => {
-      const last = acc[acc.length - 1] || ''
-      ctx.font = `bold 72px 'Space Grotesk', sans-serif`
-      if (ctx.measureText(last + ' ' + word).width > W - PAD*2.2 && last) return [...acc, word]
-      return [...acc.slice(0, -1), (last + ' ' + word).trim()]
-    }, [''])
-    const albumH = albumLines.length * 80
-    const albumStartY = sepY - 24 - albumH
-    albumLines.forEach((line, i) => {
-      ctx.fillStyle = 'rgba(248,248,255,0.97)'
-      ctx.font = `bold 72px 'Space Grotesk', sans-serif`
-      ctx.fillText(line, W/2, albumStartY + i * 80)
-    })
-    // Artist
+    const summaryH = summaryLines.length > 0 ? summaryLines.length * summaryLineH + 12 : 0
+    const summaryBottom = wmY1 - 16
+    const summaryTop = summaryBottom - summaryH
+    if (summaryLines.length > 0) {
+      ctx.fillStyle = 'rgba(195,195,225,0.58)'
+      ctx.font = `28px 'Space Grotesk', sans-serif`
+      ctx.textAlign = 'center'
+      summaryLines.forEach((line, i) => ctx.fillText(line, W/2, summaryTop + i * summaryLineH + summaryLineH))
+    }
+    // Separator — 28px gap above summary
+    const sepY1 = (summaryLines.length > 0 ? summaryTop : wmY1 - 16) - 28
+    drawSep(ctx, PAD, sepY1, W - PAD*2)
+    // Album name — measure how many lines, then position above sep
+    ctx.font = `bold 68px 'Space Grotesk', sans-serif`
+    const albumLineH = 78
+    const albumWords = review.albumName.split(' ')
+    const aLines: string[] = []; let aCur = ''
+    for (const w of albumWords) {
+      const t = aCur + w + ' '
+      if (ctx.measureText(t).width > W - PAD*2.2 && aCur) { aLines.push(aCur.trim()); aCur = w + ' ' }
+      else aCur = t
+    }
+    if (aCur.trim()) aLines.push(aCur.trim())
+    const albumBlockH = aLines.length * albumLineH
+    // Artist sits above album name with a 14px gap
+    const artistH = 40  // height of artist text
+    const artistGap = 14
+    const totalTextH = artistH + artistGap + albumBlockH
+    const albumStartY = sepY1 - 32 - albumBlockH  // 32px gap below sep
+    const artistY1 = albumStartY - artistGap - artistH
+    // Draw artist
     ctx.fillStyle = CYAN + 'dd'
     ctx.font = `700 32px 'Orbitron', monospace`
-    ctx.letterSpacing = '4px'
-    ctx.fillText(review.artist.toUpperCase(), W/2, albumStartY - 30)
+    ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
+    ctx.fillText(clip(ctx, review.artist.toUpperCase(), W - PAD*2), W/2, artistY1 + artistH * 0.8)
     ctx.letterSpacing = '0px'
+    // Draw album lines
+    aLines.forEach((line, i) => {
+      ctx.fillStyle = 'rgba(248,248,255,0.97)'
+      ctx.font = `bold 68px 'Space Grotesk', sans-serif`
+      ctx.textAlign = 'center'
+      ctx.fillText(line, W/2, albumStartY + i * albumLineH)
+    })
   }
 }
 
