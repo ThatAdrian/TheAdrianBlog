@@ -198,71 +198,114 @@ function drawRatingPill(ctx: CanvasRenderingContext2D, rating: number, cx: numbe
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FRAME 0 — INTRO
-// Layout: Full-bleed art top 55%, text bottom 45%
-// Safe zone respected: text starts well below TT_TOP
+// 9:16: Full-bleed cinematic art, text in fade zone at bottom
+// 1:1:  Full-bleed art covers entire frame, bold text overlay bottom third
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawIntro(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
   await loadFonts()
   const W = 1080, H = ratio === '9:16' ? 1920 : 1080
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
-  const is = ratio === '9:16'
-  const PAD = is ? 80 : 68
-  // Effective right edge (avoid TikTok buttons on 9:16)
-  const RW = is ? W - TT_RPAD : W
+  const is  = ratio === '9:16'
+  const PAD = is ? 80 : 72
+  const RW  = is ? W - TT_RPAD : W
 
   drawBg(ctx, W, H)
 
-  // Art fills top portion — starts at 0 (background, not critical content)
-  const artH = is ? 1020 : 560
-  const img  = await loadImg(review.imageUrl)
-  if (img) {
-    ctx.save()
-    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
-    coverDraw(ctx, img, 0, 0, W, artH)
-    ctx.restore()
-    const fadeH = is ? 420 : 260
-    const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
-    fade.addColorStop(0, 'rgba(7,5,26,0)')
-    fade.addColorStop(0.45, 'rgba(7,5,26,0.55)')
-    fade.addColorStop(1, BG)
-    ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
-    const topF = ctx.createLinearGradient(0, 0, 0, is ? 220 : 120)
-    topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
-    ctx.fillStyle = topF; ctx.fillRect(0, 0, W, is ? 220 : 120)
+  const img = await loadImg(review.imageUrl)
+
+  if (is) {
+    // ── 9:16: Cinematic top portion ──────────────────────────────────────────
+    const artH = 1020
+    if (img) {
+      ctx.save()
+      ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
+      coverDraw(ctx, img, 0, 0, W, artH)
+      ctx.restore()
+      const fadeH = 420
+      const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
+      fade.addColorStop(0, 'rgba(7,5,26,0)'); fade.addColorStop(0.45, 'rgba(7,5,26,0.65)'); fade.addColorStop(1, BG)
+      ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
+      const topF = ctx.createLinearGradient(0, 0, 0, 220)
+      topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
+      ctx.fillStyle = topF; ctx.fillRect(0, 0, W, 220)
+    }
+    const artistY = artH - 120
+    ctx.fillStyle = CYAN + 'cc'
+    ctx.font = `700 38px 'Orbitron', monospace`
+    ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
+    ctx.fillText(review.artist.toUpperCase(), RW/2, artistY)
+    ctx.letterSpacing = '0px'
+    ctx.fillStyle = TEXT_PRI
+    ctx.font = `bold 76px 'Space Grotesk', sans-serif`
+    wrapText(ctx, review.albumName, RW/2, artistY + 76, RW - PAD*2, 86, 'center')
+    if (review.summary) {
+      drawSep(ctx, PAD, artistY + 200, RW - PAD*2)
+      ctx.fillStyle = TEXT_MUT
+      ctx.font = `38px 'Space Grotesk', sans-serif`
+      wrapText(ctx, `"${review.summary}"`, RW/2, artistY + 240, RW - PAD*2.2, 54, 'center')
+    }
+    drawWM(ctx, W, TT_BOT - 28, 27)
+  } else {
+    // ── 1:1: Full-frame art with strong bottom overlay — poster style ─────────
+    if (img) {
+      // Full bleed — covers entire 1080x1080
+      coverDraw(ctx, img, 0, 0, W, H)
+      // Strong bottom gradient — bottom 45% darkens for text
+      const fade = ctx.createLinearGradient(0, H * 0.42, 0, H)
+      fade.addColorStop(0, 'rgba(7,5,26,0)')
+      fade.addColorStop(0.35, 'rgba(7,5,26,0.78)')
+      fade.addColorStop(1, 'rgba(7,5,26,0.97)')
+      ctx.fillStyle = fade; ctx.fillRect(0, 0, W, H)
+      // Subtle top vignette
+      const topF = ctx.createLinearGradient(0, 0, 0, 140)
+      topF.addColorStop(0, 'rgba(7,5,26,0.55)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
+      ctx.fillStyle = topF; ctx.fillRect(0, 0, W, 140)
+    }
+    // Text positioned in bottom third
+    const textBase = H - 80
+    // Watermark
+    drawWM(ctx, W, textBase, 22)
+    // Summary just above watermark
+    if (review.summary) {
+      ctx.fillStyle = 'rgba(195,195,225,0.6)'
+      ctx.font = `30px 'Space Grotesk', sans-serif`
+      ctx.textAlign = 'center'
+      wrapText(ctx, `"${review.summary}"`, W/2, textBase - 105, W - PAD*2.2, 42, 'center')
+    }
+    // Separator
+    drawSep(ctx, PAD, textBase - (review.summary ? 128 : 80), W - PAD*2)
+    const sepY = textBase - (review.summary ? 128 : 80)
+    // Album name — big bold
+    ctx.fillStyle = 'rgba(248,248,255,0.97)'
+    ctx.font = `bold 72px 'Space Grotesk', sans-serif`
+    ctx.textAlign = 'center'
+    const albumLines = review.albumName.split(' ').reduce((acc: string[], word) => {
+      const last = acc[acc.length - 1] || ''
+      ctx.font = `bold 72px 'Space Grotesk', sans-serif`
+      if (ctx.measureText(last + ' ' + word).width > W - PAD*2.2 && last) return [...acc, word]
+      return [...acc.slice(0, -1), (last + ' ' + word).trim()]
+    }, [''])
+    const albumH = albumLines.length * 80
+    const albumStartY = sepY - 24 - albumH
+    albumLines.forEach((line, i) => {
+      ctx.fillStyle = 'rgba(248,248,255,0.97)'
+      ctx.font = `bold 72px 'Space Grotesk', sans-serif`
+      ctx.fillText(line, W/2, albumStartY + i * 80)
+    })
+    // Artist
+    ctx.fillStyle = CYAN + 'dd'
+    ctx.font = `700 32px 'Orbitron', monospace`
+    ctx.letterSpacing = '4px'
+    ctx.fillText(review.artist.toUpperCase(), W/2, albumStartY - 30)
+    ctx.letterSpacing = '0px'
   }
-
-  // Text section — starts inside art fade zone, all critical content below TT_TOP
-  // Artist name
-  const artistY = is ? artH - 120 : artH - 70
-  ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `700 ${is ? 38 : 26}px 'Orbitron', monospace`
-  ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
-  ctx.fillText(review.artist.toUpperCase(), RW/2, artistY)
-  ctx.letterSpacing = '0px'
-
-  // Album name
-  ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 76 : 52}px 'Space Grotesk', sans-serif`
-  const albumEndY = wrapText(ctx, review.albumName, RW/2, artistY + (is ? 72 : 50), RW - PAD*2, is ? 86 : 60, 'center')
-
-  // Separator
-  drawSep(ctx, PAD, albumEndY + (is ? 16 : 12), RW - PAD*2)
-
-  // Summary
-  if (review.summary) {
-    ctx.fillStyle = TEXT_MUT
-    ctx.font = `${is ? 38 : 26}px 'Space Grotesk', sans-serif`
-    wrapText(ctx, `"${review.summary}"`, RW/2, albumEndY + (is ? 52 : 38), RW - PAD*2.2, is ? 54 : 38, 'center')
-  }
-
-  // Watermark — inside TT_BOT
-  drawWM(ctx, W, is ? TT_BOT - 28 : H - 24, is ? 27 : 20)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FRAME 1+ — TRACKS
-// Header starts at TT_TOP, list fills to TT_BOT
+// 9:16: Compact header card, full list fills safe zone
+// 1:1:  Split layout — art strip top, clean track list below, max 8/page
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio, page: number) {
   await loadFonts()
@@ -270,117 +313,144 @@ async function drawTracks(canvas: HTMLCanvasElement, review: ReviewData, ratio: 
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is  = ratio === '9:16'
-  const PAD = is ? 80 : 68
-  const RW  = is ? W - TT_RPAD : W
-  const TOP = is ? TT_TOP : 0
-  const BOT = is ? TT_BOT : H
+  const PAD = is ? 80 : 64
 
   drawBg(ctx, W, H)
 
-  // Header card — starts at safe top
-  const cardPad = is ? 28 : 22
-  const thumbSz = is ? 108 : 84
-  const headerH = thumbSz + cardPad * 2
-  const headerY = TOP + (is ? 100 : 14)
-  drawCard(ctx, PAD, headerY, RW - PAD*2, headerH)
-
+  const PER_PAGE = is ? Math.ceil(review.tracks.length / Math.ceil(review.tracks.length / 10)) : Math.min(8, Math.ceil(review.tracks.length / Math.ceil(review.tracks.length / 8)))
+  const totalPages = Math.ceil(review.tracks.length / PER_PAGE)
+  const pageTracks = review.tracks.slice(page * PER_PAGE, (page + 1) * PER_PAGE)
   const img = await loadImg(review.imageUrl)
-  if (img) {
-    ctx.save()
-    rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10); ctx.clip()
-    coverDraw(ctx, img, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz)
-    ctx.restore()
-    ctx.save()
-    rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10)
-    ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke(); ctx.restore()
-  }
 
-  const hx   = PAD + cardPad + thumbSz + (is ? 22 : 16)
-  const hmid = headerY + headerH/2
-  ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `700 ${is ? 26 : 18}px 'Orbitron', monospace`
-  ctx.textAlign = 'left'; ctx.letterSpacing = '2px'
-  ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - hx - PAD - cardPad), hx, hmid - (is ? 20 : 14))
-  ctx.letterSpacing = '0px'
-  ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 46 : 32}px 'Space Grotesk', sans-serif`
-  ctx.fillText(clip(ctx, review.albumName, RW - hx - PAD - cardPad), hx, hmid + (is ? 22 : 16))
-
-  // Label
-  const totalPages = Math.ceil(review.tracks.length / 10)
-  const PER        = Math.ceil(review.tracks.length / totalPages)
-  const pageTracks = review.tracks.slice(page * PER, (page+1) * PER)
-  const labelY     = headerY + headerH + (is ? 36 : 26)
-  // Label pill background
-  const labelText = totalPages > 1 ? `TRACKS  ${page+1} / ${totalPages}` : 'TRACKS'
-  ctx.font = `700 ${is ? 22 : 16}px 'Orbitron', monospace`
-  ctx.letterSpacing = '4px'
-  const labelW = ctx.measureText(labelText).width + (is ? 36 : 28)
-  rrect(ctx, PAD, labelY - (is ? 28 : 20), labelW, is ? 38 : 28, is ? 10 : 8)
-  ctx.fillStyle = 'rgba(0,245,255,0.08)'; ctx.fill()
-  ctx.strokeStyle = 'rgba(0,245,255,0.2)'; ctx.lineWidth = 1; ctx.stroke()
-  ctx.fillStyle = CYAN + 'cc'
-  ctx.textAlign = 'left'
-  ctx.fillText(labelText, PAD + (is ? 18 : 14), labelY)
-  ctx.letterSpacing = '0px'
-
-  // Track list card
-  const listY = labelY + (is ? 18 : 14)
-  const listH = BOT - listY - (is ? 60 : 40)
-  drawCard(ctx, PAD, listY, RW - PAD*2, listH, 14)
-
-  const rowH = listH / pageTracks.length
-  pageTracks.forEach((track, i) => {
-    const ry   = listY + i * rowH
-    const midY = ry + rowH / 2
-    const col  = ratingColor(track.rating)
-
-    if (i > 0) drawSep(ctx, PAD + 14, ry, RW - PAD*2 - 28)
-
-    // Row glow for high-rated tracks
-    if (track.rating >= 4.5) {
-      const rowGlow = ctx.createLinearGradient(PAD, 0, PAD + (is ? 320 : 240), 0)
-      rowGlow.addColorStop(0, col + '12')
-      rowGlow.addColorStop(1, 'rgba(0,0,0,0)')
-      ctx.fillStyle = rowGlow
-      rrect(ctx, PAD, ry + (i===0?1:0), RW - PAD*2, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0), 10)
-      ctx.fill()
+  if (is) {
+    // ── 9:16 layout ────────────────────────────────────────────────────────────
+    const RW = W - TT_RPAD
+    const TOP = TT_TOP, BOT = TT_BOT
+    const cardPad = 28, thumbSz = 108
+    const headerH = thumbSz + cardPad * 2
+    const headerY = TOP + 100
+    drawCard(ctx, PAD, headerY, RW - PAD*2, headerH)
+    if (img) {
+      ctx.save(); rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10); ctx.clip()
+      coverDraw(ctx, img, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz)
+      ctx.restore()
+      ctx.save(); rrect(ctx, PAD + cardPad, headerY + cardPad, thumbSz, thumbSz, 10)
+      ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke(); ctx.restore()
     }
-    // Left accent bar — thicker for high rated
-    const barW = track.rating >= 5 ? 5 : track.rating >= 4 ? 4 : 3
-    ctx.save()
-    if (track.rating >= 5) { ctx.shadowColor = col; ctx.shadowBlur = 12 }
-    ctx.fillStyle = col + (track.rating >= 4 ? 'cc' : '65')
-    ctx.fillRect(PAD, ry + (i===0?1:0), barW, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0))
-    ctx.restore()
-
-    // Track number
-    ctx.fillStyle = col + '80'
-    ctx.font = `bold ${is ? 28 : 20}px 'Space Mono', monospace`
-    ctx.textAlign = 'left'
-    ctx.fillText(String(page * PER + i + 1).padStart(2, '0'), PAD + (is ? 16 : 12), midY + (is ? 10 : 7))
-
-    // Track name
-    const numW  = is ? 62 : 46
-    const pillW = is ? 110 : 80
-    const pillH = is ? 54 : 38
-    const nameW = RW - PAD*2 - numW - pillW - (is ? 36 : 26)
-    const isFive = track.rating >= 5
-    ctx.fillStyle = isFive ? '#ffffff' : track.rating >= 4.5 ? TEXT_PRI : 'rgba(205,205,235,0.82)'
-    ctx.font = `${isFive ? 'bold ' : ''}${is ? 40 : 27}px 'Space Grotesk', sans-serif`
-    ctx.fillText(clip(ctx, track.name, nameW), PAD + numW + (is ? 16 : 11), midY + (is ? 13 : 9))
-
-    drawRatingPill(ctx, track.rating, RW - PAD - pillW/2 - (is ? 4 : 3), midY, pillW, pillH)
-  })
-
-  drawWM(ctx, W, is ? TT_BOT - 16 : H - 18, is ? 24 : 19)
+    const hx = PAD + cardPad + thumbSz + 22, hmid = headerY + headerH/2
+    ctx.fillStyle = CYAN + 'cc'; ctx.font = `700 26px 'Orbitron', monospace`
+    ctx.textAlign = 'left'; ctx.letterSpacing = '2px'
+    ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - hx - PAD - cardPad), hx, hmid - 20)
+    ctx.letterSpacing = '0px'
+    ctx.fillStyle = TEXT_PRI; ctx.font = `bold 46px 'Space Grotesk', sans-serif`
+    ctx.fillText(clip(ctx, review.albumName, RW - hx - PAD - cardPad), hx, hmid + 22)
+    const labelText = totalPages > 1 ? `TRACKS  ${page+1} / ${totalPages}` : 'TRACKS'
+    const labelY = headerY + headerH + 36
+    ctx.font = `700 22px 'Orbitron', monospace`; ctx.letterSpacing = '4px'
+    const labelW = ctx.measureText(labelText).width + 36
+    rrect(ctx, PAD, labelY - 28, labelW, 38, 10)
+    ctx.fillStyle = 'rgba(0,245,255,0.08)'; ctx.fill()
+    ctx.strokeStyle = 'rgba(0,245,255,0.2)'; ctx.lineWidth = 1; ctx.stroke()
+    ctx.fillStyle = CYAN + 'cc'; ctx.textAlign = 'left'; ctx.fillText(labelText, PAD + 18, labelY); ctx.letterSpacing = '0px'
+    const listY = labelY + 18, listH = BOT - listY - 60
+    drawCard(ctx, PAD, listY, RW - PAD*2, listH, 14)
+    const rowH = listH / pageTracks.length
+    pageTracks.forEach((track, i) => {
+      const ry = listY + i * rowH, midY = ry + rowH/2, col = ratingColor(track.rating)
+      if (i > 0) drawSep(ctx, PAD + 14, ry, RW - PAD*2 - 28)
+      if (track.rating >= 4.5) {
+        const rowGlow = ctx.createLinearGradient(PAD, 0, PAD + 320, 0)
+        rowGlow.addColorStop(0, col + '12'); rowGlow.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = rowGlow; rrect(ctx, PAD, ry + (i===0?1:0), RW - PAD*2, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0), 10); ctx.fill()
+      }
+      const barW = track.rating >= 5 ? 5 : track.rating >= 4 ? 4 : 3
+      ctx.save(); if (track.rating >= 5) { ctx.shadowColor = col; ctx.shadowBlur = 12 }
+      ctx.fillStyle = col + (track.rating >= 4 ? 'cc' : '65')
+      ctx.fillRect(PAD, ry + (i===0?1:0), barW, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0)); ctx.restore()
+      ctx.fillStyle = col + '80'; ctx.font = `bold 28px 'Space Mono', monospace`; ctx.textAlign = 'left'
+      ctx.fillText(String(page * PER_PAGE + i + 1).padStart(2, '0'), PAD + 16, midY + 10)
+      const numW = 62, pillW = 110, pillH = 54
+      const nameW = RW - PAD*2 - numW - pillW - 36
+      ctx.fillStyle = track.rating >= 5 ? '#fff' : track.rating >= 4.5 ? TEXT_PRI : 'rgba(205,205,235,0.82)'
+      ctx.font = `${track.rating >= 5 ? 'bold ' : ''}40px 'Space Grotesk', sans-serif`
+      ctx.fillText(clip(ctx, track.name, nameW), PAD + numW + 16, midY + 13)
+      drawRatingPill(ctx, track.rating, RW - PAD - pillW/2 - 4, midY, pillW, pillH)
+    })
+    drawWM(ctx, W, TT_BOT - 16, 24)
+  } else {
+    // ── 1:1 layout: art banner top, clean list below ───────────────────────────
+    const artH = 220  // compact art banner
+    if (img) {
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
+      coverDraw(ctx, img, 0, 0, W, artH); ctx.restore()
+      const fade = ctx.createLinearGradient(0, artH * 0.5, 0, artH)
+      fade.addColorStop(0, 'rgba(7,5,26,0)'); fade.addColorStop(1, BG)
+      ctx.fillStyle = fade; ctx.fillRect(0, 0, W, artH)
+    }
+    // Album + artist over banner
+    const hx = PAD + 130 + 20
+    if (img) {
+      ctx.save(); rrect(ctx, PAD, artH/2 - 50, 120, 120, 12); ctx.clip()
+      coverDraw(ctx, img, PAD, artH/2 - 50, 120, 120); ctx.restore()
+      ctx.save(); rrect(ctx, PAD, artH/2 - 50, 120, 120, 12)
+      ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke(); ctx.restore()
+    }
+    ctx.fillStyle = CYAN + 'dd'; ctx.font = `700 22px 'Orbitron', monospace`
+    ctx.textAlign = 'left'; ctx.letterSpacing = '2px'
+    ctx.fillText(clip(ctx, review.artist.toUpperCase(), W - hx - PAD), hx, artH/2 - 18)
+    ctx.letterSpacing = '0px'
+    ctx.fillStyle = TEXT_PRI; ctx.font = `bold 38px 'Space Grotesk', sans-serif`
+    ctx.fillText(clip(ctx, review.albumName, W - hx - PAD - 10), hx, artH/2 + 26)
+    // Page indicator pill top right
+    if (totalPages > 1) {
+      const pill = `${page+1} / ${totalPages}`
+      ctx.font = `700 20px 'Space Mono', monospace`
+      const pillW2 = ctx.measureText(pill).width + 28
+      rrect(ctx, W - PAD - pillW2, 16, pillW2, 32, 16)
+      ctx.fillStyle = 'rgba(0,245,255,0.1)'; ctx.fill()
+      ctx.strokeStyle = 'rgba(0,245,255,0.25)'; ctx.lineWidth = 1; ctx.stroke()
+      ctx.fillStyle = CYAN + 'cc'; ctx.textAlign = 'center'
+      ctx.fillText(pill, W - PAD - pillW2/2, 37)
+    }
+    // Track list card fills rest
+    const listY = artH + 16
+    const listH = H - listY - 60
+    drawCard(ctx, PAD, listY, W - PAD*2, listH, 14)
+    const rowH = listH / pageTracks.length
+    pageTracks.forEach((track, i) => {
+      const ry = listY + i * rowH, midY = ry + rowH/2, col = ratingColor(track.rating)
+      if (i > 0) drawSep(ctx, PAD + 12, ry, W - PAD*2 - 24)
+      if (track.rating >= 4.5) {
+        const rowGlow = ctx.createLinearGradient(PAD, 0, PAD + 280, 0)
+        rowGlow.addColorStop(0, col + '12'); rowGlow.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = rowGlow; rrect(ctx, PAD, ry, W - PAD*2, rowH, i===0?14:i===pageTracks.length-1?14:0); ctx.fill()
+      }
+      const barW = track.rating >= 5 ? 4 : track.rating >= 4 ? 3 : 2
+      ctx.save(); if (track.rating >= 5) { ctx.shadowColor = col; ctx.shadowBlur = 10 }
+      ctx.fillStyle = col + (track.rating >= 4 ? 'cc' : '55')
+      ctx.fillRect(PAD, ry + (i===0?1:0), barW, rowH - (i===0?1:0) - (i===pageTracks.length-1?1:0)); ctx.restore()
+      ctx.fillStyle = col + '80'; ctx.font = `bold 24px 'Space Mono', monospace`; ctx.textAlign = 'left'
+      ctx.fillText(String(page * PER_PAGE + i + 1).padStart(2, '0'), PAD + 14, midY + 8)
+      const numW = 52, pillW = 86, pillH = 40
+      const nameW = W - PAD*2 - numW - pillW - 28
+      ctx.fillStyle = track.rating >= 5 ? '#fff' : track.rating >= 4.5 ? TEXT_PRI : 'rgba(205,205,235,0.8)'
+      ctx.font = `${track.rating >= 5 ? 'bold ' : ''}33px 'Space Grotesk', sans-serif`
+      ctx.fillText(clip(ctx, track.name, nameW), PAD + numW + 12, midY + 11)
+      drawRatingPill(ctx, track.rating, W - PAD - pillW/2 - 3, midY, pillW, pillH)
+    })
+    // TRACKS label bottom left inside card
+    ctx.fillStyle = CYAN + '55'; ctx.font = `700 18px 'Orbitron', monospace`
+    ctx.letterSpacing = '4px'; ctx.textAlign = 'left'
+    const trackLabel = totalPages > 1 ? `TRACKS ${page+1}/${totalPages}` : 'TRACKS'
+    ctx.fillText(trackLabel, PAD + 16, H - 28); ctx.letterSpacing = '0px'
+    drawWM(ctx, W, H - 14, 0)  // hide watermark — label is enough
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LAST FRAME — VERDICT
-// Art: cinematic full-bleed top (same as intro), compact 380px
-// Everything else: fills the remaining safe zone
-// Font auto-scales so full verdict always fits
+// 9:16: Full-bleed art, anchored bottom cards
+// 1:1:  Left half = art, Right half = content (split layout)
 // ─────────────────────────────────────────────────────────────────────────────
 async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio: Ratio) {
   await loadFonts()
@@ -388,138 +458,168 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')!
   const is  = ratio === '9:16'
-  const PAD = is ? 80 : 68
+  const PAD = is ? 80 : 56
   const RW  = is ? W - TT_RPAD : W
   const TOP = is ? TT_TOP : 0
   const BOT = is ? TT_BOT : H
 
   drawBg(ctx, W, H)
+  const img = await loadImg(review.imageUrl)
 
-  // ── Full-bleed cinematic art — identical to intro frame ─────────────────────
-  const artH = is ? 880 : 580
-  const img  = await loadImg(review.imageUrl)
-  if (img) {
-    ctx.save()
-    ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
-    coverDraw(ctx, img, 0, 0, W, artH)
-    ctx.restore()
-    // Same cinematic bottom fade as intro
-    const fadeH = is ? 420 : 260
-    const fade  = ctx.createLinearGradient(0, artH - fadeH, 0, artH)
-    fade.addColorStop(0, 'rgba(7,5,26,0)')
-    fade.addColorStop(0.45, 'rgba(7,5,26,0.65)')
-    fade.addColorStop(1, BG)
-    ctx.fillStyle = fade; ctx.fillRect(0, artH - fadeH, W, fadeH)
-    // Top vignette
-    const topF = ctx.createLinearGradient(0, 0, 0, is ? 220 : 120)
-    topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
-    ctx.fillStyle = topF; ctx.fillRect(0, 0, W, is ? 220 : 120)
-  }
-
-  // ── Artist + album name — same position as intro, over fade zone ──────────
-  const artistY = artH - (is ? 120 : 72)
-  ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `700 ${is ? 34 : 23}px 'Orbitron', monospace`
-  ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
-  ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - PAD*2), RW/2, artistY)
-  ctx.letterSpacing = '0px'
-  ctx.fillStyle = TEXT_PRI
-  ctx.font = `bold ${is ? 72 : 50}px 'Space Grotesk', sans-serif`
-  const albumEndY2 = wrapText(ctx, review.albumName, RW/2, artistY + (is ? 72 : 50), RW - PAD*2, is ? 82 : 58, 'center')
-
-  // ── Fixed bottom elements — anchored from BOT upward ─────────────────────
-  const wmY    = BOT - (is ? 28 : 22)
-  const ctaH   = is ? 78 : 56
-  const ctaY   = wmY - (is ? 36 : 28) - ctaH
-  const rcardH = is ? 222 : 162
-  const rcardY = ctaY - (is ? 24 : 16) - rcardH
-  const sepY   = rcardY - (is ? 24 : 16)
-
-  // ── VERDICT label ─────────────────────────────────────────────────────────
-  const vLabelY = artH + (is ? 36 : 24)
-  ctx.fillStyle = 'rgba(0,245,255,0.5)'
-  ctx.font = `700 ${is ? 24 : 17}px 'Orbitron', monospace`
-  ctx.letterSpacing = '6px'; ctx.textAlign = 'center'
-  ctx.fillText('VERDICT', RW/2, vLabelY); ctx.letterSpacing = '0px'
-  drawSep(ctx, PAD, vLabelY + (is ? 14 : 10), RW - PAD*2)
-
-  // ── Verdict card — ALL remaining space ────────────────────────────────────
-  const vcardY = vLabelY + (is ? 32 : 22)
-  const vcardH = Math.max(is ? 200 : 140, sepY - vcardY - (is ? 10 : 8))
-  const tPad   = is ? 28 : 22
-  const maxW   = RW - PAD*2 - tPad*2
-  const verdictText = (review.verdict || 'No verdict written yet.').trim()
-
-  // Auto-scale font to fit full verdict text
-  let fontSize = is ? 38 : 27
-  let lineH    = is ? 54 : 40
-  let fittedLines: string[] = []
-
-  while (fontSize >= (is ? 24 : 18)) {
-    ctx.font = `${fontSize}px 'Space Grotesk', sans-serif`
-    lineH = Math.round(fontSize * 1.45)
-    const avail = Math.floor((vcardH - tPad * 2) / lineH)
-    // Wrap all text
-    const words  = verdictText.split(' ')
-    const lines: string[] = []; let cur = ''
-    for (const w of words) {
-      const t = cur + w + ' '
-      if (ctx.measureText(t).width > maxW && cur) { lines.push(cur.trim()); cur = w + ' ' } else cur = t
+  if (is) {
+    // ── 9:16: Full-bleed cinematic (unchanged) ─────────────────────────────────
+    const artH = 880
+    if (img) {
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, artH); ctx.clip()
+      coverDraw(ctx, img, 0, 0, W, artH); ctx.restore()
+      const fade = ctx.createLinearGradient(0, artH - 420, 0, artH)
+      fade.addColorStop(0, 'rgba(7,5,26,0)'); fade.addColorStop(0.45, 'rgba(7,5,26,0.65)'); fade.addColorStop(1, BG)
+      ctx.fillStyle = fade; ctx.fillRect(0, artH - 420, W, 420)
+      const topF = ctx.createLinearGradient(0, 0, 0, 220)
+      topF.addColorStop(0, 'rgba(7,5,26,0.5)'); topF.addColorStop(1, 'rgba(7,5,26,0)')
+      ctx.fillStyle = topF; ctx.fillRect(0, 0, W, 220)
     }
-    if (cur.trim()) lines.push(cur.trim())
-    if (lines.length <= avail) { fittedLines = lines; break }
-    if (fontSize === (is ? 24 : 18)) { fittedLines = lines.slice(0, avail); break }
-    fontSize -= (is ? 2 : 2)
+    const artistY = artH - 120
+    ctx.fillStyle = CYAN + 'cc'; ctx.font = `700 34px 'Orbitron', monospace`
+    ctx.textAlign = 'center'; ctx.letterSpacing = '4px'
+    ctx.fillText(clip(ctx, review.artist.toUpperCase(), RW - PAD*2), RW/2, artistY)
+    ctx.letterSpacing = '0px'
+    ctx.fillStyle = TEXT_PRI; ctx.font = `bold 62px 'Space Grotesk', sans-serif`
+    ctx.fillText(clip(ctx, review.albumName, RW - PAD*2), RW/2, artistY + 68)
+    const wmY = BOT - 28
+    const ctaH = 78, ctaY = wmY - 36 - ctaH
+    const rcardH = 222, rcardY = ctaY - 18 - rcardH
+    const sepY = rcardY - 18
+    const vLabelY = artH + 36
+    ctx.fillStyle = 'rgba(0,245,255,0.5)'; ctx.font = `700 24px 'Orbitron', monospace`
+    ctx.letterSpacing = '6px'; ctx.textAlign = 'center'
+    ctx.fillText('VERDICT', RW/2, vLabelY); ctx.letterSpacing = '0px'
+    drawSep(ctx, PAD, vLabelY + 14, RW - PAD*2)
+    const vcardY = vLabelY + 30
+    const vcardH = Math.max(200, sepY - vcardY - 10)
+    const tPad = 30, lineH = 56, maxW = RW - PAD*2 - tPad*2
+    let fontSize = 38
+    let fittedLines: string[] = []
+    while (fontSize >= 24) {
+      ctx.font = `${fontSize}px 'Space Grotesk', sans-serif`
+      const lH = Math.round(fontSize * 1.45)
+      const avail = Math.floor((vcardH - tPad * 2) / lH)
+      const words = (review.verdict || 'No verdict written yet.').split(' ')
+      const lines: string[] = []; let cur = ''
+      for (const w of words) {
+        const t = cur + w + ' '
+        if (ctx.measureText(t).width > maxW && cur) { lines.push(cur.trim()); cur = w + ' ' } else cur = t
+      }
+      if (cur.trim()) lines.push(cur.trim())
+      if (lines.length <= avail) { fittedLines = lines; break }
+      if (fontSize === 24) { fittedLines = lines.slice(0, avail); break }
+      fontSize -= 2
+    }
+    const lineHFinal = Math.round(fontSize * 1.45)
+    rrect(ctx, PAD, vcardY, RW - PAD*2, vcardH, 14)
+    ctx.fillStyle = CARD_BG; ctx.fill(); ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke()
+    ctx.fillStyle = CYAN + '30'; ctx.fillRect(PAD + 2, vcardY, RW - PAD*2 - 4, 1.5)
+    ctx.fillStyle = 'rgba(212,212,238,0.87)'; ctx.font = `${fontSize}px 'Space Grotesk', sans-serif`
+    ctx.textAlign = 'left'; let ty = vcardY + tPad + lineHFinal * 0.72
+    for (const line of fittedLines) { ctx.fillText(line, PAD + tPad, ty); ty += lineHFinal }
+    drawSep(ctx, PAD, sepY, RW - PAD*2)
+    drawCard(ctx, PAD, rcardY, RW - PAD*2, rcardH, 16)
+    ctx.fillStyle = 'rgba(0,245,255,0.15)'; ctx.fillRect(PAD + 2, rcardY, RW - PAD*2 - 4, 1)
+    const rmid = rcardY + rcardH/2
+    const col9 = ratingColor(review.rating)
+    ctx.save(); if (review.rating >= 5) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 40 }
+    ctx.fillStyle = col9; ctx.font = `bold 88px 'Orbitron', monospace`; ctx.textAlign = 'center'
+    ctx.fillText(`${review.rating} / 5`, RW/2, rmid + 18); ctx.restore()
+    drawStars(ctx, review.rating, RW/2, rmid + 84, 23)
+    drawCard(ctx, PAD, ctaY, RW - PAD*2, ctaH, ctaH/2)
+    ctx.fillStyle = 'rgba(0,245,255,0.16)'; ctx.fillRect(PAD + 2, ctaY, RW - PAD*2 - 4, 1)
+    ctx.fillStyle = 'rgba(200,200,255,0.44)'; ctx.font = `24px 'Space Grotesk', sans-serif`
+    ctx.textAlign = 'center'; ctx.fillText('for more reviews visit', RW/2, ctaY + ctaH * 0.37)
+    ctx.fillStyle = CYAN + 'cc'; ctx.font = `bold 28px 'Orbitron', monospace`
+    ctx.letterSpacing = '1px'; ctx.fillText('TheAdrianBlog.com', RW/2, ctaY + ctaH * 0.77); ctx.letterSpacing = '0px'
+    drawWM(ctx, W, wmY, 23)
+  } else {
+    // ── 1:1: Left/right split — art left, content right ───────────────────────
+    const splitX = 480  // art takes left 480px, content gets right 600px
+    const contentX = splitX + 32
+    const contentW = W - contentX - PAD
+
+    // Left: square album art full height
+    if (img) {
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, splitX, H); ctx.clip()
+      coverDraw(ctx, img, 0, 0, splitX, H); ctx.restore()
+      // Right-edge fade into background
+      const fade = ctx.createLinearGradient(splitX - 200, 0, splitX, 0)
+      fade.addColorStop(0, 'rgba(7,5,26,0)'); fade.addColorStop(1, BG)
+      ctx.fillStyle = fade; ctx.fillRect(splitX - 200, 0, 200, H)
+    }
+
+    // Right side content
+    // Artist
+    ctx.fillStyle = CYAN + 'cc'; ctx.font = `700 22px 'Orbitron', monospace`
+    ctx.textAlign = 'left'; ctx.letterSpacing = '3px'
+    ctx.fillText(clip(ctx, review.artist.toUpperCase(), contentW), contentX, 80)
+    ctx.letterSpacing = '0px'
+    // Album name
+    ctx.fillStyle = TEXT_PRI; ctx.font = `bold 44px 'Space Grotesk', sans-serif`
+    let nameY = wrapText(ctx, review.albumName, contentX, 118, contentW, 52, 'left')
+    // Divider
+    drawSep(ctx, contentX, nameY, contentW)
+    // VERDICT label
+    const vLY = nameY + 28
+    ctx.fillStyle = 'rgba(0,245,255,0.5)'; ctx.font = `700 18px 'Orbitron', monospace`
+    ctx.letterSpacing = '5px'; ctx.fillText('VERDICT', contentX, vLY); ctx.letterSpacing = '0px'
+    // Verdict text — fills available space
+    const verdictTop = vLY + 22
+    // CTA at bottom
+    const ctaH2 = 68, ctaY2 = H - PAD - ctaH2
+    // Rating card
+    const rcH2 = 150, rcY2 = ctaY2 - 16 - rcH2
+    const sepY2 = rcY2 - 16
+    const vcH2  = Math.max(80, sepY2 - verdictTop - 12)
+    const tPad2 = 0, lH2 = 42, maxW2 = contentW
+    let fs2 = 30
+    let fl2: string[] = []
+    while (fs2 >= 20) {
+      ctx.font = `${fs2}px 'Space Grotesk', sans-serif`
+      const lh = Math.round(fs2 * 1.45)
+      const avail = Math.floor((vcH2 - 8) / lh)
+      const words = (review.verdict || '').split(' ')
+      const lines: string[] = []; let cur = ''
+      for (const w of words) {
+        const t = cur + w + ' '
+        if (ctx.measureText(t).width > maxW2 && cur) { lines.push(cur.trim()); cur = w + ' ' } else cur = t
+      }
+      if (cur.trim()) lines.push(cur.trim())
+      if (lines.length <= avail) { fl2 = lines; break }
+      if (fs2 === 20) { fl2 = lines.slice(0, avail); break }
+      fs2 -= 2
+    }
+    ctx.fillStyle = 'rgba(210,210,235,0.82)'; ctx.font = `${fs2}px 'Space Grotesk', sans-serif`
+    ctx.textAlign = 'left'
+    const lhFinal = Math.round(fs2 * 1.45)
+    let ty2 = verdictTop + lhFinal * 0.75
+    for (const line of fl2) { ctx.fillText(line, contentX, ty2); ty2 += lhFinal }
+    // Separator
+    drawSep(ctx, contentX, sepY2, contentW)
+    // Rating card
+    drawCard(ctx, contentX, rcY2, contentW, rcH2, 14)
+    ctx.fillStyle = 'rgba(0,245,255,0.12)'; ctx.fillRect(contentX + 2, rcY2, contentW - 4, 1)
+    const rMid = rcY2 + rcH2/2
+    const col1 = ratingColor(review.rating)
+    ctx.save(); if (review.rating >= 5) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 30 }
+    ctx.fillStyle = col1; ctx.font = `bold 58px 'Orbitron', monospace`; ctx.textAlign = 'center'
+    ctx.fillText(`${review.rating} / 5`, contentX + contentW/2, rMid + 10); ctx.restore()
+    drawStars(ctx, review.rating, contentX + contentW/2, rMid + 54, 17)
+    // CTA box
+    drawCard(ctx, contentX, ctaY2, contentW, ctaH2, ctaH2/2)
+    ctx.fillStyle = 'rgba(0,245,255,0.14)'; ctx.fillRect(contentX + 2, ctaY2, contentW - 4, 1)
+    ctx.fillStyle = 'rgba(200,200,255,0.4)'; ctx.font = `18px 'Space Grotesk', sans-serif`
+    ctx.textAlign = 'center'; ctx.fillText('for more reviews visit', contentX + contentW/2, ctaY2 + ctaH2 * 0.38)
+    ctx.fillStyle = CYAN + 'cc'; ctx.font = `bold 20px 'Orbitron', monospace`
+    ctx.letterSpacing = '1px'; ctx.fillText('TheAdrianBlog.com', contentX + contentW/2, ctaY2 + ctaH2 * 0.77); ctx.letterSpacing = '0px'
+    drawWM(ctx, W, H - 12, 0) // hide - CTA is enough
   }
-
-  // Verdict card with cyan top accent
-  ctx.save()
-  rrect(ctx, PAD, vcardY, RW - PAD*2, vcardH, 14)
-  ctx.fillStyle = CARD_BG; ctx.fill()
-  ctx.strokeStyle = CARD_BDR; ctx.lineWidth = 1; ctx.stroke()
-  ctx.restore()
-  // Cyan top line accent
-  ctx.fillStyle = CYAN + '30'
-  ctx.fillRect(PAD + 2, vcardY, RW - PAD*2 - 4, 1.5)
-  ctx.fillStyle = 'rgba(212,212,238,0.87)'
-  ctx.font = `${fontSize}px 'Space Grotesk', sans-serif`
-  ctx.textAlign = 'left'
-  let ty = vcardY + tPad + lineH * 0.72
-  for (const line of fittedLines) { ctx.fillText(line, PAD + tPad, ty); ty += lineH }
-
-  // ── Separator ─────────────────────────────────────────────────────────────
-  drawSep(ctx, PAD, sepY, RW - PAD*2)
-
-  // ── Rating card ───────────────────────────────────────────────────────────
-  drawCard(ctx, PAD, rcardY, RW - PAD*2, rcardH, 16)
-  ctx.fillStyle = 'rgba(0,245,255,0.15)'
-  ctx.fillRect(PAD + 2, rcardY, RW - PAD*2 - 4, 1)
-  const rmid = rcardY + rcardH / 2
-  const col  = ratingColor(review.rating)
-  ctx.save()
-  if (review.rating >= 5) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 40 }
-  ctx.fillStyle = col
-  ctx.font = `bold ${is ? 88 : 60}px 'Orbitron', monospace`
-  ctx.textAlign = 'center'
-  ctx.fillText(`${review.rating} / 5`, RW/2, rmid + (is ? 18 : 12))
-  ctx.restore()
-  drawStars(ctx, review.rating, RW/2, rmid + (is ? 84 : 58), is ? 23 : 16)
-
-  // ── CTA ───────────────────────────────────────────────────────────────────
-  drawCard(ctx, PAD, ctaY, RW - PAD*2, ctaH, ctaH/2)
-  ctx.fillStyle = 'rgba(0,245,255,0.15)'
-  ctx.fillRect(PAD + 2, ctaY, RW - PAD*2 - 4, 1)
-  ctx.fillStyle = 'rgba(200,200,255,0.44)'
-  ctx.font = `${is ? 23 : 16}px 'Space Grotesk', sans-serif`
-  ctx.textAlign = 'center'
-  ctx.fillText('for more reviews visit', RW/2, ctaY + ctaH * 0.37)
-  ctx.fillStyle = CYAN + 'cc'
-  ctx.font = `bold ${is ? 27 : 19}px 'Orbitron', monospace`
-  ctx.letterSpacing = '1px'
-  ctx.fillText('TheAdrianBlog.com', RW/2, ctaY + ctaH * 0.77)
-  ctx.letterSpacing = '0px'
-
-  drawWM(ctx, W, wmY, is ? 23 : 18)
 }
 
 // ── Frame list ────────────────────────────────────────────────────────────────
