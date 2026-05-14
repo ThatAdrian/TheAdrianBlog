@@ -12,7 +12,7 @@ Every post is a `.md` (Markdown) file inside `content/posts/`. When you commit a
 
 ## Creating a new post
 
-1. Go to your repo on GitHub
+1. Go to your repo on GitHub 
 2. Navigate to `content/posts/`
 3. Click **Add file → Create new file**
 4. Name it something like `my-post-title.md`
