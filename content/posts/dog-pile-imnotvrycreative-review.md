@@ -5,10 +5,10 @@ summary: 'I like the renaissance of nice voices over upbeat tracks'
 categories:
   - Music Reviews
 image: posts/dog-pile-imnotvrycreative-review.jpg
-rating: 3.5
+rating: 7
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/4H7vHZKHk2n5qRiBz2Ka6q?si=56884e0775404667"
-tracklist: DOG PILE~3.5 | CARPE DIEM~3.5 | BOOMHAUER~3 | QUOTA~2.5 | POLTERGEIST~3.5 | DAW(G)~3.5 | PAST YOU~3 | DEAD MAN WALK~3 | DALE DOBACK~4 | PICASSO~3 | RED FLAG~3 | ODDS~3 | DESERVE~3.5 | ACROBATICS~3.5 | SALVATION~3.5 | HYPOCRITE~4
+tracklist: DOG PILE~7 | CARPE DIEM~7 | BOOMHAUER~6 | QUOTA~5 | POLTERGEIST~7 | DAW(G)~7 | PAST YOU~6 | DEAD MAN WALK~6 | DALE DOBACK~8 | PICASSO~6 | RED FLAG~6 | ODDS~6 | DESERVE~7 | ACROBATICS~7 | SALVATION~7 | HYPOCRITE~8
 ---
 
 ## The Sound
