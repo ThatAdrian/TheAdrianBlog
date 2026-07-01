@@ -5,10 +5,10 @@ summary: 'I like when the mainstream stuff does something different you know.'
 categories:
   - Music Reviews
 image: posts/kiss-all-the-time-disco-occasionally-harry-styles-review.jpg
-rating: 3.5
+rating: 7
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/69BqE1V8Bzb9GCyeP1fFeR?si=pfviL-kpRNO5HoXOoKclSg"
-tracklist: Aperture~3.5 | American Girls~4.5 | Ready, Steady, Go!~4 | Are You Listening Yet?~3.5 | Taste Back~2.5 | The Waiting Game~3 | Season 2 Weight Loss~3 | Coming Up Roses~4.5 | Pop~4.5 | Dance No More~2.5 | Paint By Numbers~3.5 | Carla's Song~3.5
+tracklist: Aperture~7 | American Girls~9 | Ready, Steady, Go!~8 | Are You Listening Yet?~7 | Taste Back~5 | The Waiting Game~6 | Season 2 Weight Loss~6 | Coming Up Roses~9 | Pop~9 | Dance No More~5 | Paint By Numbers~7 | Carla's Song~7
 ---
 
 ## The Sound
