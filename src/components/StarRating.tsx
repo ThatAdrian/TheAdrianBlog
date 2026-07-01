@@ -51,22 +51,28 @@ function hasVoted(id: string) { return !!localStorage.getItem(`voted_${id}`) }
 function markVoted(id: string) { localStorage.setItem(`voted_${id}`, '1') }
 
 // ── Star SVG ───────────────────────────────────────────────────────────────────
-function StarSVG({ fill, size }: { fill: 'full' | 'half' | 'empty'; size: number }) {
+const STAR_ACTIVE = '#00f5ff'
+const STAR_ACTIVE_PURPLE = '#b400ff'
+const STAR_EMPTY = 'rgba(200,200,255,0.18)'
+
+function StarSVG({ fill, size, color = STAR_ACTIVE }: { fill: 'full' | 'half' | 'empty'; size: number; color?: string }) {
   const id = `half_${Math.random().toString(36).slice(2, 7)}`
+  const activeFill = fill === 'full' ? color : fill === 'half' ? `url(#${id})` : STAR_EMPTY
+  const activeStroke = fill !== 'empty' ? color : STAR_EMPTY
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className="star-svg">
       {fill === 'half' && (
         <defs>
           <linearGradient id={id}>
-            <stop offset="50%" stopColor="var(--star-active)" />
-            <stop offset="50%" stopColor="var(--star-empty)" />
+            <stop offset="50%" stopColor={color} />
+            <stop offset="50%" stopColor={STAR_EMPTY} />
           </linearGradient>
         </defs>
       )}
       <polygon
         points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-        fill={fill === 'full' ? 'var(--star-active)' : fill === 'half' ? `url(#${id})` : 'var(--star-empty)'}
-        stroke={fill !== 'empty' ? 'var(--star-active)' : 'var(--star-empty)'}
+        fill={activeFill}
+        stroke={activeStroke}
         strokeWidth="1" strokeLinejoin="round"
       />
     </svg>
@@ -74,12 +80,12 @@ function StarSVG({ fill, size }: { fill: 'full' | 'half' | 'empty'; size: number
 }
 
 // StaticStars — value is 0–5 star scale
-function StaticStars({ value, size = 20 }: { value: number; size?: number }) {
+function StaticStars({ value, size = 20, color = STAR_ACTIVE }: { value: number; size?: number; color?: string }) {
   return (
     <span className="stars-row">
       {[1, 2, 3, 4, 5].map(i => (
         <span key={i} className="star-wrap">
-          <StarSVG size={size} fill={value >= i ? 'full' : value >= i - 0.5 ? 'half' : 'empty'} />
+          <StarSVG size={size} color={color} fill={value >= i ? 'full' : value >= i - 0.5 ? 'half' : 'empty'} />
         </span>
       ))}
     </span>
@@ -107,7 +113,7 @@ function InteractiveStars({ value, onChange, size = 28 }: { value: number; onCha
               onChange(left ? i - 0.5 : i)
             }}
           >
-            <StarSVG fill={fill} size={size} />
+            <StarSVG fill={fill} size={size} color={STAR_ACTIVE_PURPLE} />
           </span>
         )
       })}
@@ -175,7 +181,7 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
             Adrian's Rating
           </div>
           <div className="score-card__big">{artistDisplay}</div>
-          <StaticStars value={artistStars} size={28} />
+          <StaticStars value={artistStars} size={28} color={STAR_ACTIVE} />
           <div className="score-card__sub">out of 10</div>
         </div>
 
@@ -189,7 +195,7 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
               Community Rating
             </div>
             <div className="score-card__big">{communityDisplay}</div>
-            <StaticStars value={communityStars} size={28} />
+            <StaticStars value={communityStars} size={28} color={STAR_ACTIVE_PURPLE} />
             <div className="score-card__sub">
               {community.count > 0
                 ? `${community.count} rating${community.count !== 1 ? 's' : ''}`
