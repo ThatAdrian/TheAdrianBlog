@@ -5,6 +5,7 @@ import Analytics from './Analytics'
 import Suggestions from './Suggestions'
 import FrameCreator from './FrameCreator'
 import Comments from './Comments'
+import RatingMigrator from './RatingMigrator'
 import './Dashboard.css'
 
 function hashPassword(pw: string): string {
@@ -25,7 +26,7 @@ export default function Dashboard() {
   const [saveLogin, setSaveLogin] = useState(() => !!localStorage.getItem('db_saved_pass'))
   const [wrong, setWrong]       = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [tab, setTab] = useState<'music' | 'article' | 'analytics' | 'suggestions' | 'frames' | 'comments'>('music')
+  const [tab, setTab] = useState<'music' | 'article' | 'analytics' | 'suggestions' | 'frames' | 'comments' | 'migrate'>('music')
 
   useEffect(() => {
     if (sessionStorage.getItem('db_auth') === CORRECT_HASH) setAuthed(true)
@@ -156,6 +157,12 @@ export default function Dashboard() {
             </svg>
             Comments
           </button>
+          <button className={`db-nav-item ${tab === 'migrate' ? 'active' : ''}`} onClick={() => { setDrawerOpen(false); setTab('migrate') }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+            Migrate
+          </button>
         </nav>
         <button className="db-logout" onClick={logout}>Sign out</button>
       </aside>
@@ -167,6 +174,7 @@ export default function Dashboard() {
         {tab === 'suggestions' && <Suggestions />}
         {tab === 'frames' && <FrameCreator />}
         {tab === 'comments' && <Comments />}
+        {tab === 'migrate' && <RatingMigrator />}
       </main>
     </div>
   )
