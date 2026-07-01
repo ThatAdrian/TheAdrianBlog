@@ -5,10 +5,10 @@ summary: 'Pre-album teaser EP to tie people over?'
 categories:
   - Music Reviews
 image: posts/the-boy-who-cried-terrified-fakemink-review.jpg
-rating: 3
+rating: 6
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/2hDITFU9UORQlTBKz6vj3o?si=419e6439840646f5"
-tracklist: Blow The Speaker .~4 | Young Millionaire .~4 | Dumb .~3 | Mr. Chow .~3 | The Mercer .~3.5 | Milk & Honey .~2.5 | fml .~2.5
+tracklist: Blow The Speaker .~8 | Young Millionaire .~8 | Dumb .~6 | Mr. Chow .~6 | The Mercer .~7 | Milk & Honey .~5 | fml .~5
 ---
 
 ## The Sound
