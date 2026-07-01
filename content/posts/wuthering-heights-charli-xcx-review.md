@@ -5,10 +5,10 @@ summary: 'Can Brats legacy be fulfilled?'
 categories:
   - Music Reviews
 image: posts/wuthering-heights-charli-xcx-review.jpg
-rating: 3.5
+rating: 7
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/4oniyB3TRFhjglVSqVgy9e?si=df1484c6875748c2"
-tracklist: House featuring John Cale~1.5 | Wall of Sound~3.5 | Dying for You~4 | Always Everywhere~3.5 | Chains of Love~3 | Out of Myself~3 | Open up~2 | Seeing Things~3.5 | Altars~3.5 | Eyes of the World featuring Sky Ferreira~2.5 | My Reminder~3 | Funny Mouth~3
+tracklist: House featuring John Cale~3 | Wall of Sound~7 | Dying for You~8 | Always Everywhere~7 | Chains of Love~6 | Out of Myself~6 | Open up~4 | Seeing Things~7 | Altars~7 | Eyes of the World featuring Sky Ferreira~5 | My Reminder~6 | Funny Mouth~6
 ---
 
 ## The Sound
