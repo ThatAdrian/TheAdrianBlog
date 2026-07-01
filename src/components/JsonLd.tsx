@@ -54,7 +54,7 @@ export default function JsonLd({ title, summary, slug, date, image, categories, 
       reviewRating: {
         '@type': 'Rating',
         ratingValue: rating,
-        bestRating: 5,
+        bestRating: 10,
         worstRating: 1,
       },
       itemReviewed: {
