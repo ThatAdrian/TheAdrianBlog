@@ -5,10 +5,10 @@ summary: '101 101 101 101 101'
 categories:
   - Music Reviews
 image: posts/detour-kim-petras-review.jpg
-rating: 3.5
+rating: 7
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/1sWzJ2hL5b64u7n9a8owqc?si=wxjMIVWKS6y8BCr7BZCEpg"
-tracklist: Detour~3.5 | DTLA~4 | I Like Ur Look~4 | Check It~4 | Polo~3 | Brutalist~2 | Need For Speed~3.5 | Jeep~2.5 | 101~4 | Basketball~3 | Bitch Ball Out~2 | Korea~2.5 | Freak It~4
+tracklist: Detour~7 | DTLA~8 | I Like Ur Look~8 | Check It~8 | Polo~6 | Brutalist~4 | Need For Speed~7 | Jeep~5 | 101~8 | Basketball~6 | Bitch Ball Out~4 | Korea~5 | Freak It~8
 ---
 
 ## The Sound
