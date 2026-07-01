@@ -5,10 +5,10 @@ summary: 'Crank it'
 categories:
   - Music Reviews
 image: posts/wort-girl-in-america-slayyyter-review.jpg
-rating: 2.5
+rating: 5
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/5siV9C6eK0NpAqER2FfCVA?si=vpA9RjjISlqmAp_kheQ8tA"
-tracklist: DANCE...~3.5 | BEAT UP CHANEL$~4 | CANNIBALISM!~3 | OLD TECHNOLOGY~4.5 | CRANK~3.5 | GAS STATION~3 | YES GODDD~1.5 | UNKNOWN LOVERZ~2.5 | OLD FLING$~2.5 | I'M ACTUALLY KINDA FAMOUS~1 | $T. LOSER~2.5 | WHAT IS IT LIKE, TO BE LIKED?~2.5 | *PRAYER*~3 | BRITTANY MURPHY.~2
+tracklist: DANCE...~7 | BEAT UP CHANEL$~8 | CANNIBALISM!~6 | OLD TECHNOLOGY~9 | CRANK~7 | GAS STATION~6 | YES GODDD~3 | UNKNOWN LOVERZ~5 | OLD FLING$~5 | I'M ACTUALLY KINDA FAMOUS~2 | $T. LOSER~5 | WHAT IS IT LIKE, TO BE LIKED?~5 | *PRAYER*~6 | BRITTANY MURPHY.~4
 ---
 
 ## The Sound
