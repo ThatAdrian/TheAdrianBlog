@@ -5,10 +5,10 @@ summary: 'Lawfey, Luffy? Loofey. Lay-vay.'
 categories:
   - Music Reviews
 image: posts/a-matter-of-time-the-final-hour-laufey-review.jpg
-rating: 4.5
+rating: 9
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/4DWK6TLXHl1fly2zi5RlO7?si=8bcd702601714b51"
-tracklist: Clockwork~3.5 | Lover Girl~4.5 | Snow White~4.5 | Castle in Hollywood~4.5 | Carousel~4 | Silver Lining~4.5 | Too Little, Too Late~4.5 | Cuckoo Ballet - Interlude~3.5 | Forget-Me-Not~4 | Tough Luck~5 | A Cautionary Tale~3.5 | Mr. Eclectic~3 | Clean Air~3.5 | Sabotage~3.5 | Seems Like Old Times~3 | Madwoman~3.5 | How I Get~3 | I Wait, I Wait, I Wait~3 | I'll Forget About You (In Time)~4.5
+tracklist: Clockwork~7 | Lover Girl~9 | Snow White~9 | Castle in Hollywood~9 | Carousel~8 | Silver Lining~9 | Too Little, Too Late~9 | Cuckoo Ballet - Interlude~7 | Forget-Me-Not~8 | Tough Luck~10 | A Cautionary Tale~7 | Mr. Eclectic~6 | Clean Air~7 | Sabotage~7 | Seems Like Old Times~6 | Madwoman~7 | How I Get~6 | I Wait, I Wait, I Wait~6 | I'll Forget About You (In Time)~9
 ---
 
 ## The Sound
