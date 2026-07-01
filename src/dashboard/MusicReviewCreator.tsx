@@ -33,7 +33,7 @@ interface PostEntry {
   isDraft: boolean
 }
 
-const RATINGS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+const RATINGS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 function parseFrontmatter(raw: string): Record<string, string> {
   const match = raw.match(/^---\n([\s\S]*?)\n---/)
@@ -55,7 +55,7 @@ function parseTracklist(raw: string): Track[] {
   if (!raw) return []
   return raw.split('|').map(entry => {
     const parts = entry.trim().split('~')
-    return { name: parts[0]?.trim() ?? '', rating: parseFloat(parts[1]?.trim() ?? '3') }
+    return { name: parts[0]?.trim() ?? '', rating: parseFloat(parts[1]?.trim() ?? '5') }
   })
 }
 
@@ -203,7 +203,7 @@ export default function MusicReviewCreator() {
     return `---
 date: ${date}
 title: "${album.name} - ${album.artist} Review"
-summary: '${summary || `${album.artist}'s ${album.name} reviewed`}'
+summary: "${(summary || `${album.artist}'s ${album.name} reviewed`).replace(/"/g, '\\"')}"
 categories:
   - Music Reviews
 image: posts/${postSlug}.jpg

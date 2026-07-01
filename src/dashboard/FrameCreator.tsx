@@ -11,15 +11,15 @@ type Ratio = '9:16' | '1:1'
 
 // ── Exact rating colors from Music.tsx — 5 star = neon white ─────────────────
 function ratingColor(r: number): string {
-  if (r >= 5)   return '#ffffff'
-  if (r >= 4.5) return '#dd00ff'
-  if (r >= 4)   return '#0088ff'
-  if (r >= 3.5) return '#00bbaa'
-  if (r >= 3)   return '#00cc44'
-  if (r >= 2.5) return '#aadd00'
-  if (r >= 2)   return '#ffd000'
-  if (r >= 1.5) return '#ff8c00'
-  if (r >= 1)   return '#ff6600'
+  if (r >= 10)  return '#ffffff'
+  if (r >= 9)   return '#dd00ff'
+  if (r >= 8)   return '#0088ff'
+  if (r >= 7)   return '#00bbaa'
+  if (r >= 6)   return '#00cc44'
+  if (r >= 5)   return '#aadd00'
+  if (r >= 4)   return '#ffd000'
+  if (r >= 3)   return '#ff8c00'
+  if (r >= 2)   return '#ff6600'
   return '#e63333'
 }
 
@@ -550,8 +550,8 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
     const col9 = ratingColor(review.rating)
     ctx.save(); if (review.rating >= 5) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 40 }
     ctx.fillStyle = col9; ctx.font = `bold 88px 'Orbitron', monospace`; ctx.textAlign = 'center'
-    ctx.fillText(`${review.rating} / 5`, RW/2, rmid + 18); ctx.restore()
-    drawStars(ctx, review.rating, RW/2, rmid + 84, 23)
+    ctx.fillText(`${review.rating} / 10`, RW/2, rmid + 18); ctx.restore()
+    drawStars(ctx, review.rating / 2, RW/2, rmid + 84, 23)
     drawCard(ctx, PAD, ctaY, RW - PAD*2, ctaH, ctaH/2)
     ctx.fillStyle = 'rgba(0,245,255,0.16)'; ctx.fillRect(PAD + 2, ctaY, RW - PAD*2 - 4, 1)
     ctx.fillStyle = 'rgba(200,200,255,0.44)'; ctx.font = `24px 'Space Grotesk', sans-serif`
@@ -630,8 +630,8 @@ async function drawVerdict(canvas: HTMLCanvasElement, review: ReviewData, ratio:
     const col1 = ratingColor(review.rating)
     ctx.save(); if (review.rating >= 5) { ctx.shadowColor = '#fff'; ctx.shadowBlur = 30 }
     ctx.fillStyle = col1; ctx.font = `bold 58px 'Orbitron', monospace`; ctx.textAlign = 'center'
-    ctx.fillText(`${review.rating} / 5`, contentX + contentW/2, rMid + 10); ctx.restore()
-    drawStars(ctx, review.rating, contentX + contentW/2, rMid + 54, 17)
+    ctx.fillText(`${review.rating} / 10`, contentX + contentW/2, rMid + 10); ctx.restore()
+    drawStars(ctx, review.rating / 2, contentX + contentW/2, rMid + 54, 17)
     // CTA box
     drawCard(ctx, contentX, ctaY2, contentW, ctaH2, ctaH2/2)
     ctx.fillStyle = 'rgba(0,245,255,0.14)'; ctx.fillRect(contentX + 2, ctaY2, contentW - 4, 1)
