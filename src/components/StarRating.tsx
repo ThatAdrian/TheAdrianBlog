@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import './StarRating.css'
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-interface TrackRatingProps {
-  trackId: string
-  trackName: string
-  artistRating: number   // 1–10 scale
-  size?: 'sm' | 'md'
-}
-
-interface AlbumRatingProps {
-  albumId: string
-  albumName: string
-  artistRating: number   // 1–10 scale
-  showCommunity?: boolean
+// ── Rating → color (matches Music.tsx getRatingColor, 1-10 scale) ──────────────
+function ratingColor(r: number): string {
+  if (r >= 10)  return '#ffffff'
+  if (r >= 9)   return '#dd00ff'
+  if (r >= 8)   return '#0088ff'
+  if (r >= 7)   return '#00bbaa'
+  if (r >= 6)   return '#00cc44'
+  if (r >= 5)   return '#aadd00'
+  if (r >= 4)   return '#ffd000'
+  if (r >= 3)   return '#ff8c00'
+  if (r >= 2)   return '#ff6600'
+  return '#e63333'
 }
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
-async function fetchCommunityRating(albumId: string): Promise<{ avg: number; count: number }> {
+async function fetchCommunityRating(albumId: string) {
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/ratings?album_id=eq.${encodeURIComponent(albumId)}&select=rating`,
@@ -29,8 +28,7 @@ async function fetchCommunityRating(albumId: string): Promise<{ avg: number; cou
     if (!res.ok) return { avg: 0, count: 0 }
     const data: { rating: number }[] = await res.json()
     if (!data.length) return { avg: 0, count: 0 }
-    const avg = data.reduce((s, r) => s + r.rating, 0) / data.length
-    return { avg, count: data.length }
+    return { avg: data.reduce((s, r) => s + r.rating, 0) / data.length, count: data.length }
   } catch { return { avg: 0, count: 0 } }
 }
 
@@ -38,10 +36,8 @@ async function submitRating(albumId: string, rating: number) {
   await fetch(`${SUPABASE_URL}/rest/v1/ratings`, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
+      apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json', Prefer: 'return=minimal',
     },
     body: JSON.stringify({ album_id: albumId, rating }),
   })
@@ -50,52 +46,54 @@ async function submitRating(albumId: string, rating: number) {
 function hasVoted(id: string) { return !!localStorage.getItem(`voted_${id}`) }
 function markVoted(id: string) { localStorage.setItem(`voted_${id}`, '1') }
 
-// ── Star SVG ───────────────────────────────────────────────────────────────────
-const STAR_ACTIVE = '#00f5ff'
-const STAR_ACTIVE_PURPLE = '#b400ff'
-const STAR_EMPTY = 'rgba(200,200,255,0.18)'
-
-function StarSVG({ fill, size, color = STAR_ACTIVE }: { fill: 'full' | 'half' | 'empty'; size: number; color?: string }) {
-  const id = `half_${Math.random().toString(36).slice(2, 7)}`
-  const activeFill = fill === 'full' ? color : fill === 'half' ? `url(#${id})` : STAR_EMPTY
-  const activeStroke = fill !== 'empty' ? color : STAR_EMPTY
+// ── Star SVG — color driven by prop ───────────────────────────────────────────
+function StarSVG({ fill, color, size }: { fill: 'full' | 'half' | 'empty'; color: string; size: number }) {
+  const gradId = `hg_${Math.random().toString(36).slice(2, 7)}`
+  const emptyColor = 'rgba(200,200,255,0.18)'
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className="star-svg">
       {fill === 'half' && (
         <defs>
-          <linearGradient id={id}>
+          <linearGradient id={gradId}>
             <stop offset="50%" stopColor={color} />
-            <stop offset="50%" stopColor={STAR_EMPTY} />
+            <stop offset="50%" stopColor={emptyColor} />
           </linearGradient>
         </defs>
       )}
       <polygon
         points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-        fill={activeFill}
-        stroke={activeStroke}
-        strokeWidth="1" strokeLinejoin="round"
+        fill={fill === 'full' ? color : fill === 'half' ? `url(#${gradId})` : emptyColor}
+        stroke={fill !== 'empty' ? color : emptyColor}
+        strokeWidth="0.8" strokeLinejoin="round"
       />
     </svg>
   )
 }
 
-// StaticStars — value is 0–5 star scale
-function StaticStars({ value, size = 20, color = STAR_ACTIVE }: { value: number; size?: number; color?: string }) {
+// ── StaticStars — starValue is 0–5, color based on the 1–10 rating ────────────
+function StaticStars({ starValue, color, size = 20 }: { starValue: number; color: string; size?: number }) {
   return (
     <span className="stars-row">
       {[1, 2, 3, 4, 5].map(i => (
         <span key={i} className="star-wrap">
-          <StarSVG size={size} color={color} fill={value >= i ? 'full' : value >= i - 0.5 ? 'half' : 'empty'} />
+          <StarSVG
+            size={size}
+            color={color}
+            fill={starValue >= i ? 'full' : starValue >= i - 0.5 ? 'half' : 'empty'}
+          />
         </span>
       ))}
     </span>
   )
 }
 
-// InteractiveStars — picks 0.5–5, each star = 2 points on 1–10 scale
+// ── InteractiveStars — picks 0.5–5 star values, color from hovered/selected ───
 function InteractiveStars({ value, onChange, size = 28 }: { value: number; onChange: (v: number) => void; size?: number }) {
   const [hovered, setHovered] = useState(0)
   const active = hovered > 0 ? hovered : value
+  // Color based on what's currently selected/hovered (convert stars → 1–10)
+  const activeColor = active > 0 ? ratingColor(active * 2) : 'rgba(200,200,255,0.35)'
+
   return (
     <span className="stars-row" onMouseLeave={() => setHovered(0)}>
       {[1, 2, 3, 4, 5].map(i => {
@@ -113,7 +111,7 @@ function InteractiveStars({ value, onChange, size = 28 }: { value: number; onCha
               onChange(left ? i - 0.5 : i)
             }}
           >
-            <StarSVG fill={fill} size={size} color={STAR_ACTIVE_PURPLE} />
+            <StarSVG fill={fill} color={activeColor} size={size} />
           </span>
         )
       })}
@@ -121,49 +119,53 @@ function InteractiveStars({ value, onChange, size = 28 }: { value: number; onCha
   )
 }
 
-// ── TrackRating ────────────────────────────────────────────────────────────────
-// artistRating is 1–10; stars = artistRating / 2
-export function TrackRating({ trackId, trackName, artistRating, size = 'sm' }: TrackRatingProps) {
-  const starSize = size === 'sm' ? 18 : 22
-  const starValue = artistRating / 2  // convert 1–10 → 0.5–5 stars
-  const displayVal = artistRating % 1 === 0 ? artistRating.toString() : artistRating.toFixed(1)
+// ── TrackRating — artistRating is 1–10 ────────────────────────────────────────
+export function TrackRating({ trackId, trackName, artistRating, size = 'sm' }: {
+  trackId: string; trackName: string; artistRating: number; size?: 'sm' | 'md'
+}) {
+  const starSize  = size === 'sm' ? 18 : 22
+  const starValue = artistRating / 2  // 1–10 → 0.5–5 stars
+  const color     = ratingColor(artistRating)
+  const display   = artistRating % 1 === 0 ? artistRating.toString() : artistRating.toFixed(1)
   return (
-    <div className={`track-rating track-rating--${size}`}>
+    <div className={`track-rating track-rating--${size}`} style={{ '--track-color': color } as React.CSSProperties}>
       <span className="track-rating__name">{trackName}</span>
       <span className="track-rating__stars">
-        <StaticStars value={starValue} size={starSize} />
-        <span className="track-rating__value">{displayVal}</span>
+        <StaticStars starValue={starValue} color={color} size={starSize} />
+        <span className="track-rating__value" style={{ color }}>{display}</span>
       </span>
     </div>
   )
 }
 
-// ── AlbumRating ────────────────────────────────────────────────────────────────
-// artistRating is 1–10; stars = artistRating / 2
-// Community: interactive stars 0.5–5, stored × 2 → 1–10 in Supabase
-export function AlbumRating({ albumId, albumName, artistRating, showCommunity = true }: AlbumRatingProps) {
+// ── AlbumRating — artistRating is 1–10 ───────────────────────────────────────
+export function AlbumRating({ albumId, albumName, artistRating, showCommunity = true }: {
+  albumId: string; albumName: string; artistRating: number; showCommunity?: boolean
+}) {
   const [community, setCommunity] = useState({ avg: 0, count: 0 })
-  const [userStars, setUserStars] = useState(0)  // 0.5–5 star scale
-  const [submitted, setSubmitted] = useState(false)
-  const [voted, setVoted] = useState(false)
-  const [pulse, setPulse] = useState(false)
+  const [userStars, setUserStars]   = useState(0)
+  const [submitted, setSubmitted]   = useState(false)
+  const [voted, setVoted]           = useState(false)
+  const [pulse, setPulse]           = useState(false)
 
   useEffect(() => {
     if (showCommunity) fetchCommunityRating(albumId).then(setCommunity)
     setVoted(hasVoted(albumId))
   }, [albumId, showCommunity])
 
-  const artistStars   = artistRating / 2  // 1–10 → 0.5–5 stars
+  const artistColor   = ratingColor(artistRating)
+  const artistStars   = artistRating / 2
   const artistDisplay = artistRating % 1 === 0 ? artistRating.toString() : artistRating.toFixed(1)
+
+  const communityColor   = community.avg > 0 ? ratingColor(community.avg) : 'rgba(180,0,255,0.6)'
+  const communityStars   = community.avg / 2
   const communityDisplay = community.avg > 0
     ? (community.avg % 1 === 0 ? community.avg.toString() : community.avg.toFixed(1))
     : '—'
-  const communityStars = community.avg / 2  // stored 1–10 → stars
 
   async function handleSubmit() {
     if (!userStars || voted) return
-    const rating10 = userStars * 2  // convert stars → 1–10
-    await submitRating(albumId, rating10)
+    await submitRating(albumId, userStars * 2)  // stars × 2 = 1–10
     markVoted(albumId)
     setVoted(true); setSubmitted(true)
     setPulse(true); setTimeout(() => setPulse(false), 600)
@@ -177,11 +179,13 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
         {/* Adrian's score */}
         <div className="score-card score-card--adrian">
           <div className="score-card__label">
-            <span className="score-card__dot score-card__dot--cyan" />
+            <span className="score-card__dot" style={{ background: artistColor, boxShadow: `0 0 6px ${artistColor}` }} />
             Adrian's Rating
           </div>
-          <div className="score-card__big">{artistDisplay}</div>
-          <StaticStars value={artistStars} size={28} color={STAR_ACTIVE} />
+          <div className="score-card__big" style={{ color: artistColor, textShadow: `0 0 30px ${artistColor}55` }}>
+            {artistDisplay}
+          </div>
+          <StaticStars starValue={artistStars} color={artistColor} size={28} />
           <div className="score-card__sub">out of 10</div>
         </div>
 
@@ -191,15 +195,15 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
         {showCommunity && (
           <div className={`score-card score-card--community ${pulse ? 'score-card--pulse' : ''}`}>
             <div className="score-card__label">
-              <span className="score-card__dot score-card__dot--purple" />
+              <span className="score-card__dot" style={{ background: communityColor, boxShadow: `0 0 6px ${communityColor}` }} />
               Community Rating
             </div>
-            <div className="score-card__big">{communityDisplay}</div>
-            <StaticStars value={communityStars} size={28} color={STAR_ACTIVE_PURPLE} />
+            <div className="score-card__big" style={{ color: communityColor, textShadow: `0 0 30px ${communityColor}55` }}>
+              {communityDisplay}
+            </div>
+            <StaticStars starValue={communityStars} color={communityColor} size={28} />
             <div className="score-card__sub">
-              {community.count > 0
-                ? `${community.count} rating${community.count !== 1 ? 's' : ''}`
-                : 'no ratings yet'}
+              {community.count > 0 ? `${community.count} rating${community.count !== 1 ? 's' : ''}` : 'no ratings yet'}
             </div>
           </div>
         )}
@@ -210,7 +214,7 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
           {voted ? (
             <p className="album-rating__thanks">
               {submitted ? '✦ Thanks for rating!' : '✦ You already rated this one.'}
-              {community.count > 0 && <span> Community avg: <strong>{communityDisplay}/10</strong></span>}
+              {community.count > 0 && <span> Community avg: <strong style={{ color: communityColor }}>{communityDisplay}/10</strong></span>}
             </p>
           ) : (
             <>
@@ -218,7 +222,9 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
               <div className="album-rating__picker">
                 <InteractiveStars value={userStars} onChange={setUserStars} size={32} />
                 {userStars > 0 && (
-                  <span className="album-rating__chosen">{(userStars * 2) % 1 === 0 ? (userStars * 2).toString() : (userStars * 2).toFixed(1)}/10</span>
+                  <span className="album-rating__chosen" style={{ color: ratingColor(userStars * 2) }}>
+                    {(userStars * 2) % 1 === 0 ? (userStars * 2).toString() : (userStars * 2).toFixed(1)}/10
+                  </span>
                 )}
               </div>
               <button className="album-rating__submit" onClick={handleSubmit} disabled={!userStars}>
