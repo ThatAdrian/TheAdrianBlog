@@ -72,13 +72,13 @@ export default function Music() {
     .slice(0, 5)
 
   const getRatingColor = (r: number) => {
-    if (r >= 5)   return '#ff00ff'
-    if (r >= 4.5) return '#dd00ff'
-    if (r >= 4)   return '#0088ff'
-    if (r >= 3.5) return '#00bbaa'
-    if (r >= 3)   return '#00cc44'
-    if (r >= 2.5) return '#aadd00'
-    if (r >= 2)   return '#ffd000'
+    if (r >= 10)  return '#ffffff'
+    if (r >= 9)   return '#dd00ff'
+    if (r >= 8)   return '#0088ff'
+    if (r >= 7)   return '#00bbaa'
+    if (r >= 6)   return '#00cc44'
+    if (r >= 5)   return '#aadd00'
+    if (r >= 4)   return '#ffd000'
     if (r >= 1.5) return '#ff8c00'
     if (r >= 1)   return '#ff6600'
     return '#e63333'
@@ -148,7 +148,7 @@ export default function Music() {
                   </div>
                   <span className="top-album-title">{album.title}</span>
                   <span className="top-album-score" style={{ color }}>
-                    {rating > 0 ? rating.toFixed(1) : '—'}
+                    {rating > 0 ? `${rating.toFixed(1)}/10` : '—'}
                     {filter === 'community' && album.communityCount > 0 && (
                       <span className="top-album-votes"> ({album.communityCount})</span>
                     )}
