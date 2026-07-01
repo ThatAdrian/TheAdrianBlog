@@ -5,10 +5,10 @@ summary: 'SLOWSILVER03'
 categories:
   - Music Reviews
 image: posts/god-save-the-three-glaive-review.jpg
-rating: 4.5
+rating: 9
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/0lwdzU4UMx8ISISDqrYDvA?si=629e1bba28514a94"
-tracklist: Weston Super Mare~4.5 | Half Two~3.5 | The Band~5 | Yaya Touré~4.5 | Spinning Around~5 | Old Freight Train Interlude~3.5 | The Front~4.5 | Let's Link Up and Die~4 | UNCA / Composure~4 | Flyen~3.5 | The Troubles~4.5 | Crisis~4.5
+tracklist: Weston Super Mare~9 | Half Two~7 | The Band~10 | Yaya Touré~9 | Spinning Around~10 | Old Freight Train Interlude~7 | The Front~9 | Let's Link Up and Die~8 | UNCA / Composure~8 | Flyen~7 | The Troubles~9 | Crisis~9
 ---
 
 ## The Sound
