@@ -5,10 +5,10 @@ summary: 'I wanna freak my computer'
 categories:
   - Music Reviews
 image: posts/i-love-my-computer-ninajirachi-review.jpg
-rating: 4
+rating: 8
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/77CZUF57sYqgtznUe3OikQ?si=abw21PkIRQSGJpL1vigQWQ"
-tracklist: London Song~3.5 | iPod Touch~4 | Fuck My Computer~4.5 | CSIRAC~4 | Delete~4 | ฅ^•ﻌ•^ฅ~3.5 | All I Am~4 | Infohazard~3.5 | Battery Death~3 | Sing Good~3 | It's You~4 | All At Once~3.5
+tracklist: London Song~7 | iPod Touch~8 | Fuck My Computer~9 | CSIRAC~8 | Delete~8 | ฅ^•ﻌ•^ฅ~7 | All I Am~8 | Infohazard~7 | Battery Death~6 | Sing Good~6 | It's You~8 | All At Once~7
 ---
 
 ## The Sound
