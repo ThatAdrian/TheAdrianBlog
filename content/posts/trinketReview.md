@@ -5,10 +5,10 @@ summary: 'YOU WON BY A LANDSLIDE!!! (songs are mismatched due to the album not b
 categories:
   - Music Reviews
 image: posts/trinket-tsubi-club-review.jpg
-rating: 3
+rating: 6
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/20uJcpJbimpsyG7v9kL5Co?si=ZhTmVeSFSX-xNFEOINquNA"
-tracklist: reclusive wizard leaves tower~2 | You're serious, aren't you ?~3.5 | lil qoo~4 | BURNMATERIAL~3.5 | strawberry☆chop~1.5 | ( ╥﹏╥ )~3.5 | ( fallout )~2.5 | all-time chump~2 | BUMPR~2 | bbbackboard~2.5 | Recap :~2 | landslide~3.5
+tracklist: reclusive wizard leaves tower~4 | You're serious, aren't you ?~7 | lil qoo~8 | BURNMATERIAL~7 | strawberry☆chop~3 | ( ╥﹏╥ )~7 | ( fallout )~5 | all-time chump~4 | BUMPR~4 | bbbackboard~5 | Recap :~4 | landslide~7
 ---
 
 ## The Sound
