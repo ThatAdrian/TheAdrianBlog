@@ -5,10 +5,10 @@ summary: 'insert clip of akademiks falling asleep listening to clb here.'
 categories:
   - Music Reviews
 image: posts/iceman-drake-review.jpg
-rating: 3
+rating: 6
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/0OAv7DCME2AV4q1KPO95HY?si=G8xRUsCvQ6WZsMgMzbIfsQ"
-tracklist: Make Them Cry~2.5 | Dust~3 | Whisper My Name~3.5 | Janice STFU~3 | Ran To Atlanta (feat. Future & Molly Santana)~3.5 | Shabang~3.5 | Make Them Pay~2.5 | Burning Bridges~2.5 | National Treasures~3.5 | B's On The Table (feat. 21 Savage)~3 | What Did I Miss?~3.5 | Plot Twist~3 | 2 Hard 4 The Radio~3.5 | Make Them Remember~2.5 | Little Birdie~2.5 | Don’t Worry~2 | Firm Friends~2 | Make Them Know~3
+tracklist: Make Them Cry~5 | Dust~6 | Whisper My Name~7 | Janice STFU~6 | Ran To Atlanta (feat. Future & Molly Santana)~7 | Shabang~7 | Make Them Pay~5 | Burning Bridges~5 | National Treasures~7 | B's On The Table (feat. 21 Savage)~6 | What Did I Miss?~7 | Plot Twist~6 | 2 Hard 4 The Radio~7 | Make Them Remember~5 | Little Birdie~5 | Don’t Worry~4 | Firm Friends~4 | Make Them Know~6
 ---
 
 ## The Sound
