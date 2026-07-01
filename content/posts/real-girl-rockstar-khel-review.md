@@ -5,10 +5,10 @@ summary: 'This is your demise :p'
 categories:
   - Music Reviews
 image: posts/real-girl-rockstar-khel-review.jpg
-rating: 3.5
+rating: 7
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/22pOhYdbr0Jdorkj6Pll9N?si=KyP0AzsKR2OMYJmDd90plw"
-tracklist: now or never~4 | time to time~3 | rockout~3.5 | explode~3 | lightyear~3.5 | machine gun bitch~3 | mi monstruo~3.5 | neighbors~3 | down2~3
+tracklist: now or never~8 | time to time~6 | rockout~7 | explode~6 | lightyear~7 | machine gun bitch~6 | mi monstruo~7 | neighbors~6 | down2~6
 ---
 
 ## The Sound
