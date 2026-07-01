@@ -5,10 +5,10 @@ summary: 'khel? khel! KHEL!!!'
 categories:
   - Music Reviews
 image: posts/hertz-khel-review.jpg
-rating: 3
+rating: 6
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/20UQOrH95A1K16ZXDkmWgP?si=Ihmzkn1mR3OSdIpnznZFKA"
-tracklist: does she know?~3.5 | super duper~3 | reek 2x~2.5 | steppin~3.5 | run for your life~2.5 | real girl~2 | ok im cool~2.5 | kill yourself~2.5 | poltergeist girl~3 | forget never forgive~2.5 | trust~2.5
+tracklist: does she know?~7 | super duper~6 | reek 2x~5 | steppin~7 | run for your life~5 | real girl~4 | ok im cool~5 | kill yourself~5 | poltergeist girl~6 | forget never forgive~5 | trust~5
 ---
 
 ## The Sound
