@@ -5,10 +5,10 @@ summary: 'He's talking about some A.I used to be some guy we used to want to be 
 categories:
   - Music Reviews
 image: posts/habibti-drake-review.jpg
-rating: 2.5
+rating: 5
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/0P6B5R3yRSkhkmequL5Yno?si=HAbB_4SPQhaaN8_EUB8c2A"
-tracklist: Rusty Intro~2 | WNBA~3 | Slap The City (feat. Qendresa)~3 | High Fives~3.5 | Hurrr Nor Thurr (feat. Sexyy Red)~2 | I'm Spent (feat. Loe Shimmy)~3 | Classic~3.5 | Gen 5~2 | White Bone~2 | Fortworth (feat. PARTYNEXTDOOR)~2 | Prioritizing~1.5
+tracklist: Rusty Intro~4 | WNBA~6 | Slap The City (feat. Qendresa)~6 | High Fives~7 | Hurrr Nor Thurr (feat. Sexyy Red)~4 | I'm Spent (feat. Loe Shimmy)~6 | Classic~7 | Gen 5~4 | White Bone~4 | Fortworth (feat. PARTYNEXTDOOR)~4 | Prioritizing~3
 ---
 
 ## The Sound
