@@ -5,10 +5,10 @@ summary: 'Second one of the batch, its marginally better.'
 categories:
   - Music Reviews
 image: posts/maid-of-honour-drake-review.jpg
-rating: 3
+rating: 6
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/71yBvOeRZ9os9LYFEy9eOk?si=2TVbOP2qQaCOQCbIkTqnhg"
-tracklist: Hoe Phase~3.5 | Road Trips~3.5 | Outside Tweaking (feat. Stunna Sandy)~3.5 | Cheetah Print (feat. Sexyy Red)~2.5 | Which One (feat. Central Cee)~3 | Amazing Shape (feat. Popcaan)~1.5 | BBW~3 | True Bestie (feat. Iconic Savvy)~2.5 | Where’s Your Stuff Interlude~2.5 | New Bestie~3 | Q&A~2 | Stuck~3 | Goose and The Juice~3 | Princess~2.5
+tracklist: Hoe Phase~7 | Road Trips~7 | Outside Tweaking (feat. Stunna Sandy)~7 | Cheetah Print (feat. Sexyy Red)~5 | Which One (feat. Central Cee)~6 | Amazing Shape (feat. Popcaan)~3 | BBW~6 | True Bestie (feat. Iconic Savvy)~5 | Where’s Your Stuff Interlude~5 | New Bestie~6 | Q&A~4 | Stuck~6 | Goose and The Juice~6 | Princess~5
 ---
 
 ## The Sound
