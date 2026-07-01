@@ -5,10 +5,10 @@ summary: 'Vax's stutter technique is immaculate is something i have to give him'
 categories:
   - Music Reviews
 image: posts/blue-dawn-vax-review.jpg
-rating: 2.5
+rating: 5
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/0aS81P56M9I4UcYwIjgiy1?si=LoXNewA9Tay6FFMEkfr5HA"
-tracklist: So Good~2.5 | M&Ms~2 | Hit me up~2.5 | Familia~2 | Lilac~2.5 | Crushed~3 | Race (feat. slayr)~3.5 | Never die~2.5 | Best friend~2.5 | It's ok, don't trip~3
+tracklist: So Good~5 | M&Ms~4 | Hit me up~5 | Familia~4 | Lilac~5 | Crushed~6 | Race (feat. slayr)~7 | Never die~5 | Best friend~5 | It's ok, don't trip~6
 ---
 
 ## The Sound
