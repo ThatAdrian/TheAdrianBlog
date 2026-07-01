@@ -5,10 +5,10 @@ summary: 'YES I AM A FAN OF BURGER MUSIC'
 categories:
   - Music Reviews
 image: posts/half-blood-slayr-review.jpg
-rating: 4.5
+rating: 9
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/4M1Gzy271EuRkCAcW5HAFa?si=8xYgtHP6QmeMjlipLQRm7g"
-tracklist: Love Blur~4.5 | Demigod~4 | Sloppy Joe~5 | Never Go Down~4.5 | Wipe Yo Nose~4 | 24/7~3.5 | Phone (Interlude)~3.5 | Holding~5 | Death By MP3~4.5 | The Sky~4 | Set In Stone~4.5
+tracklist: Love Blur~9 | Demigod~8 | Sloppy Joe~10 | Never Go Down~9 | Wipe Yo Nose~8 | 24/7~7 | Phone (Interlude)~7 | Holding~10 | Death By MP3~9 | The Sky~8 | Set In Stone~9
 ---
 
 ## The Sound
