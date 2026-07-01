@@ -5,10 +5,10 @@ summary: 'This album needed a deluxe?'
 categories:
   - Music Reviews
 image: posts/critically-bad-music-deluxe-elxnce-review.jpg
-rating: 1.5
+rating: 3
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/61DYbUmz4WSg20HAAcPWsu?si=738a435f6ac94296"
-tracklist: sam's intro~2 | bby~2 | love~2 | makeover~3 | rockstar~2.5 | turn the music up~3 | fake~2 | score~2.5 | astra~1.5 | popheart~2 | youtube~2 | so dead~2 | command~2.5 | can you stand the rain~2.5 | make the speaker go~2.5 | turn the music up 2~3 | 11th hour~2 | u~2
+tracklist: sam's intro~4 | bby~4 | love~4 | makeover~6 | rockstar~5 | turn the music up~6 | fake~4 | score~5 | astra~3 | popheart~4 | youtube~4 | so dead~4 | command~5 | can you stand the rain~5 | make the speaker go~5 | turn the music up 2~6 | 11th hour~4 | u~4
 ---
 
 ## The Sound
