@@ -5,10 +5,10 @@ summary: 'My lil bro fw tung tung brain rot'
 categories:
   - Music Reviews
 image: posts/backstage-hologram-kuru-review.jpg
-rating: 2
+rating: 4
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/5yuppYMA1k2OQQ1uW14mNi?si=JPe_FzIgQsCLqHhiXrdAcg"
-tracklist: I can live w that~2 | U wld never do it~3 | Gracious~3 | Don't get stuck~2.5 | End of spring~3 | Noir Kei~3.5 | Pray for...~2 | Good game~2 | Like glue~3.5 | Glass~3 | Let the keys cry~2.5 | FW19~4 | Tofu~2 | Shibuya transfer~2.5 | Three worlds apart~3
+tracklist: I can live w that~4 | U wld never do it~6 | Gracious~6 | Don't get stuck~5 | End of spring~6 | Noir Kei~7 | Pray for...~4 | Good game~4 | Like glue~7 | Glass~6 | Let the keys cry~5 | FW19~8 | Tofu~4 | Shibuya transfer~5 | Three worlds apart~6
 ---
 
 ## The Sound
