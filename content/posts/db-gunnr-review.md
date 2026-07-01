@@ -8,7 +8,7 @@ image: posts/db-gunnr-review.jpg
 rating: 0
 draft: true
 spotifyAlbum: "https://open.spotify.com/album/4oTVSAjT10LvwUVgdsWWvL?si=wFzD5FcaRv-rfKnceK1lVw"
-tracklist: somuchmore~3 | decisions~3 | bleed~3 | pretty~3 | somethingnew~3 | playitdown~3 | noicant~3 | said&done~3 | wastemytime~3 | remember~3 | seeingthrough~3
+tracklist: somuchmore~6 | decisions~6 | bleed~6 | pretty~6 | somethingnew~6 | playitdown~6 | noicant~6 | said&done~6 | wastemytime~6 | remember~6 | seeingthrough~6
 ---
 
 [TRACK_RATINGS]
