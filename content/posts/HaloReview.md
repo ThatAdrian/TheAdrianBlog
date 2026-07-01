@@ -5,10 +5,10 @@ summary: 'Tiffany does NOT look like she would make music like this'
 categories:
   - Music Reviews
 image: posts/halo.jpg
-rating: 4.5
+rating: 9
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/4T7qu6MdxoGjzZPErRWgsO?si=DrXoThFaRW6onIwdyRQs_A"
-tracklist: EVERYTHING I'VE EVER WANTED~2.5 | DOIT4ME~4 | SAME LA~4.5 | PRETTY4U~5 | COPYCAT~3 | NO LUCK~2.5 | BREAKUP~4 | TELL ME WHAT I DID~3.5 | START OVER~4 | LOOK UP~4 | AMERICAN GIRL~5 | FAREWELL TOLEDO~2.5 | IT'S NOT LIKE THAT ANYMORE~4
+tracklist: EVERYTHING I'VE EVER WANTED~5 | DOIT4ME~8 | SAME LA~9 | PRETTY4U~10 | COPYCAT~6 | NO LUCK~5 | BREAKUP~8 | TELL ME WHAT I DID~7 | START OVER~8 | LOOK UP~8 | AMERICAN GIRL~10 | FAREWELL TOLEDO~5 | IT'S NOT LIKE THAT ANYMORE~8
 ---
 
 
