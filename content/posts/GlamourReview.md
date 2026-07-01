@@ -5,10 +5,10 @@ summary: 'Never heard of this guy but he sounds like Tory Lanez but cooler'
 categories:
   - Music Reviews
 image: posts/glamour.jpg
-rating: 3.5
+rating: 7
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/19ClzLdW04etl8QWDIGMxB?si=0573127124154f64"
-tracklist: OMG~2.5 | Separation (feat. onlywoke)~4 | The Man~3.5 | Legroom~3.5 | What the Vibe Is~2.5 | I GOTTA~2 | Something 2 Prove~3 | The Sky~2 | Call Me the Devil~3 | Ur All Mine~4 | Hard to Breathe~2 | Painless ft. Gunnr~3.5 | Truth~4.5 | Devotion~3 | Crush Em Up~3.5 | Keep Me Up ft. imnotvrycreative and onlywoke~2.5 | My Tears Are Glitter~2.5 | What I Do~3 | Overtime~4 | Found Me~3 | Get There ft. pryme!~2
+tracklist: OMG~5 | Separation (feat. onlywoke)~8 | The Man~7 | Legroom~7 | What the Vibe Is~5 | I GOTTA~4 | Something 2 Prove~6 | The Sky~4 | Call Me the Devil~6 | Ur All Mine~8 | Hard to Breathe~4 | Painless ft. Gunnr~7 | Truth~9 | Devotion~6 | Crush Em Up~7 | Keep Me Up ft. imnotvrycreative and onlywoke~5 | My Tears Are Glitter~5 | What I Do~6 | Overtime~8 | Found Me~6 | Get There ft. pryme!~4
 ---
 
 
