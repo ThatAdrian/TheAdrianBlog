@@ -61,7 +61,7 @@ function buildJsonLd(post) {
       reviewRating: {
         '@type': 'Rating',
         ratingValue: rating,
-        bestRating: 5,
+        bestRating: 10,
         worstRating: 1,
       },
       itemReviewed: {
