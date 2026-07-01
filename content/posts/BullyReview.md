@@ -5,10 +5,10 @@ summary: 'Is "Is my goat washed?" no longer a statement for just wandering trave
 categories:
   - Music Reviews
 image: posts/bully-kanye-west-review.jpg
-rating: 2
+rating: 4
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/5poA9SAx0Xiz1cf17fWBLS?si=Hez2muNuTleL-nKyIQ5uTg"
-tracklist: KING~2.5 | THIS A MUST~2 | FATHER (feat. Travis Scott)~3 | ALL THE LOVE (feat. Andre Troutman)~2.5 | PUNCH DRUNK~2.5 | WHATEVER WORKS~1.5 | MAMA’S FAVORITE~2 | SISTERS AND BROTHERS~1.5 | BULLY (feat. CeeLo Green)~2 | HIGHS AND LOWS~3.5 | I CAN’T WAIT~1.5 | WHITE LINES (feat. Andre Troutman)~3.5 | CIRCLES~3 | PREACHER MAN~3.5 | BEAUTY AND THE BEAST~3.5 | DAMN~4 | LAST BREATH (feat. Peso Pluma)~3 | THIS ONE HERE~2.5
+tracklist: KING~5 | THIS A MUST~4 | FATHER (feat. Travis Scott)~6 | ALL THE LOVE (feat. Andre Troutman)~5 | PUNCH DRUNK~5 | WHATEVER WORKS~3 | MAMA’S FAVORITE~4 | SISTERS AND BROTHERS~3 | BULLY (feat. CeeLo Green)~4 | HIGHS AND LOWS~7 | I CAN’T WAIT~3 | WHITE LINES (feat. Andre Troutman)~7 | CIRCLES~6 | PREACHER MAN~7 | BEAUTY AND THE BEAST~7 | DAMN~8 | LAST BREATH (feat. Peso Pluma)~6 | THIS ONE HERE~5
 ---
 
 ## The Sound
