@@ -5,10 +5,10 @@ summary: 'REMYYYYY BOYYYYYYYYYYYZ'
 categories:
   - Music Reviews
 image: posts/zavier-fetty-wap-review.jpg
-rating: 3
+rating: 6
 draft: false
 spotifyAlbum: "https://open.spotify.com/album/5ZcuJ1sGBS0tl32RnHUNx1?si=2f0034b26b7741c8"
-tracklist: Right Back To You~3.5 | Like A Taylor (feat. Wiz Khalifa)~2 | Real Love (feat. Honey Bxby)~3 | White Roses (feat. Divinity & Ymanie)~3 | Nasty (feat. Tink)~2 | N LUV (feat. Monty)~2 | Spot Back (feat. Rob McCoy)~2.5 | Favorite Girl~2 | Fool For You~3 | Say When~3.5 | With It Or What~3 | BossDon (feat. Max B)~2.5 | Eastside Mz~3 | LYG (feat. Oskama Esteban)~2.5 | Real Ones (feat. Albee Al & Harrd Luck)~2 | Never Tell~2 | I Remember/Dear Zavier (feat. G Herbo)~3
+tracklist: Right Back To You~7 | Like A Taylor (feat. Wiz Khalifa)~4 | Real Love (feat. Honey Bxby)~6 | White Roses (feat. Divinity & Ymanie)~6 | Nasty (feat. Tink)~4 | N LUV (feat. Monty)~4 | Spot Back (feat. Rob McCoy)~5 | Favorite Girl~4 | Fool For You~6 | Say When~7 | With It Or What~6 | BossDon (feat. Max B)~5 | Eastside Mz~6 | LYG (feat. Oskama Esteban)~5 | Real Ones (feat. Albee Al & Harrd Luck)~4 | Never Tell~4 | I Remember/Dear Zavier (feat. G Herbo)~6
 ---
 
 ## The Sound
