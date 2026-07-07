@@ -659,6 +659,77 @@ async function renderFrame(canvas: HTMLCanvasElement, review: ReviewData, idx: n
   return drawVerdict(canvas, review, ratio)
 }
 
+// ── Minimal ZIP writer (STORE method — PNGs are already compressed) ──────────
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256)
+  for (let n = 0; n < 256; n++) {
+    let x = n
+    for (let k = 0; k < 8; k++) x = x & 1 ? 0xedb88320 ^ (x >>> 1) : x >>> 1
+    t[n] = x >>> 0
+  }
+  return t
+})()
+
+function crc32(bytes: Uint8Array): number {
+  let crc = 0xffffffff
+  for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8)
+  return (crc ^ 0xffffffff) >>> 0
+}
+
+function buildZipSync(files: { name: string; data: Uint8Array }[]): Blob {
+  const enc = new TextEncoder()
+  const parts: Uint8Array[] = []
+  const central: Uint8Array[] = []
+  let offset = 0
+
+  for (const f of files) {
+    const nameB = enc.encode(f.name)
+    const crc = crc32(f.data)
+    const local = new Uint8Array(30 + nameB.length)
+    const lv = new DataView(local.buffer)
+    lv.setUint32(0, 0x04034b50, true)   // local file header sig
+    lv.setUint16(4, 20, true)           // version needed
+    lv.setUint16(8, 0, true)            // method: STORE
+    lv.setUint32(14, crc, true)
+    lv.setUint32(18, f.data.length, true)
+    lv.setUint32(22, f.data.length, true)
+    lv.setUint16(26, nameB.length, true)
+    local.set(nameB, 30)
+    parts.push(local, f.data)
+
+    const cd = new Uint8Array(46 + nameB.length)
+    const cv = new DataView(cd.buffer)
+    cv.setUint32(0, 0x02014b50, true)   // central dir sig
+    cv.setUint16(4, 20, true)
+    cv.setUint16(6, 20, true)
+    cv.setUint16(10, 0, true)           // STORE
+    cv.setUint32(16, crc, true)
+    cv.setUint32(20, f.data.length, true)
+    cv.setUint32(24, f.data.length, true)
+    cv.setUint16(28, nameB.length, true)
+    cv.setUint32(42, offset, true)      // local header offset
+    cd.set(nameB, 46)
+    central.push(cd)
+    offset += local.length + f.data.length
+  }
+
+  const cdSize = central.reduce((s, c2) => s + c2.length, 0)
+  const eocd = new Uint8Array(22)
+  const ev = new DataView(eocd.buffer)
+  ev.setUint32(0, 0x06054b50, true)
+  ev.setUint16(8, files.length, true)
+  ev.setUint16(10, files.length, true)
+  ev.setUint32(12, cdSize, true)
+  ev.setUint32(16, offset, true)
+  return new Blob([...parts, ...central, eocd], { type: 'application/zip' })
+}
+
+async function buildZipAsync(entries: { name: string; blob: Blob }[]): Promise<Blob> {
+  const files: { name: string; data: Uint8Array }[] = []
+  for (const e of entries) files.push({ name: e.name, data: new Uint8Array(await e.blob.arrayBuffer()) })
+  return buildZipSync(files)
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function FrameCreator() {
   const [posts, setPosts]     = useState<{path:string;title:string}[]>([])
@@ -747,32 +818,45 @@ export default function FrameCreator() {
   async function downloadAll() {
     if (!canvasRef.current || !review) return
     const frames = getFrames(review)
-    // Render every frame first and collect blobs — a single canvas reused per frame
-    const blobs: { name: string; blob: Blob }[] = []
+    // Render every frame and collect blobs — single canvas reused per frame
+    const entries: { name: string; blob: Blob }[] = []
     for (let i = 0; i < frames.length; i++) {
       await renderFrame(canvasRef.current, review, i, ratio)
       const blob = await new Promise<Blob | null>(res => canvasRef.current!.toBlob(res, 'image/png'))
       if (blob) {
-        blobs.push({
+        entries.push({
           name: `${review.slug}-${String(i+1).padStart(2,'0')}-${frames[i].label.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${ratio.replace(':','x')}.png`,
           blob,
         })
       }
     }
-    // Trigger downloads with a generous stagger — rapid anchor clicks get
-    // silently blocked by Chrome/Safari, which is why only one file saved before
-    for (let i = 0; i < blobs.length; i++) {
-      const url = URL.createObjectURL(blobs[i].blob)
-      const a = document.createElement('a')
-      a.download = blobs[i].name
-      a.href = url
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      setTimeout(() => URL.revokeObjectURL(url), 5000)
-      await new Promise(r => setTimeout(r, 800))
-    }
+    // Restore preview before any share sheet opens
     await renderFrame(canvasRef.current, review, activeFrame, ratio)
+
+    // Mobile: Web Share API with image files — iOS/Android share sheet offers
+    // "Save Images" which puts all frames straight into the photo gallery in one tap
+    const files = entries.map(e => new File([e.blob], e.name, { type: 'image/png' }))
+    if (navigator.canShare && navigator.canShare({ files })) {
+      try {
+        await navigator.share({ files, title: review.albumName })
+        return
+      } catch (err: any) {
+        // User cancelled the sheet → do nothing. Real failure → fall through to ZIP
+        if (err?.name === 'AbortError') return
+      }
+    }
+
+    // Desktop fallback: bundle everything into ONE zip download —
+    // sequential anchor clicks get blocked by browsers, so a single file is the fix
+    const zip = await buildZipAsync(entries)
+    const url = URL.createObjectURL(zip)
+    const a = document.createElement('a')
+    a.download = `${review.slug}-frames-${ratio.replace(':','x')}.zip`
+    a.href = url
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
   }
 
   const frames = review ? getFrames(review) : []
