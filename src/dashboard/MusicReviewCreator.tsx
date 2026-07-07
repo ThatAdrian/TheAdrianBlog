@@ -140,7 +140,7 @@ export default function MusicReviewCreator() {
           const tracklist = parseTracklist(fm.tracklist || '')
           const tracks = data.tracks.items.map(t => {
             const saved = tracklist.find(tr => tr.name.toLowerCase() === t.name.toLowerCase())
-            return { name: t.name, rating: saved?.rating ?? 3 }
+            return { name: t.name, rating: saved?.rating ?? 5 }
           })
           setAlbum({ id, name: data.name, artist: data.artists[0]?.name ?? '', image: data.images[0]?.url ?? '', releaseDate: data.release_date, tracks })
           setCoverPreview(data.images[0]?.url ?? '')
