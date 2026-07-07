@@ -711,10 +711,19 @@ export default function FrameCreator() {
     setReview(r); setAF(0)
     // Generate caption
     const top3 = [...r.tracks].sort((a,b) => b.rating-a.rating).slice(0,3).map(t => t.name)
-    const rLabel = r.rating>=5?'a perfect score':r.rating>=4.5?'an incredibly strong album':r.rating>=4?'a solid listen':r.rating>=3.5?'a decent album':'a mixed bag'
+    const rLabel =
+      r.rating >= 10 ? 'a perfect score' :
+      r.rating >= 9  ? 'an incredibly strong album' :
+      r.rating >= 8  ? 'a great listen' :
+      r.rating >= 7  ? 'a solid album' :
+      r.rating >= 6  ? 'a decent album' :
+      r.rating >= 5  ? 'a mixed bag' :
+      'a rough one'
     const trackMention = top3.length > 0 ? `Standout tracks include ${top3.slice(0,-1).join(', ')}${top3.length>1?` and ${top3[top3.length-1]}`:''}. ` : ''
     const firstSentence = r.verdict ? r.verdict.split('.')[0].trim() + '.' : ''
-    setCaption(`${r.albumName} by ${r.artist} — ${rLabel} at ${r.rating}/5. ${firstSentence} ${trackMention}\nFull review on TheAdrianBlog.com\n\n#${r.artist.replace(/[^a-zA-Z0-9]/g,'').toLowerCase()} #${r.albumName.replace(/[^a-zA-Z0-9]/g,'').toLowerCase()} #musicreview #albumreview #newmusic #music #indiemusic #musicblog #albumoftheweek #musictok #theadrianblog`.trim())
+    // 5 hashtags max — artist tag, then the highest-value discovery tags
+    const artistTag = r.artist.replace(/[^a-zA-Z0-9]/g,'').toLowerCase()
+    setCaption(`${r.albumName} by ${r.artist} — ${rLabel} at ${r.rating}/10. ${firstSentence} ${trackMention}\nFull review on TheAdrianBlog.com\n\n#${artistTag} #musicreview #albumreview #newmusic #musictok`.trim())
     setL(false)
   }
 
@@ -738,12 +747,30 @@ export default function FrameCreator() {
   async function downloadAll() {
     if (!canvasRef.current || !review) return
     const frames = getFrames(review)
+    // Render every frame first and collect blobs — a single canvas reused per frame
+    const blobs: { name: string; blob: Blob }[] = []
     for (let i = 0; i < frames.length; i++) {
       await renderFrame(canvasRef.current, review, i, ratio)
+      const blob = await new Promise<Blob | null>(res => canvasRef.current!.toBlob(res, 'image/png'))
+      if (blob) {
+        blobs.push({
+          name: `${review.slug}-${String(i+1).padStart(2,'0')}-${frames[i].label.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${ratio.replace(':','x')}.png`,
+          blob,
+        })
+      }
+    }
+    // Trigger downloads with a generous stagger — rapid anchor clicks get
+    // silently blocked by Chrome/Safari, which is why only one file saved before
+    for (let i = 0; i < blobs.length; i++) {
+      const url = URL.createObjectURL(blobs[i].blob)
       const a = document.createElement('a')
-      a.download = `${review.slug}-${String(i+1).padStart(2,'0')}-${frames[i].label.toLowerCase().replace(/[^a-z0-9]/g,'-')}-${ratio.replace(':','x')}.png`
-      a.href = canvasRef.current.toDataURL('image/png'); a.click()
-      await new Promise(r => setTimeout(r,350))
+      a.download = blobs[i].name
+      a.href = url
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+      await new Promise(r => setTimeout(r, 800))
     }
     await renderFrame(canvasRef.current, review, activeFrame, ratio)
   }
