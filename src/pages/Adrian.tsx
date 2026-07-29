@@ -10,10 +10,31 @@ import MagicBento from '../components/MagicBento'
 import './Adrian.css'
 
 // ── SVG title for MetallicPaint ───────────────────────────────────────────────
+// viewBox is deliberately tight around the wordmark. The previous 820x190 box
+// left ~55% of the frame empty, so the name rendered small no matter how large
+// the wrapper was. 900x150 keeps just enough margin for the liquid distortion.
 const ADRIAN_SVG = (() => {
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 190" width="820" height="190"><rect width="820" height="190" fill="white"/><text x="410" y="148" font-family="Arial Black,Impact,sans-serif" font-size="118" font-weight="900" fill="black" text-anchor="middle" letter-spacing="6">ADRIAN</text></svg>'
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 150" width="900" height="150"><rect width="900" height="150" fill="white"/><text x="450" y="124" font-family="Arial Black,Impact,sans-serif" font-size="132" font-weight="900" fill="black" text-anchor="middle" letter-spacing="8">ADRIAN</text></svg>'
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 })()
+
+// ── Person schema — helps this page rank for his name and feeds link previews ─
+const PERSON_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Adrian Dabrowski',
+  jobTitle: 'EV Support Engineer',
+  url: 'https://www.theadrianblog.com/adrian',
+  image: 'https://www.theadrianblog.com/og-image.jpg',
+  address: { '@type': 'PostalAddress', addressRegion: 'Essex', addressCountry: 'GB' },
+  knowsLanguage: ['English', 'Polish'],
+  sameAs: [
+    'https://www.linkedin.com/in/adrian-dabrowski-379727251/',
+    'https://github.com/ThatAdrian',
+    'https://www.youtube.com/@agamez123',
+    'https://www.instagram.com/thatadrian_',
+  ],
+}
 
 // ── Skill card images ─────────────────────────────────────────────────────────
 const makeSkillCard = (bg: string, icon: string, label: string) => {
@@ -115,7 +136,26 @@ export default function Adrian() {
 
   return (
     <div className="ap-page page-transition">
-      <SEO title="Adrian" description="Adrian Dabrowski — EV Support Engineer, music producer, developer and creator." url="/adrian" />
+      <SEO
+        title="Adrian Dabrowski — EV Support Engineer & Creator"
+        description="EV Support Engineer based in Essex, UK. Self-taught developer, music producer and content creator. React, TypeScript, Supabase, Ableton, Roblox Studio."
+        image="/og-image.jpg"
+        url="/adrian"
+        type="website"
+      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(PERSON_SCHEMA) }} />
+
+      {/* ── Standalone top bar — this page renders outside the blog layout ── */}
+      <header className="ap-topbar">
+        <a href="/adrian" className="ap-topbar-name">
+          ADRIAN <span>DABROWSKI</span>
+        </a>
+        <nav className="ap-topbar-links">
+          <a href="https://www.linkedin.com/in/adrian-dabrowski-379727251/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a href="https://github.com/ThatAdrian" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="/" className="ap-topbar-blog">Blog ↗</a>
+        </nav>
+      </header>
 
       {/* ── Particles background (full page, fixed) ── */}
       <div className="adrian-particles">
@@ -303,6 +343,22 @@ export default function Adrian() {
             enableMagnetism={true} clickEffect={true} particleCount={6} />
         </div>
       </Section>
+
+      {/* ── Standalone footer ── */}
+      <footer className="ap-footer">
+        <div className="ap-footer-inner">
+          <div className="ap-footer-left">
+            <p className="ap-footer-name">Adrian Dabrowski</p>
+            <p className="ap-footer-role">EV Support Engineer &amp; Creator · Essex, UK</p>
+          </div>
+          <div className="ap-footer-links">
+            <a href="https://www.linkedin.com/in/adrian-dabrowski-379727251/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="https://github.com/ThatAdrian" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="/">TheAdrianBlog</a>
+          </div>
+        </div>
+        <p className="ap-footer-copy">© {new Date().getFullYear()} Adrian Dabrowski</p>
+      </footer>
     </div>
   )
 }
