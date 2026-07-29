@@ -13,6 +13,8 @@ export interface CardSwapProps {
   delay?: number
   pauseOnHover?: boolean
   onCardClick?: (idx: number) => void
+  /** Fires whenever the deck rotates, with the index of the new front card. */
+  onSwap?: (idx: number) => void
   skewAmount?: number
   easing?: 'linear' | 'elastic'
   children: ReactNode
@@ -40,7 +42,7 @@ const placeNow = (el: HTMLElement, slot: Slot, skew: number) =>
 
 const CardSwap: React.FC<CardSwapProps> = ({
   width = 500, height = 400, cardDistance = 60, verticalDistance = 70,
-  delay = 5000, pauseOnHover = false, onCardClick, skewAmount = 6, easing = 'elastic', children
+  delay = 5000, pauseOnHover = false, onCardClick, onSwap, skewAmount = 6, easing = 'elastic', children
 }) => {
   const config = easing === 'elastic'
     ? { ease: 'elastic.out(0.6,0.9)', durDrop: 2, durMove: 2, durReturn: 2, promoteOverlap: 0.9, returnDelay: 0.05 }
@@ -52,6 +54,11 @@ const CardSwap: React.FC<CardSwapProps> = ({
   const tlRef = useRef<gsap.core.Timeline | null>(null)
   const intervalRef = useRef<number>(0)
   const container = useRef<HTMLDivElement>(null)
+
+  // Kept in a ref so an inline callback from the parent doesn't retrigger the
+  // animation effect on every render.
+  const onSwapRef = useRef(onSwap)
+  useEffect(() => { onSwapRef.current = onSwap }, [onSwap])
 
   useEffect(() => {
     const total = refs.length
@@ -75,7 +82,10 @@ const CardSwap: React.FC<CardSwapProps> = ({
       tl.addLabel('return', `promote+=${config.durMove * config.returnDelay}`)
       tl.call(() => { gsap.set(elFront, { zIndex: backSlot.zIndex }) }, undefined, 'return')
       tl.to(elFront, { x: backSlot.x, y: backSlot.y, z: backSlot.z, duration: config.durReturn, ease: config.ease }, 'return')
-      tl.call(() => { order.current = [...rest, front] })
+      tl.call(() => {
+        order.current = [...rest, front]
+        onSwapRef.current?.(order.current[0])
+      })
     }
 
     swap()
