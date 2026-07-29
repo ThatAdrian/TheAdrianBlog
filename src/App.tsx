@@ -32,7 +32,7 @@ export default function App() {
   const location = useLocation()
   const isAdrianPage  = location.pathname === '/adrian'
   const isDashboard   = location.pathname.startsWith('/dashboard')
-  const isNotFound    = !['/', '/music', '/youtube', '/adrian', '/dashboard'].includes(location.pathname) &&
+  const isNotFound    = !['/', '/music', '/youtube', '/adrian', '/dashboard', '/confirm'].includes(location.pathname) &&
     !location.pathname.startsWith('/posts/') &&
     !location.pathname.startsWith('/category/')
   const isPostPage    = location.pathname.startsWith('/posts/')
@@ -42,6 +42,18 @@ export default function App() {
       <Routes>
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
+    )
+  }
+
+  // /adrian is a standalone personal page — shareable on its own (LinkedIn etc)
+  // so it renders outside the blog chrome and brings its own nav + footer.
+  if (isAdrianPage) {
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/adrian" element={<Adrian />} />
+        </Routes>
+      </Suspense>
     )
   }
 
