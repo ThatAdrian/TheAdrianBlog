@@ -10,15 +10,15 @@ import MagicBento from '../components/MagicBento'
 import './Adrian.css'
 
 // ── SVG title for MetallicPaint ───────────────────────────────────────────────
-// viewBox is deliberately tight around the wordmark. The previous 820x190 box
-// left ~55% of the frame empty, so the name rendered small no matter how large
-// the wrapper was. 900x150 keeps just enough margin for the liquid distortion.
+// viewBox is cropped tight to the wordmark. Any empty space baked into the SVG
+// becomes empty space on the page, which is what was pushing DABROWSKI down.
+// Bottom padding is now 16px against a 132px box (cap height fills ~72%).
 const ADRIAN_SVG = (() => {
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 150" width="900" height="150"><rect width="900" height="150" fill="white"/><text x="450" y="124" font-family="Arial Black,Impact,sans-serif" font-size="132" font-weight="900" fill="black" text-anchor="middle" letter-spacing="8">ADRIAN</text></svg>'
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 132" width="900" height="132"><rect width="900" height="132" fill="white"/><text x="450" y="116" font-family="Arial Black,Impact,sans-serif" font-size="132" font-weight="900" fill="black" text-anchor="middle" letter-spacing="8">ADRIAN</text></svg>'
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 })()
 
-// ── Person schema — helps this page rank for his name and feeds link previews ─
+// ── Person schema. Helps this page rank for his name and feeds link previews ─
 const PERSON_SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'Person',
@@ -35,6 +35,21 @@ const PERSON_SCHEMA = {
     'https://www.instagram.com/thatadrian_',
   ],
 }
+
+// Change this in one place if you'd rather route enquiries elsewhere.
+const CONTACT_EMAIL = 'adrian@theadrianblog.com'
+const LINKEDIN_URL  = 'https://www.linkedin.com/in/adrian-dabrowski-379727251/'
+const GITHUB_URL    = 'https://github.com/ThatAdrian'
+
+// ── Sections, used by the scroll rail ────────────────────────────────────────
+const SECTIONS = [
+  { id: 'hero',      label: 'Top' },
+  { id: 'about',     label: 'About' },
+  { id: 'skills',    label: 'Skills' },
+  { id: 'projects',  label: 'Projects' },
+  { id: 'interests', label: 'Interests' },
+  { id: 'contact',   label: 'Contact' },
+]
 
 // ── Skill card images ─────────────────────────────────────────────────────────
 const makeSkillCard = (bg: string, icon: string, label: string) => {
@@ -61,14 +76,14 @@ const RobloxIcon = () => <svg viewBox="0 0 24 24" fill="currentColor" width="22"
 const DiscordIcon = () => <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
 
 const SOCIAL_ITEMS = [
+  { icon: <LinkedInIcon />,  color: 'blue',   label: 'LinkedIn',  href: LINKEDIN_URL },
+  { icon: <GitHubIcon />,    color: 'white',  label: 'GitHub',    href: GITHUB_URL },
   { icon: <YouTubeIcon />,   color: 'red',    label: 'YouTube',   href: 'https://www.youtube.com/@agamez123' },
+  { icon: <InstagramIcon />, color: 'pink',   label: 'Instagram', href: 'https://www.instagram.com/thatadrian_' },
   { icon: <SpotifyIcon />,   color: 'green',  label: 'Spotify',   href: 'https://open.spotify.com/user/realagamez123' },
   { icon: <LastFmIcon />,    color: 'red',    label: 'Last.fm',   href: 'https://www.last.fm/user/agamez123' },
-  { icon: <GitHubIcon />,    color: 'white',  label: 'GitHub',    href: 'https://github.com/ThatAdrian' },
-  { icon: <LinkedInIcon />,  color: 'blue',   label: 'LinkedIn',  href: 'https://www.linkedin.com/in/adrian-dabrowski-379727251/' },
-  { icon: <InstagramIcon />, color: 'pink',   label: 'Instagram', href: 'https://www.instagram.com/thatadrian_' },
-  { icon: <DiscordIcon />,   color: 'indigo', label: 'Discord',   href: 'https://discord.com/users/agamez123' },
   { icon: <RobloxIcon />,    color: 'orange', label: 'Roblox',    href: 'https://www.roblox.com/users/search?keyword=agamez123' },
+  { icon: <DiscordIcon />,   color: 'indigo', label: 'Discord',   href: 'https://discord.com/users/agamez123' },
 ]
 
 // ── Skill groups ──────────────────────────────────────────────────────────────
@@ -83,21 +98,21 @@ const SKILL_GROUPS = [
 
 // ── Interests ─────────────────────────────────────────────────────────────────
 const INTERESTS = [
-  { title: 'Music & Art',        description: 'Always listening, always creating', label: 'Core',     emoji: '🎵', color: '#080514' },
+  { title: 'Music & Art',        description: 'Listening constantly, making my own', label: 'Core',     emoji: '🎵', color: '#080514' },
   { title: 'Skating',            description: 'Any kind, any surface',              label: 'Sport',    emoji: '🛹', color: '#060d0a' },
-  { title: 'Gaming',             description: 'PC, console, and building my own',   label: 'Hobby',    emoji: '🎮', color: '#06050f' },
+  { title: 'Gaming',             description: 'PC, console, and building my own games',   label: 'Hobby',    emoji: '🎮', color: '#06050f' },
   { title: 'Collecting',         description: 'Things worth keeping',               label: 'Habit',    emoji: '📦', color: '#0d0806' },
   { title: 'Concerts',           description: 'Live music is another level',        label: 'Culture',  emoji: '🎤', color: '#0a0610' },
-  { title: 'Being Productive',   description: 'Always working on something new',    label: 'Drive',    emoji: '⚡', color: '#060a08' },
+  { title: 'Being Productive',   description: 'Usually mid-way through something new',    label: 'Drive',    emoji: '⚡', color: '#060a08' },
 ]
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { title: 'TheAdrianBlog',    tag: 'Web · Live',       color: '#00f5ff', link: 'https://www.theadrianblog.com', description: 'Full-stack blog with music reviews, audio previews, community ratings, inline comments and a custom publishing dashboard. React, TypeScript, Vite, Supabase.' },
+  { title: 'TheAdrianBlog',    tag: 'Web · Live',       color: '#00f5ff', link: 'https://www.theadrianblog.com', description: 'Full-stack blog with music reviews, audio previews, community ratings, inline comments and a custom publishing dashboard. Built with React, TypeScript, Vite and Supabase.' },
   { title: 'Super Sumo Derby', tag: 'Roblox Game',      color: '#b400ff', description: 'A vehicle derby game in Roblox Studio with a dealership system, vehicle tiers, Bucks/Robux purchases, custom garage UI and A-Chassis physics.' },
-  { title: 'YouTube Channel',  tag: 'Content',          color: '#ff0000', description: 'Video production covering tech, gaming, music and lifestyle. Full production from scripting through to editing in DaVinci Resolve and Premiere.' },
-  { title: 'Ableton Journey',  tag: 'Music Production', color: '#00ff88', description: 'Working through music production — composition, sound design, mixing, and beatmaking. Learning Ableton from scratch with a goal to release original music.' },
-  { title: 'Car Restoration',  tag: 'Hands-on',         color: '#ffd700', description: 'Diagnosing and repairing my own car — learning mechanics, sourcing parts, doing as much of the work as possible myself.' },
+  { title: 'YouTube Channel',  tag: 'Content',          color: '#ff0000', description: 'Video production covering tech, gaming, music and lifestyle. I handle the whole thing myself, from scripting to editing in DaVinci Resolve and Premiere.' },
+  { title: 'Ableton Journey',  tag: 'Music Production', color: '#00ff88', description: 'Learning production from scratch in Ableton. Composition, sound design, mixing and beatmaking, working towards releasing original tracks.' },
+  { title: 'Car Restoration',  tag: 'Hands-on',         color: '#ffd700', description: 'Diagnosing and repairing my own car. Learning the mechanics, sourcing parts and doing as much of the work myself as I can.' },
 ]
 
 // ── Reveal hook ───────────────────────────────────────────────────────────────
@@ -107,8 +122,65 @@ function useReveal(ref: React.RefObject<Element | null>) {
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true) }, { threshold: 0.05 })
     if (ref.current) obs.observe(ref.current)
     return () => obs.disconnect()
-  }, [])
+  }, [ref])
   return visible
+}
+
+// Scroll rail: fills as you move down the page and marks the current section.
+// Gives the scroll something to respond to, and doubles as jump navigation.
+function ScrollRail() {
+  const [progress, setProgress] = useState(0)
+  const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      setProgress(max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0)
+
+      // Current section = last one whose top has passed 40% of the viewport
+      const line = window.innerHeight * 0.4
+      let idx = 0
+      SECTIONS.forEach((s, i) => {
+        const el = document.getElementById(s.id)
+        if (el && el.getBoundingClientRect().top <= line) idx = i
+      })
+      setActive(idx)
+    }
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    update()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <nav className="ap-rail" aria-label="Page sections">
+      <div className="ap-rail-track">
+        <div className="ap-rail-fill" style={{ '--rail-p': progress } as React.CSSProperties} />
+      </div>
+      <ul className="ap-rail-dots">
+        {SECTIONS.map((s, i) => (
+          <li key={s.id}>
+            <button
+              className={`ap-rail-dot ${i === active ? 'active' : ''} ${i < active ? 'passed' : ''}`}
+              onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              aria-label={`Jump to ${s.label}`}
+              aria-current={i === active ? 'true' : undefined}
+            >
+              <span className="ap-rail-label">{s.label}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <span className="ap-rail-pct">{Math.round(progress * 100)}</span>
+    </nav>
+  )
 }
 
 function Section({ id, children, className = '' }: { id: string; children: React.ReactNode; className?: string }) {
@@ -125,19 +197,56 @@ function Section({ id, children, className = '' }: { id: string; children: React
 export default function Adrian() {
   const [activeProject, setActiveProject] = useState(0)
   const parallaxRef = useRef<HTMLDivElement>(null)
+  const heroRef     = useRef<HTMLDivElement>(null)
+  const [deckW, setDeckW] = useState(460)
+
+  // Deck scales with the viewport so it never runs past the screen edge.
+  useEffect(() => {
+    const calc = () => setDeckW(Math.max(260, Math.min(460, window.innerWidth - 48)))
+    calc()
+    window.addEventListener('resize', calc)
+    return () => window.removeEventListener('resize', calc)
+  }, [])
 
   useEffect(() => {
-    const onScroll = () => {
-      if (parallaxRef.current) parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.25}px)`
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const y = window.scrollY
+      const vh = window.innerHeight || 1
+
+      // Gradient drifts, but capped. Previously this kept translating forever,
+      // so it slid off screen and the effect stopped existing after one scroll.
+      if (parallaxRef.current) {
+        parallaxRef.current.style.transform = `translateY(${Math.min(y * 0.18, 160)}px)`
+      }
+
+      // Hero lifts and fades across the first viewport so the scroll has an
+      // immediate visible response rather than dead travel.
+      if (heroRef.current) {
+        const t = Math.min(1, y / (vh * 0.75))
+        heroRef.current.style.opacity   = String(1 - t * 0.85)
+        heroRef.current.style.transform = `translateY(${-t * 60}px) scale(${1 - t * 0.05})`
+      }
     }
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update) }
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    update()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (frame) cancelAnimationFrame(frame)
+    }
   }, [])
+
+  // cardW + 2 x translate must stay inside deckW, so both scale together
+  const deckScale = Math.min(1, deckW / 432)
+  const cardW     = Math.round(160 * deckScale)
+  const shift     = Math.round(136 * deckScale)
 
   return (
     <div className="ap-page page-transition">
       <SEO
-        title="Adrian Dabrowski — EV Support Engineer & Creator"
+        title="Adrian Dabrowski | EV Support Engineer"
         description="EV Support Engineer based in Essex, UK. Self-taught developer, music producer and content creator. React, TypeScript, Supabase, Ableton, Roblox Studio."
         image="/og-image.jpg"
         url="/adrian"
@@ -145,14 +254,14 @@ export default function Adrian() {
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(PERSON_SCHEMA) }} />
 
-      {/* ── Standalone top bar — this page renders outside the blog layout ── */}
+      {/* ── Standalone top bar. This page renders outside the blog layout ── */}
       <header className="ap-topbar">
         <a href="/adrian" className="ap-topbar-name">
           ADRIAN <span>DABROWSKI</span>
         </a>
         <nav className="ap-topbar-links">
-          <a href="https://www.linkedin.com/in/adrian-dabrowski-379727251/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a href="https://github.com/ThatAdrian" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="/" className="ap-topbar-blog">Blog ↗</a>
         </nav>
       </header>
@@ -175,9 +284,11 @@ export default function Adrian() {
 
       <div ref={parallaxRef} className="ap-hero-gradient-bg" />
 
+      <ScrollRail />
+
       {/* ── HERO ─────────────────────────────────── */}
-      <section className="ap-hero ap-visible">
-        <div className="ap-hero-content">
+      <section id="hero" className="ap-hero ap-visible">
+        <div className="ap-hero-content" ref={heroRef}>
           {/* MetallicPaint title */}
           <div className="ap-metallic-wrap">
             <MetallicPaint
@@ -192,8 +303,6 @@ export default function Adrian() {
 
           <div className="ap-hero-sub">
             <span className="ap-hero-surname">DABROWSKI</span>
-            <span className="ap-hero-dot">·</span>
-            <span className="ap-hero-role">EV Support Engineer & Creator</span>
           </div>
 
           <div className="ap-hero-meta">
@@ -202,7 +311,7 @@ export default function Adrian() {
             <span className="ap-hero-meta-item">🏍 Car & Motorbike</span>
           </div>
 
-          {/* Glass social icons — same as original Adrian page */}
+          {/* Glass social icons */}
           <GlassSurface width="100%" height="auto" borderRadius={20} brightness={20} opacity={0.8} blur={16}
             style={{ marginTop: '0.5rem', padding: '0.5rem 1rem' }}>
             <GlassIcons items={SOCIAL_ITEMS} className="adrian-icons" />
@@ -223,9 +332,9 @@ export default function Adrian() {
           <div className="ap-about-grid">
             <GlassSurface width="100%" height="auto" borderRadius={16} brightness={12} opacity={0.65} blur={14}>
               <div className="ap-bio-card">
-                <p>I'm Adrian — an EV Support Engineer based in Essex, working in the manufacturing of EV charging equipment and electrical components.</p>
-                <p>Outside of work I make music, build things on the web, develop a Roblox game, shoot videos, and fix my car. I studied Computer Science and Electronics & Robotics in college — most of what I do now is self-taught.</p>
-                <p>This site is one of those projects — built from scratch with React and TypeScript, with a custom dashboard, audio previews, community ratings, inline comments, and a lot more.</p>
+                <p>I'm Adrian, an EV Support Engineer based in Essex. I work in the manufacturing of EV charging equipment and electrical components.</p>
+                <p>Outside of work I make music, build things on the web, develop a Roblox game, shoot videos and fix my car. I studied Computer Science and Electronics &amp; Robotics in college. Most of what I use day to day I taught myself.</p>
+                <p>This site is one of those projects. I built it from scratch in React and TypeScript, including the publishing dashboard, audio previews, community ratings and inline comments.</p>
               </div>
             </GlassSurface>
 
@@ -237,10 +346,10 @@ export default function Adrian() {
               </div>
               <div className="ap-stats-grid">
                 {[
-                  { value: '2+', label: 'Languages spoken' },
-                  { value: '5+', label: 'Active projects' },
-                  { value: '∞', label: 'Things to learn' },
-                  { value: '1', label: 'Blog built from scratch' },
+                  { value: '2', label: 'Languages spoken' },
+                  { value: '5', label: 'Active projects' },
+                  { value: '2', label: 'Fields studied' },
+                  { value: '1', label: 'Site built from scratch' },
                 ].map(s => (
                   <div key={s.label} className="ap-stat">
                     <span className="ap-stat-value">{s.value}</span>
@@ -258,19 +367,21 @@ export default function Adrian() {
         <div className="ap-section-inner">
           <p className="ap-section-eyebrow">What I work with</p>
           <h2 className="ap-section-title">Skills</h2>
-          <BounceCards
-            images={SKILL_IMAGES}
-            containerWidth={460} containerHeight={220}
-            animationDelay={0.3} animationStagger={0.07}
-            transformStyles={[
-              'rotate(8deg) translate(-160px)',
-              'rotate(3deg) translate(-80px)',
-              'rotate(-2deg)',
-              'rotate(-8deg) translate(80px)',
-              'rotate(4deg) translate(160px)',
-            ]}
-            enableHover={true}
-          />
+          <div className="ap-bounce-wrap" style={{ '--bounce-card-w': `${cardW}px` } as React.CSSProperties}>
+            <BounceCards
+              images={SKILL_IMAGES}
+              containerWidth={deckW} containerHeight={Math.round(cardW * 1.38)}
+              animationDelay={0.3} animationStagger={0.07}
+              transformStyles={[
+                `rotate(8deg) translate(${-shift}px)`,
+                `rotate(3deg) translate(${-Math.round(shift / 2)}px)`,
+                'rotate(-2deg)',
+                `rotate(-8deg) translate(${Math.round(shift / 2)}px)`,
+                `rotate(4deg) translate(${shift}px)`,
+              ]}
+              enableHover={true}
+            />
+          </div>
           <div className="ap-skill-groups">
             {SKILL_GROUPS.map(group => (
               <GlassSurface key={group.label} width="100%" height="auto" borderRadius={12} brightness={8} opacity={0.5} blur={10}>
@@ -313,7 +424,7 @@ export default function Adrian() {
             <div className="ap-cardswap-wrap">
               <CardSwap width={280} height={340} cardDistance={45} verticalDistance={55}
                 delay={4000} pauseOnHover={true} skewAmount={4} easing="elastic"
-                onCardClick={setActiveProject}>
+                onCardClick={setActiveProject} onSwap={setActiveProject}>
                 {PROJECTS.map((p, i) => (
                   <Card key={p.title} style={{ padding: 0, overflow: 'hidden', background: '#080514', border: `1px solid ${p.color}30` }}>
                     <div className="ap-swap-card-inner" style={{ '--card-accent': p.color } as React.CSSProperties}>
@@ -344,6 +455,46 @@ export default function Adrian() {
         </div>
       </Section>
 
+      {/* ── CONTACT ──────────────────────────────── */}
+      <Section id="contact" className="ap-contact-section">
+        <div className="ap-section-inner">
+          <p className="ap-section-eyebrow">Get in touch</p>
+          <h2 className="ap-section-title">Contact</h2>
+
+          <GlassSurface width="100%" height="auto" borderRadius={18} brightness={12} opacity={0.65} blur={14}>
+            <div className="ap-contact-card">
+              <div className="ap-contact-copy">
+                <p className="ap-contact-lead">
+                  Open to talking about engineering work, freelance builds, or anything music related.
+                </p>
+                <p className="ap-contact-sub">
+                  Based in Essex, UK. I usually reply within a day or two.
+                </p>
+              </div>
+
+              <div className="ap-contact-actions">
+                <a href={`mailto:${CONTACT_EMAIL}`} className="ap-contact-btn ap-contact-btn--primary">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 6L2 7" />
+                  </svg>
+                  Email me
+                </a>
+                <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" className="ap-contact-btn">
+                  <LinkedInIcon />
+                  LinkedIn
+                </a>
+                <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="ap-contact-btn">
+                  <GitHubIcon />
+                  GitHub
+                </a>
+              </div>
+
+              <p className="ap-contact-address">{CONTACT_EMAIL}</p>
+            </div>
+          </GlassSurface>
+        </div>
+      </Section>
+
       {/* ── Standalone footer ── */}
       <footer className="ap-footer">
         <div className="ap-footer-inner">
@@ -352,8 +503,9 @@ export default function Adrian() {
             <p className="ap-footer-role">EV Support Engineer &amp; Creator · Essex, UK</p>
           </div>
           <div className="ap-footer-links">
-            <a href="https://www.linkedin.com/in/adrian-dabrowski-379727251/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="https://github.com/ThatAdrian" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href={`mailto:${CONTACT_EMAIL}`}>Email</a>
+            <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
             <a href="/">TheAdrianBlog</a>
           </div>
         </div>
