@@ -67,7 +67,7 @@ export default function Analytics() {
 {/* ── Umami embedded dashboard ── */}
       <div className="db-card" style={{ padding: 0, overflow: 'hidden' }}>
         <iframe
-          src="https://cloud.umami.is/analytics/eu/share/0LgVa2ryLTy0v2DU"
+          src="https://cloud.umami.is/analytics/eu/share/9KroLIguFOCzzjPV"
           style={{ width: '100%', height: '600px', border: 'none', display: 'block', borderRadius: '12px' }}
           title="Umami Analytics"
         />
