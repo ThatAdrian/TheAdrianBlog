@@ -78,7 +78,7 @@ export async function getAlbumMetaCached(albumIds: string[]): Promise<Record<str
       cache.data[id] = {
         id: album.id,
         name: album.name,
-        artists: (album.artists as any[]).map(a => ({ id: a.id, name: a.name })),
+        artists: ((album.artists ?? []) as any[]).map(a => ({ id: a.id, name: a.name })),
       }
     }
   }
