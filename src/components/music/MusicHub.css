@@ -271,3 +271,97 @@
   .music-search__legend span { min-width: 38px; }
   .artist-profile__img { width: 88px; height: 88px; }
 }
+
+/* ── Releases (notifications, calendar, artist profile) ───────── */
+.release-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+
+.release-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(255,255,255,0.08);
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+a.release-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,245,255,0.2); }
+.release-row--unread { border-color: rgba(255,0,110,0.35); background: rgba(255,0,110,0.05); }
+
+.release-row__img {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: 6px; overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+}
+.release-row__img img { width: 100%; height: 100%; object-fit: cover; }
+.release-row__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.release-row__title, .release-row__sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.release-row__title { font-size: 0.9rem; color: var(--text-primary); }
+.release-row__sub { font-size: 0.72rem; color: var(--text-muted); }
+.release-row__type { text-transform: capitalize; }
+
+.release-tag {
+  flex-shrink: 0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 2rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.release-tag--announced { color: #d68bff; border-color: rgba(180,0,255,0.45); background: rgba(180,0,255,0.08); }
+.release-tag--released  { color: var(--accent-green); border-color: rgba(0,255,136,0.45); background: rgba(0,255,136,0.08); }
+.release-tag--upcoming  { color: var(--accent-cyan); border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.07); }
+
+/* Calendar */
+.release-cal__head { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-bottom: 1rem; }
+.release-cal__month { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--text-primary); min-width: 180px; text-align: center; }
+.release-cal__nav {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--glass-border); background: var(--glass-bg);
+  color: var(--text-primary); font-size: 1.2rem; cursor: pointer;
+}
+.release-cal__nav:hover { border-color: rgba(0,245,255,0.4); color: var(--accent-cyan); }
+
+.release-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.release-cal__weekday {
+  text-align: center; padding-bottom: 0.3rem;
+  font-family: 'Space Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+}
+.release-cal__day {
+  position: relative;
+  height: 84px;
+  padding: 0.35rem;
+  border-radius: 10px;
+  border: 0.5px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-primary);
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+  cursor: default;
+  font: inherit;
+}
+.release-cal__day--outside { opacity: 0.35; }
+.release-cal__day--today { border-color: rgba(0,245,255,0.5); }
+.release-cal__day--has { cursor: pointer; background: rgba(180,0,255,0.06); border-color: rgba(180,0,255,0.3); }
+.release-cal__day--has:hover, .release-cal__day--selected { background: rgba(180,0,255,0.14); border-color: rgba(180,0,255,0.6); }
+.release-cal__num { font-size: 0.75rem; }
+.release-cal__day--today .release-cal__num { color: var(--accent-cyan); font-weight: 700; }
+.release-cal__covers { display: flex; align-items: center; gap: 3px; width: 100%; }
+.release-cal__covers img { width: 45%; max-width: 34px; aspect-ratio: 1 / 1; border-radius: 4px; object-fit: cover; }
+.release-cal__dot { width: 8px; height: 8px; border-radius: 50%; background: #d68bff; }
+.release-cal__more { font-size: 0.6rem; color: var(--text-muted); }
+.release-cal__clear {
+  border: none; background: none; cursor: pointer; padding: 0;
+  font: inherit; color: var(--text-muted); text-decoration: underline;
+}
+.release-cal__group { margin-top: 0.5rem; }
+
+@media (max-width: 520px) {
+  .release-cal__grid { gap: 3px; }
+  .release-cal__day { height: auto; aspect-ratio: 1 / 1; padding: 0.2rem; border-radius: 6px; }
+  .release-cal__covers img:nth-child(2) { display: none; }
+}
