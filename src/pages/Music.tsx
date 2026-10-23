@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import SEO from '../components/SEO'
 import GlassSurface from '../components/GlassSurface'
 import PostCard from '../components/PostCard'
 import NowPlaying from '../components/NowPlaying'
 import AlbumSuggestion from '../components/AlbumSuggestion'
 import { usePosts } from '../hooks/usePosts'
+import { useReviewIndex } from '../hooks/useReviewIndex'
+import { ratingColor, fetchAllCommunityRatings } from '../lib/ratings'
+import { getArtist, SearchArtist } from '../lib/spotify'
+import { useTrackedArtists } from '../lib/trackedArtists'
+import Dock, { DockItemData } from '../components/Dock'
+import MusicSearch from '../components/music/MusicSearch'
+import TrackedArtists from '../components/music/TrackedArtists'
+import '../components/music/MusicHub.css'
 
 const SPOTIFY_URL = 'https://open.spotify.com/user/realagamez123'
-
-const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
-const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
 interface AlbumStat {
   slug: string
@@ -20,33 +26,51 @@ interface AlbumStat {
   communityCount: number
 }
 
-async function fetchAllCommunityRatings(): Promise<Record<string, { avg: number; count: number }>> {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/ratings?select=album_id,rating`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-    })
-    if (!res.ok) return {}
-    const rows: { album_id: string; rating: number }[] = await res.json()
-    const grouped: Record<string, { total: number; count: number }> = {}
-    rows.forEach(r => {
-      if (!grouped[r.album_id]) grouped[r.album_id] = { total: 0, count: 0 }
-      grouped[r.album_id].total += Number(r.rating)
-      grouped[r.album_id].count++
-    })
-    return Object.fromEntries(
-      Object.entries(grouped).map(([id, { total, count }]) => [
-        id, { avg: Math.round((total / count) * 2) / 2, count }
-      ])
-    )
-  } catch { return {} }
-}
-
 type FilterMode = 'adrian' | 'community'
+
+// ── Music hub tabs ── add new tabs here (notifications, calendar, events...)
+type TabId = 'overview' | 'search' | 'tracked'
+
+const icon = (path: React.ReactNode) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{path}</svg>
+)
+
+const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
+  { id: 'overview', label: 'Music',   icon: icon(<><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /><path d="M9 18V5l12-2v13" /></>) },
+  { id: 'search',   label: 'Search',  icon: icon(<><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></>) },
+  { id: 'tracked',  label: 'Tracked', icon: icon(<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>) },
+]
 
 export default function Music() {
   const { posts } = usePosts()
   const [filter, setFilter] = useState<FilterMode>('adrian')
   const [communityData, setCommunityData] = useState<Record<string, { avg: number; count: number }>>({})
+  const [params, setParams] = useSearchParams()
+  const tab: TabId = TABS.some(t => t.id === params.get('tab')) ? params.get('tab') as TabId : 'overview'
+  const [artist, setArtist] = useState<SearchArtist | null>(null)
+  const index = useReviewIndex()
+  const { artists: tracked } = useTrackedArtists()
+
+  const setTab = useCallback((id: TabId) => {
+    setParams(id === 'overview' ? {} : { tab: id }, { replace: true })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [setParams])
+
+  // Opening an artist always lands on the Search tab's profile view
+  const openArtist = useCallback((a: SearchArtist | null) => {
+    setArtist(a)
+    if (!a) return
+    setTab('search')
+    if (!a.genres.length) getArtist(a.id).then(full => { if (full) setArtist(cur => cur?.id === full.id ? full : cur) })
+  }, [setTab])
+
+  const dockItems: DockItemData[] = TABS.map(t => ({
+    icon: t.icon,
+    label: t.label,
+    active: t.id === tab,
+    badge: t.id === 'tracked' && tracked.length > 0 ? tracked.length : undefined,
+    onClick: () => setTab(t.id),
+  }))
 
   const musicReviews = posts.filter(p => p.categories.includes('Music Reviews'))
 
@@ -71,24 +95,29 @@ export default function Music() {
       : b.communityAvg - a.communityAvg)
     .slice(0, 5)
 
-  const getRatingColor = (r: number) => {
-    if (r >= 10)  return '#ffffff'
-    if (r >= 9)   return '#dd00ff'
-    if (r >= 8)   return '#0088ff'
-    if (r >= 7)   return '#00bbaa'
-    if (r >= 6)   return '#00cc44'
-    if (r >= 5)   return '#aadd00'
-    if (r >= 4)   return '#ffd000'
-    if (r >= 1.5) return '#ff8c00'
-    if (r >= 1)   return '#ff6600'
-    return '#e63333'
-  }
+  const getRatingColor = ratingColor
 
   return (
-    <div className="page-transition" style={{ paddingTop: '80px', minHeight: '100vh' }}>
+    <div className="page-transition music-hub" style={{ paddingTop: '80px', minHeight: '100vh' }}>
       <SEO title="Music" description="Music reviews, ratings and recommendations from Adrian." url="/music" />
 
       <div className="section">
+
+        {tab === 'search' && (
+          <>
+            <div className="section-title">Search</div>
+            <MusicSearch index={index} artist={artist} onOpenArtist={openArtist} />
+          </>
+        )}
+
+        {tab === 'tracked' && (
+          <>
+            <div className="section-title">Tracked Artists</div>
+            <TrackedArtists index={index} onOpenArtist={openArtist} onFindArtists={() => setTab('search')} />
+          </>
+        )}
+
+        {tab === 'overview' && <>
 
         {/* ── Spotify widget ── */}
         <GlassSurface width="100%" height={100} borderRadius={16} brightness={25} opacity={0.85} blur={12}
@@ -170,6 +199,12 @@ export default function Music() {
           </div>
         )}
 
+        </>}
+
+      </div>
+
+      <div className="music-dock-host">
+        <Dock items={dockItems} accentColor="#00f5ff" badgeColor="#b400ff" baseItemSize={46} magnification={64} panelHeight={62} />
       </div>
     </div>
   )
