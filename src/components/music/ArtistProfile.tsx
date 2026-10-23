@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SearchArtist } from '../../lib/spotify'
 import { ratingColor, formatRating } from '../../lib/ratings'
 import { useTrackedArtists } from '../../lib/trackedArtists'
 import { ReviewIndex } from '../../hooks/useReviewIndex'
 import ScorePill from './ScorePill'
+import ReleaseRow from './ReleaseRow'
+import { fetchReleases, Release, todayISO, RELEASES_EVENT } from '../../lib/releases'
 
 export function TrackButton({ artist, compact = false }: { artist: SearchArtist; compact?: boolean }) {
   const { isTracked, toggle } = useTrackedArtists()
@@ -30,6 +32,20 @@ export default function ArtistProfile({ artist, index, onClose }: { artist: Sear
   const { artistScores, artistReviews } = index
   const scores = artistScores(artist.id, artist.name)
   const reviews = artistReviews(artist.id, artist.name)
+  const [releases, setReleases] = useState<Release[] | null>(null)
+
+  useEffect(() => {
+    let live = true
+    const load = () => fetchReleases([artist.id]).then(r => { if (live) setReleases(r) })
+    setReleases(null)
+    load()
+    window.addEventListener(RELEASES_EVENT, load)
+    return () => { live = false; window.removeEventListener(RELEASES_EVENT, load) }
+  }, [artist.id])
+
+  const today = todayISO()
+  const upcoming = (releases ?? []).filter(r => r.release_date >= today)
+  const recent = (releases ?? []).filter(r => r.release_date < today).reverse()
 
   return (
     <div className="artist-profile">
@@ -77,7 +93,24 @@ export default function ArtistProfile({ artist, index, onClose }: { artist: Sear
       )}
 
       <div className="artist-profile__section-title">Upcoming</div>
-      <p className="artist-profile__empty">New releases and announcements will show up here once release tracking goes live.</p>
+      {releases === null ? (
+        <p className="artist-profile__empty">Loading…</p>
+      ) : upcoming.length === 0 ? (
+        <p className="artist-profile__empty">Nothing announced yet. Track {artist.name} to get notified when they announce something.</p>
+      ) : (
+        <div className="release-list">
+          {upcoming.map(r => <ReleaseRow key={r.release_key} release={r} showArtist={false} tag={{ label: 'Upcoming', tone: 'upcoming' }} />)}
+        </div>
+      )}
+
+      {recent.length > 0 && (
+        <>
+          <div className="artist-profile__section-title">Recent releases</div>
+          <div className="release-list">
+            {recent.map(r => <ReleaseRow key={r.release_key} release={r} showArtist={false} />)}
+          </div>
+        </>
+      )}
     </div>
   )
 }

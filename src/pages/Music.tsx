@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import SEO from '../components/SEO'
 import GlassSurface from '../components/GlassSurface'
@@ -13,6 +14,9 @@ import { useTrackedArtists } from '../lib/trackedArtists'
 import Dock, { DockItemData } from '../components/Dock'
 import MusicSearch from '../components/music/MusicSearch'
 import TrackedArtists from '../components/music/TrackedArtists'
+import Notifications from '../components/music/Notifications'
+import ReleaseCalendar from '../components/music/ReleaseCalendar'
+import { useReleases } from '../lib/releases'
 import '../components/music/MusicHub.css'
 
 const SPOTIFY_URL = 'https://open.spotify.com/user/realagamez123'
@@ -29,7 +33,7 @@ interface AlbumStat {
 type FilterMode = 'adrian' | 'community'
 
 // ── Music hub tabs ── add new tabs here (notifications, calendar, events...)
-type TabId = 'overview' | 'search' | 'tracked'
+type TabId = 'overview' | 'search' | 'tracked' | 'notifications' | 'calendar'
 
 const icon = (path: React.ReactNode) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{path}</svg>
@@ -39,6 +43,8 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'overview', label: 'Music',   icon: icon(<><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /><path d="M9 18V5l12-2v13" /></>) },
   { id: 'search',   label: 'Search',  icon: icon(<><circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" /></>) },
   { id: 'tracked',  label: 'Tracked', icon: icon(<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>) },
+  { id: 'notifications', label: 'Notifications', icon: icon(<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></>) },
+  { id: 'calendar', label: 'Calendar', icon: icon(<><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></>) },
 ]
 
 export default function Music() {
@@ -50,6 +56,7 @@ export default function Music() {
   const [artist, setArtist] = useState<SearchArtist | null>(null)
   const index = useReviewIndex()
   const { artists: tracked } = useTrackedArtists()
+  const releases = useReleases(tracked)
 
   const setTab = useCallback((id: TabId) => {
     setParams(id === 'overview' ? {} : { tab: id }, { replace: true })
@@ -68,7 +75,7 @@ export default function Music() {
     icon: t.icon,
     label: t.label,
     active: t.id === tab,
-    badge: t.id === 'tracked' && tracked.length > 0 ? tracked.length : undefined,
+    badge: t.id === 'notifications' && releases.unread > 0 && tab !== 'notifications' ? releases.unread : undefined,
     onClick: () => setTab(t.id),
   }))
 
@@ -114,6 +121,20 @@ export default function Music() {
           <>
             <div className="section-title">Tracked Artists</div>
             <TrackedArtists index={index} onOpenArtist={openArtist} onFindArtists={() => setTab('search')} />
+          </>
+        )}
+
+        {tab === 'notifications' && (
+          <>
+            <div className="section-title">Notifications</div>
+            <Notifications releases={releases} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
+          </>
+        )}
+
+        {tab === 'calendar' && (
+          <>
+            <div className="section-title">Release Calendar</div>
+            <ReleaseCalendar releases={releases} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
           </>
         )}
 
@@ -203,9 +224,14 @@ export default function Music() {
 
       </div>
 
-      <div className="music-dock-host">
-        <Dock items={dockItems} accentColor="#00f5ff" badgeColor="#b400ff" baseItemSize={46} magnification={64} panelHeight={62} />
-      </div>
+      {/* Portalled to <body>: .page-transition's animation leaves a transform on
+          the page wrapper, which would pin a position:fixed child to the page end */}
+      {createPortal(
+        <div className="music-dock-host">
+          <Dock items={dockItems} accentColor="#00f5ff" badgeColor="#ff006e" baseItemSize={46} magnification={64} panelHeight={62} />
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

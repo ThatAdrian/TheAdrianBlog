@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { requestArtistRefresh, RELEASES_EVENT } from './releases'
 
 // Tracked artists live in Supabase (`tracked_artists`, see
 // supabase/migrations/20261023000000_tracked_artists.sql), keyed by the same
@@ -63,6 +64,9 @@ export async function trackArtist(artist: TrackedArtist): Promise<void> {
       body: JSON.stringify({ fingerprint: getFingerprint(), ...artist }),
     })
   } catch { /* local mirror still has it */ }
+  // Look up their releases straight away rather than waiting for the schedule
+  requestArtistRefresh(artist.artist_id, artist.artist_name)
+    .then(() => window.dispatchEvent(new Event(RELEASES_EVENT)))
 }
 
 export async function untrackArtist(artistId: string): Promise<void> {
