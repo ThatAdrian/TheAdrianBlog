@@ -7,6 +7,8 @@ import { ReviewIndex } from '../../hooks/useReviewIndex'
 import ScorePill from './ScorePill'
 import ReleaseRow from './ReleaseRow'
 import { fetchReleases, Release, todayISO, RELEASES_EVENT } from '../../lib/releases'
+import { fetchEvents, ArtistEvent, EVENTS_EVENT } from '../../lib/events'
+import EventRow from './EventRow'
 
 export function TrackButton({ artist, compact = false }: { artist: SearchArtist; compact?: boolean }) {
   const { isTracked, toggle } = useTrackedArtists()
@@ -41,6 +43,17 @@ export default function ArtistProfile({ artist, index, onClose }: { artist: Sear
     load()
     window.addEventListener(RELEASES_EVENT, load)
     return () => { live = false; window.removeEventListener(RELEASES_EVENT, load) }
+  }, [artist.id])
+
+  const [shows, setShows] = useState<ArtistEvent[] | null>(null)
+
+  useEffect(() => {
+    let live = true
+    const load = () => fetchEvents([artist.id]).then(e => { if (live) setShows(e) })
+    setShows(null)
+    load()
+    window.addEventListener(EVENTS_EVENT, load)
+    return () => { live = false; window.removeEventListener(EVENTS_EVENT, load) }
   }, [artist.id])
 
   const today = todayISO()
@@ -100,6 +113,17 @@ export default function ArtistProfile({ artist, index, onClose }: { artist: Sear
       ) : (
         <div className="release-list">
           {upcoming.map(r => <ReleaseRow key={r.release_key} release={r} showArtist={false} tag={{ label: 'Upcoming', tone: 'upcoming' }} />)}
+        </div>
+      )}
+
+      <div className="artist-profile__section-title">Upcoming shows</div>
+      {shows === null ? (
+        <p className="artist-profile__empty">Loading…</p>
+      ) : shows.length === 0 ? (
+        <p className="artist-profile__empty">No shows announced yet. Track {artist.name} to hear about new dates.</p>
+      ) : (
+        <div className="release-list">
+          {shows.slice(0, 12).map(e => <EventRow key={e.event_key} e={e} showArtist={false} />)}
         </div>
       )}
 

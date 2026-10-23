@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import SEO from '../components/SEO'
@@ -17,6 +17,10 @@ import TrackedArtists from '../components/music/TrackedArtists'
 import Notifications from '../components/music/Notifications'
 import ReleaseCalendar from '../components/music/ReleaseCalendar'
 import { useReleases } from '../lib/releases'
+import { useEvents } from '../lib/events'
+
+// Three.js globe — only downloaded when the Events tab is opened
+const EventTracker = lazy(() => import('../components/music/EventTracker'))
 import '../components/music/MusicHub.css'
 
 const SPOTIFY_URL = 'https://open.spotify.com/user/realagamez123'
@@ -33,7 +37,7 @@ interface AlbumStat {
 type FilterMode = 'adrian' | 'community'
 
 // ── Music hub tabs ── add new tabs here (notifications, calendar, events...)
-type TabId = 'overview' | 'search' | 'tracked' | 'notifications' | 'calendar'
+type TabId = 'overview' | 'search' | 'tracked' | 'notifications' | 'calendar' | 'events'
 
 const icon = (path: React.ReactNode) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{path}</svg>
@@ -45,6 +49,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'tracked',  label: 'Tracked', icon: icon(<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>) },
   { id: 'notifications', label: 'Notifications', icon: icon(<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></>) },
   { id: 'calendar', label: 'Calendar', icon: icon(<><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></>) },
+  { id: 'events',   label: 'Events',  icon: icon(<><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18" /><path d="M12 3a14 14 0 0 0 0 18" /></>) },
 ]
 
 export default function Music() {
@@ -57,6 +62,8 @@ export default function Music() {
   const index = useReviewIndex()
   const { artists: tracked } = useTrackedArtists()
   const releases = useReleases(tracked)
+  const events = useEvents(tracked)
+  const unread = releases.unread + events.notifications.filter(n => n.at > releases.seenAt).length
 
   const setTab = useCallback((id: TabId) => {
     setParams(id === 'overview' ? {} : { tab: id }, { replace: true })
@@ -75,7 +82,7 @@ export default function Music() {
     icon: t.icon,
     label: t.label,
     active: t.id === tab,
-    badge: t.id === 'notifications' && releases.unread > 0 && tab !== 'notifications' ? releases.unread : undefined,
+    badge: t.id === 'notifications' && unread > 0 && tab !== 'notifications' ? unread : undefined,
     onClick: () => setTab(t.id),
   }))
 
@@ -127,7 +134,7 @@ export default function Music() {
         {tab === 'notifications' && (
           <>
             <div className="section-title">Notifications</div>
-            <Notifications releases={releases} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
+            <Notifications releases={releases} events={events} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
           </>
         )}
 
@@ -135,6 +142,15 @@ export default function Music() {
           <>
             <div className="section-title">Release Calendar</div>
             <ReleaseCalendar releases={releases} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
+          </>
+        )}
+
+        {tab === 'events' && (
+          <>
+            <div className="section-title">Event Tracker</div>
+            <Suspense fallback={<div className="no-posts"><p>Loading globe…</p></div>}>
+              <EventTracker events={events} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
+            </Suspense>
           </>
         )}
 
