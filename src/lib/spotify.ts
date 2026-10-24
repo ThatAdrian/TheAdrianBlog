@@ -155,13 +155,13 @@ export interface SimilarArtist extends SearchArtist { because: string[] }
 const SIMILAR_KEY = 'tab_similar_v1'
 const SIMILAR_TTL = 6 * 60 * 60 * 1000
 
-export async function getSimilarArtists(seeds: { id: string; name: string }[], exclude: string[], limit = 12): Promise<SimilarArtist[]> {
+export async function getSimilarArtists(seeds: { id: string; name: string }[], exclude: string[], limit = 12, fresh = false): Promise<SimilarArtist[]> {
   if (!seeds.length) return []
   const key = seeds.map(s => s.id).sort().join(',')
   let cache: Record<string, { at: number; artists: SimilarArtist[] }> = {}
   try { cache = JSON.parse(localStorage.getItem(SIMILAR_KEY) ?? '{}') ?? {} } catch { /* ignore */ }
   const hit = cache[key]
-  if (hit && Date.now() - hit.at < SIMILAR_TTL) return hit.artists
+  if (!fresh && hit && Date.now() - hit.at < SIMILAR_TTL) return hit.artists
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/similar-artists`, {
       method: 'POST',

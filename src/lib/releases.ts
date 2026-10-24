@@ -143,3 +143,46 @@ export function useReleases(tracked: TrackedArtist[]) {
 }
 
 export type ReleasesState = ReturnType<typeof useReleases>
+
+// ── Cleared notifications (per visitor) ──────────────────────────────────────
+// "Clear all" hides everything up to that moment; single dismissals are kept
+// by key. Anything newer still comes through.
+const CLEARED_KEY = 'tab_notifs_cleared_at'
+const DISMISSED_KEY = 'tab_notifs_dismissed'
+const DISMISS_EVENT = 'tab:notifs-dismissed'
+
+function readDismissals(): { clearedAt: string; keys: string[] } {
+  try {
+    const keys = JSON.parse(localStorage.getItem(DISMISSED_KEY) ?? '[]')
+    return { clearedAt: localStorage.getItem(CLEARED_KEY) ?? '', keys: Array.isArray(keys) ? keys : [] }
+  } catch { return { clearedAt: '', keys: [] } }
+}
+
+export function useNotificationDismissals() {
+  const [state, setState] = useState(readDismissals)
+
+  useEffect(() => {
+    const sync = () => setState(readDismissals())
+    window.addEventListener(DISMISS_EVENT, sync)
+    return () => window.removeEventListener(DISMISS_EVENT, sync)
+  }, [])
+
+  const isHidden = useCallback((n: { key: string; at: string }) =>
+    (state.clearedAt !== '' && n.at <= state.clearedAt) || state.keys.includes(n.key), [state])
+
+  const dismiss = useCallback((key: string) => {
+    const keys = [key, ...readDismissals().keys.filter(k => k !== key)].slice(0, 500)
+    try { localStorage.setItem(DISMISSED_KEY, JSON.stringify(keys)) } catch { /* ignore */ }
+    window.dispatchEvent(new Event(DISMISS_EVENT))
+  }, [])
+
+  const clearAll = useCallback(() => {
+    try {
+      localStorage.setItem(CLEARED_KEY, new Date().toISOString())
+      localStorage.setItem(DISMISSED_KEY, '[]')
+    } catch { /* ignore */ }
+    window.dispatchEvent(new Event(DISMISS_EVENT))
+  }, [])
+
+  return { isHidden, dismiss, clearAll }
+}
