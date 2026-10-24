@@ -1,23 +1,22 @@
-const CLIENT_ID = '62fc99202df9401f8f53a086daebfc98'
-const CLIENT_SECRET = '89957ce339d74f0ba8ec3a1a7fff0076'
+const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
 let cachedToken: string | null = null
 let tokenExpiry = 0
 
+// The Spotify client secret lives in Supabase secrets; the spotify-token
+// Edge Function swaps it for a short-lived app token.
 export async function getSpotifyToken(): Promise<string> {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken
-  const res = await fetch('https://accounts.spotify.com/api/token', {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/spotify-token`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${btoa(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
-    },
-    body: 'grant_type=client_credentials',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_KEY}` },
+    body: '{}',
   })
   if (!res.ok) throw new Error(`Spotify token failed: ${res.status}`)
   const data = await res.json()
   cachedToken = data.access_token
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000
+  tokenExpiry = Date.now() + data.expires_in * 1000
   return cachedToken!
 }
 
@@ -156,8 +155,6 @@ export function parseSpotifyAlbumId(input: string): string {
 }
 
 // ── Deezer preview fetching via Supabase Edge Function ───────────────────────
-const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
-const SUPABASE_KEY = 'sb_publishable_mzJyuPZF70HO3TdzQUUJvA_5YE0pWSd'
 
 export async function getDeezerPreview(trackName: string, artistName: string): Promise<string | null> {
   try {
