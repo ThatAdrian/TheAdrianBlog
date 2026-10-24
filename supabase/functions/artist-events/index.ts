@@ -76,7 +76,11 @@ function countryName(code: string, fallback = ''): string {
 
 async function getJson(url: string): Promise<any> {
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
-  if (!res.ok) throw new Error(`${res.status} ${url.split('?')[0]}`)
+  if (!res.ok) {
+    // Include the provider's own reason (e.g. Ticketmaster's "Invalid ApiKey"), never the key itself
+    const reason = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 160)
+    throw new Error(`${res.status} ${url.split('?')[0]} ${reason}`.trim())
+  }
   const text = await res.text()
   return text ? JSON.parse(text) : null
 }
@@ -200,7 +204,8 @@ async function refresh(a: Artist): Promise<Record<string, number | string>> {
   ]
   const counts: Record<string, number | string> = {}
   const rows: EventRow[] = []
-  await Promise.all(sources.map(async ([name, key, fn]) => {
+  await Promise.all(sources.map(async ([name, rawKey, fn]) => {
+    const key = rawKey?.trim()  // pasted secrets often pick up a trailing space or newline
     if (!key) { counts[name] = 'no key'; return }
     try {
       const found = (await fn(a, key)).filter(r => /^\d{4}-\d{2}-\d{2}$/.test(r.event_date) && r.event_date >= today())
