@@ -1,7 +1,7 @@
 // artist-releases — refreshes `artist_releases` for tracked artists.
 //
 //   POST { artistId, artistName }  → refresh one artist (called when someone tracks them)
-//   POST { mode: "all" } + header x-cron-secret → refresh every tracked artist (pg_cron)
+//   POST { mode: "all" } + header x-cron-secret → refresh tracked artists, oldest-checked first (pg_cron)
 //
 // Released music comes from Spotify (artist albums), announced future dates
 // from MusicBrainz (release groups with a first-release-date after today).
@@ -166,6 +166,41 @@ async function refresh(a: Artist): Promise<number> {
   return rows.length
 }
 
+// ── Batching: oldest-checked artists first, stopping well before the
+// Edge Function time limit; the next scheduled run carries on from there.
+const TIME_BUDGET_MS = 100_000
+const CHECKED_COL = 'releases_checked_at'
+
+async function lastChecked(): Promise<Map<string, string>> {
+  const res = await fetch(`${SB_URL}/rest/v1/artist_refresh?select=artist_id,${CHECKED_COL}`, { headers: sbHeaders })
+  if (!res.ok) return new Map()
+  const rows: Record<string, string | null>[] = await res.json()
+  return new Map(rows.map(r => [r.artist_id as string, r[CHECKED_COL] ?? '']))
+}
+
+async function markChecked(artistId: string) {
+  await fetch(`${SB_URL}/rest/v1/artist_refresh?on_conflict=artist_id`, {
+    method: 'POST',
+    headers: { ...sbHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ artist_id: artistId, [CHECKED_COL]: new Date().toISOString() }),
+  })
+}
+
+async function refreshDue(): Promise<{ checked: number; remaining: number }> {
+  const started = Date.now()
+  const last = await lastChecked()
+  const queue = (await trackedArtists())
+    .sort((a, b) => (last.get(a.artist_id) ?? '').localeCompare(last.get(b.artist_id) ?? ''))
+  let checked = 0
+  for (const a of queue) {
+    if (Date.now() - started > TIME_BUDGET_MS) break
+    await refresh(a)
+    await markChecked(a.artist_id)
+    checked++
+  }
+  return { checked, remaining: queue.length - checked }
+}
+
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const json = (body: unknown, status = 200) =>
@@ -175,15 +210,13 @@ Deno.serve(async req => {
 
   if (body.mode === 'all') {
     if (req.headers.get('x-cron-secret') !== Deno.env.get('CRON_SECRET')) return json({ error: 'unauthorised' }, 401)
-    const artists = await trackedArtists()
-    let total = 0
-    for (const a of artists) total += await refresh(a)
-    return json({ artists: artists.length, releases: total })
+    return json(await refreshDue())
   }
 
   const artistId = String(body.artistId ?? '')
   const artistName = String(body.artistName ?? '').slice(0, 200)
   if (!/^[A-Za-z0-9]{22}$/.test(artistId) || !artistName) return json({ error: 'artistId and artistName required' }, 400)
   const releases = await refresh({ artist_id: artistId, artist_name: artistName })
+  await markChecked(artistId)
   return json({ releases })
 })
