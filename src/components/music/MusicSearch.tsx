@@ -163,14 +163,13 @@ export default function MusicSearch({ index, artist, onOpenArtist }: {
       {artist ? (
         <ArtistProfile artist={artist} index={index} onClose={() => onOpenArtist(null)} />
       ) : (
-        <>
-          <p className="music-search__hint">
-            Every result shows the audience score next to Adrian's. Greyed-out dashes mean it hasn't been reviewed yet.
-            Artist scores are the average of their reviewed albums.
-          </p>
-          <SuggestedArtists index={index} onOpenArtist={onOpenArtist} />
-        </>
+        <p className="music-search__hint">
+          Every result shows the audience score next to Adrian's. Greyed-out dashes mean it hasn't been reviewed yet.
+          Artist scores are the average of their reviewed albums.
+        </p>
       )}
+
+      <SuggestedArtists index={index} seedArtist={artist} onOpenArtist={onOpenArtist} />
     </div>
   )
 }

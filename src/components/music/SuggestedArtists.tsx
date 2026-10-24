@@ -1,69 +1,86 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { getArtistsCached, SearchArtist } from '../../lib/spotify'
+import { getSimilarArtists, SearchArtist, SimilarArtist } from '../../lib/spotify'
 import { useTrackedArtists } from '../../lib/trackedArtists'
 import { ReviewIndex } from '../../hooks/useReviewIndex'
 import ScorePill from './ScorePill'
 import { TrackButton } from './ArtistProfile'
 
-const LIMIT = 8
+const MAX_SEEDS = 8
+const FAVOURITE = 8   // Adrian's albums rated this or higher count as "taste"
 
-// Artists from Adrian's reviews that the visitor isn't tracking yet, best-rated first.
-// (Spotify's related-artists endpoint is closed to new apps, so reviews are the source.)
-export default function SuggestedArtists({ index, onOpenArtist }: {
+// Discovery: artists similar to the ones you track plus Adrian's favourites,
+// or to the artist whose page you're on.
+export default function SuggestedArtists({ index, seedArtist, onOpenArtist }: {
   index: ReviewIndex
+  seedArtist: SearchArtist | null
   onOpenArtist: (artist: SearchArtist) => void
 }) {
-  const { isTracked } = useTrackedArtists()
-  const [details, setDetails] = useState<Record<string, SearchArtist>>({})
+  const { artists: tracked } = useTrackedArtists()
+  const [results, setResults] = useState<SimilarArtist[] | null>(null)
 
-  // Keep a just-tracked artist on screen (it flips to ✓) until the next visit
-  const [pool] = useState(() => new Set<string>())
-  const picks = useMemo(() => {
-    const list = index.reviewedArtists.filter(a => pool.has(a.id) || !isTracked(a.id)).slice(0, LIMIT)
-    list.forEach(a => pool.add(a.id))
-    return list
-  }, [index.reviewedArtists, isTracked, pool])
+  const seeds = useMemo(() => {
+    if (seedArtist) return [{ id: seedArtist.id, name: seedArtist.name }]
+    const list = [
+      ...tracked.slice(0, 5).map(t => ({ id: t.artist_id, name: t.artist_name })),
+      ...index.reviewedArtists.filter(a => (a.scores.mine ?? 0) >= FAVOURITE).map(a => ({ id: a.id, name: a.name })),
+    ]
+    return list.filter((s, i) => list.findIndex(x => x.id === s.id) === i).slice(0, MAX_SEEDS)
+  }, [seedArtist, tracked, index.reviewedArtists])
 
-  const ids = picks.map(a => a.id).join(',')
+  // Fetch once per page (artist) so tracking a suggestion doesn't reshuffle the list
+  const [frozen, setFrozen] = useState<{ for: string; seeds: typeof seeds } | null>(null)
+  const pageKey = seedArtist?.id ?? 'taste'
   useEffect(() => {
-    if (!ids) return
-    let live = true
-    getArtistsCached(ids.split(',')).then(d => { if (live) setDetails(d) })
-    return () => { live = false }
-  }, [ids])
+    if (frozen?.for === pageKey || !seeds.length || (!seedArtist && index.loading)) return
+    setFrozen({ for: pageKey, seeds })
+  }, [pageKey, seeds, seedArtist, index.loading, frozen])
 
-  if (!picks.length) return null
+  useEffect(() => {
+    if (!frozen || frozen.for !== pageKey) return
+    let live = true
+    setResults(null)
+    getSimilarArtists(frozen.seeds, tracked.map(t => t.artist_id)).then(r => { if (live) setResults(r) })
+    return () => { live = false }
+  }, [frozen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!seeds.length || (results !== null && results.length === 0)) return null
 
   return (
     <div className="suggested-artists">
-      <div className="artist-profile__section-title">Suggested artists</div>
-      <div className="tracked-grid">
-        {picks.map(p => {
-          const artist: SearchArtist = details[p.id] ?? {
-            id: p.id, name: p.name, image: '', genres: [], url: `https://open.spotify.com/artist/${p.id}`,
-          }
-          return (
-            <div
-              key={p.id}
-              className="tracked-card suggested-card"
-              role="link"
-              tabIndex={0}
-              onClick={() => onOpenArtist(artist)}
-              onKeyDown={e => { if (e.key === 'Enter') onOpenArtist(artist) }}
-            >
-              <div className="suggested-card__track"><TrackButton artist={artist} compact /></div>
-              <div className="tracked-card__img">
-                {artist.image ? <img src={artist.image} alt={artist.name} /> : <span>{artist.name[0]}</span>}
+      <div className="artist-profile__section-title">{seedArtist ? `Similar to ${seedArtist.name}` : 'Discover artists'}</div>
+      {!seedArtist && <p className="suggested-artists__sub">Based on the artists you track and Adrian's favourites.</p>}
+      {results === null ? (
+        <p className="artist-profile__empty">Finding artists…</p>
+      ) : (
+        <div className="tracked-grid">
+          {results.map(a => {
+            const scores = index.artistScores(a.id, a.name)
+            return (
+              <div
+                key={a.id}
+                className="tracked-card suggested-card"
+                role="link"
+                tabIndex={0}
+                onClick={() => onOpenArtist(a)}
+                onKeyDown={e => { if (e.key === 'Enter') onOpenArtist(a) }}
+              >
+                <div className="suggested-card__track"><TrackButton artist={a} compact /></div>
+                <div className="tracked-card__img">
+                  {a.image ? <img src={a.image} alt="" /> : <span>{a.name[0]}</span>}
+                </div>
+                <span className="tracked-card__name">{a.name}</span>
+                {!seedArtist && a.because.length > 0 && (
+                  <span className="suggested-card__because">Like {a.because.slice(0, 2).join(', ')}</span>
+                )}
+                <div className="music-search__scores">
+                  <ScorePill label="AUD" value={scores.audience} />
+                  <ScorePill label="ADR" value={scores.mine} />
+                </div>
               </div>
-              <span className="tracked-card__name">{artist.name}</span>
-              <div className="music-search__scores">
-                <ScorePill label="AUD" value={p.scores.audience} />
-                <ScorePill label="ADR" value={p.scores.mine} />
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
