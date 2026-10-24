@@ -16,7 +16,7 @@ import MusicSearch from '../components/music/MusicSearch'
 import TrackedArtists from '../components/music/TrackedArtists'
 import Notifications from '../components/music/Notifications'
 import ReleaseCalendar from '../components/music/ReleaseCalendar'
-import { useReleases } from '../lib/releases'
+import { useReleases, useNotificationDismissals } from '../lib/releases'
 import { useEvents } from '../lib/events'
 
 // Three.js globe — only downloaded when the Events tab is opened
@@ -67,7 +67,8 @@ export default function Music() {
   const { artists: tracked } = useTrackedArtists()
   const releases = useReleases(tracked)
   const events = useEvents(tracked)
-  const unread = releases.unread + events.notifications.filter(n => n.at > releases.seenAt).length
+  const { isHidden } = useNotificationDismissals()
+  const unread = [...releases.notifications, ...events.notifications].filter(n => n.at > releases.seenAt && !isHidden(n)).length
 
   const setTab = useCallback((id: TabId) => {
     navigate(id === 'overview' ? '/music' : `/music?tab=${id}`, { replace: !artistId })
