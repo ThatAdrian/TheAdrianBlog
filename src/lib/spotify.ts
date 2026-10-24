@@ -149,6 +149,30 @@ export async function getArtist(artistId: string): Promise<SearchArtist | null> 
   }
 }
 
+// Cached artist lookup (image, genres) for artist cards, same 7-day cache as album meta
+const ARTIST_META_KEY = 'tab_artist_meta_v1'
+
+export async function getArtistsCached(artistIds: string[]): Promise<Record<string, SearchArtist>> {
+  let cache: { at: number; data: Record<string, SearchArtist> } = { at: Date.now(), data: {} }
+  try {
+    const raw = localStorage.getItem(ARTIST_META_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Date.now() - parsed.at < ALBUM_META_TTL) cache = parsed
+    }
+  } catch { /* ignore */ }
+
+  const missing = artistIds.filter(id => !cache.data[id])
+  for (const id of missing) {
+    const artist = await getArtist(id)
+    if (artist) cache.data[id] = artist
+  }
+  if (missing.length) {
+    try { localStorage.setItem(ARTIST_META_KEY, JSON.stringify(cache)) } catch { /* ignore */ }
+  }
+  return cache.data
+}
+
 export function parseSpotifyAlbumId(input: string): string {
   const match = input.match(/album\/([A-Za-z0-9]+)/)
   return match ? match[1] : input.trim()

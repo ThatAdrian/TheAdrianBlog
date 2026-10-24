@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useParams, useNavigate, useLocation } from 'react-router-dom'
 import SEO from '../components/SEO'
 import GlassSurface from '../components/GlassSurface'
 import PostCard from '../components/PostCard'
@@ -56,8 +56,12 @@ export default function Music() {
   const { posts } = usePosts()
   const [filter, setFilter] = useState<FilterMode>('adrian')
   const [communityData, setCommunityData] = useState<Record<string, { avg: number; count: number }>>({})
-  const [params, setParams] = useSearchParams()
-  const tab: TabId = TABS.some(t => t.id === params.get('tab')) ? params.get('tab') as TabId : 'overview'
+  const [params] = useSearchParams()
+  const { artistId } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
+  // /music/artist/:id is the artist page; it lives under the Search tab
+  const tab: TabId = artistId ? 'search' : TABS.some(t => t.id === params.get('tab')) ? params.get('tab') as TabId : 'overview'
   const [artist, setArtist] = useState<SearchArtist | null>(null)
   const index = useReviewIndex()
   const { artists: tracked } = useTrackedArtists()
@@ -66,17 +70,26 @@ export default function Music() {
   const unread = releases.unread + events.notifications.filter(n => n.at > releases.seenAt).length
 
   const setTab = useCallback((id: TabId) => {
-    setParams(id === 'overview' ? {} : { tab: id }, { replace: true })
+    navigate(id === 'overview' ? '/music' : `/music?tab=${id}`, { replace: !artistId })
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [setParams])
+  }, [navigate, artistId])
 
-  // Opening an artist always lands on the Search tab's profile view
+  // Show what we already know straight away (passed in navigation state), then
+  // fill in the rest (image, genres) from Spotify
+  useEffect(() => {
+    if (!artistId) { setArtist(null); return }
+    const known = (location.state as { artist?: SearchArtist } | null)?.artist
+    setArtist(known?.id === artistId ? known : null)
+    if (!known || known.id !== artistId || !known.genres.length) {
+      getArtist(artistId).then(full => { if (full) setArtist(cur => (!cur || cur.id === full.id ? full : cur)) })
+    }
+  }, [artistId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const openArtist = useCallback((a: SearchArtist | null) => {
-    setArtist(a)
-    if (!a) return
-    setTab('search')
-    if (!a.genres.length) getArtist(a.id).then(full => { if (full) setArtist(cur => cur?.id === full.id ? full : cur) })
-  }, [setTab])
+    if (!a) { navigate('/music?tab=search'); return }
+    navigate(`/music/artist/${a.id}`, { state: { artist: a } })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [navigate])
 
   const dockItems: DockItemData[] = TABS.map(t => ({
     icon: t.icon,
@@ -113,14 +126,18 @@ export default function Music() {
 
   return (
     <div className="page-transition music-hub" style={{ paddingTop: '80px', minHeight: '100vh' }}>
-      <SEO title="Music" description="Music reviews, ratings and recommendations from Adrian." url="/music" />
+      {artist
+        ? <SEO title={artist.name} description={`${artist.name}: Adrian's scores, upcoming releases and shows.`} url={`/music/artist/${artist.id}`} />
+        : <SEO title="Music" description="Music reviews, ratings and recommendations from Adrian." url="/music" />}
 
       <div className="section">
 
         {tab === 'search' && (
           <>
-            <div className="section-title">Search</div>
-            <MusicSearch index={index} artist={artist} onOpenArtist={openArtist} />
+            <div className="section-title">{artistId ? 'Artist' : 'Search'}</div>
+            {artistId && !artist
+              ? <div className="no-posts"><p>Loading artist…</p></div>
+              : <MusicSearch index={index} artist={artist} onOpenArtist={openArtist} />}
           </>
         )}
 
@@ -140,8 +157,8 @@ export default function Music() {
 
         {tab === 'calendar' && (
           <>
-            <div className="section-title">Release Calendar</div>
-            <ReleaseCalendar releases={releases} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
+            <div className="section-title">Calendar</div>
+            <ReleaseCalendar releases={releases} events={events} hasTracked={tracked.length > 0} onFindArtists={() => setTab('search')} />
           </>
         )}
 

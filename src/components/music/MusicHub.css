@@ -462,10 +462,50 @@ a.release-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,2
 .notif-event { position: relative; border-radius: 10px; }
 .notif-event .release-tag { position: absolute; top: 0.6rem; right: 0.9rem; z-index: 1; }
 .notif-event .event-row { padding-right: 7rem; }
-.notif-event .event-row__tickets { display: none; }
+.notif-event .event-row__actions { display: none; }
 .release-tag--show { color: var(--accent-cyan); border-color: rgba(0,245,255,0.4); background: rgba(0,245,255,0.07); }
 
+/* ── I'm going ───────────────────────────────────────────────── */
+.event-row__actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.going-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(180,0,255,0.4);
+  background: rgba(180,0,255,0.08);
+  color: #d68bff;
+  font-family: 'Space Mono', monospace; font-size: 0.62rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.going-btn:hover { background: rgba(180,0,255,0.16); }
+.going-btn--on { border-color: rgba(0,245,255,0.5); background: rgba(0,245,255,0.1); color: var(--accent-cyan); }
+.going-btn__count {
+  min-width: 1.2rem; padding: 0 0.3rem;
+  border-radius: 1rem;
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  text-align: center;
+}
+.release-cal__show {
+  width: 16px; height: 16px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; line-height: 1;
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0,245,255,0.5);
+  background: rgba(0,245,255,0.08);
+}
+.release-cal__show--going { background: var(--accent-cyan); color: #050510; }
+
+/* ── Suggested artists ────────────────────────────────────────── */
+.suggested-artists { margin-top: 0.5rem; }
+.suggested-card { position: relative; }
+.suggested-card__track { position: absolute; top: 0.5rem; right: 0.5rem; }
+
 @media (max-width: 520px) {
+  .event-row__actions { flex-direction: column; align-items: stretch; gap: 0.35rem; }
+  .going-btn, .event-row__actions .event-row__tickets { justify-content: center; text-align: center; padding: 0.3rem 0.5rem; }
   .event-globe { height: 380px; }
   .event-row { gap: 0.6rem; padding: 0.6rem; }
   .event-row__tickets { padding: 0.3rem 0.5rem; }

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import EventGlobe, { CountryFeature, CityPoint } from './EventGlobe'
 import { EventsState, ArtistEvent, useRegions, inRegions, distanceKm } from '../../lib/events'
 import EventRow, { flag } from './EventRow'
+import { useGoing } from '../../lib/attendance'
 
 const RADII = [25, 50, 100, 200]
 
@@ -15,6 +16,8 @@ export default function EventTracker({ events, hasTracked, onFindArtists }: {
   const [radius, setRadius] = useState(50)
   const [query, setQuery] = useState('')
   const [everywhere, setEverywhere] = useState(false)
+  const [onlyGoing, setOnlyGoing] = useState(false)
+  const { isGoing } = useGoing()
   const [countries, setCountries] = useState<CountryFeature[]>([])
   const [baseCities, setBaseCities] = useState<CityPoint[]>([])
 
@@ -58,7 +61,8 @@ export default function EventTracker({ events, hasTracked, onFindArtists }: {
       }))
   }, [query, mode, countries, cities, countryName, toggleCountry, toggleCity, radius])
 
-  const shown = everywhere ? events.events : events.nearby
+  const goingShows = events.events.filter(e => isGoing(e.event_key))
+  const shown = onlyGoing ? goingShows : everywhere ? events.events : events.nearby
   const outside = events.events.filter(e => !inRegions(e, regions)).length
   const markers = useMemo(
     () => events.events.filter(e => e.lat !== null && e.lng !== null).map(e => ({ lat: e.lat!, lng: e.lng! })),
@@ -158,8 +162,13 @@ export default function EventTracker({ events, hasTracked, onFindArtists }: {
       )}
 
       <div className="artist-profile__section-title">
-        {everywhere ? 'All upcoming shows' : 'Shows in your areas'}
-        {(outside > 0 || everywhere) && (
+        {onlyGoing ? "Shows you're going to" : everywhere ? 'All upcoming shows' : 'Shows in your areas'}
+        {(goingShows.length > 0 || onlyGoing) && (
+          <> · <button type="button" className="release-cal__clear" onClick={() => setOnlyGoing(v => !v)}>
+            {onlyGoing ? 'back to all' : `going (${goingShows.length})`}
+          </button></>
+        )}
+        {!onlyGoing && (outside > 0 || everywhere) && (
           <> · <button type="button" className="release-cal__clear" onClick={() => setEverywhere(v => !v)}>
             {everywhere ? 'only my areas' : `${outside} more elsewhere`}
           </button></>
@@ -168,7 +177,7 @@ export default function EventTracker({ events, hasTracked, onFindArtists }: {
 
       {events.loading ? (
         <p className="artist-profile__empty">Loading shows…</p>
-      ) : !hasRegions && !everywhere ? (
+      ) : !hasRegions && !everywhere && !onlyGoing ? (
         <p className="artist-profile__empty">Pick some countries or cities on the globe to see shows near you.</p>
       ) : byMonth.length === 0 ? (
         <p className="artist-profile__empty">No upcoming shows from your tracked artists {everywhere ? 'yet' : 'in these areas yet'}.</p>

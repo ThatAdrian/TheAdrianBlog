@@ -97,6 +97,7 @@ export default function App() {
             <Route path="/posts/:slug"        element={<Post />} />
             <Route path="/category/:category" element={<Category />} />
             <Route path="/music"              element={<Music />} />
+            <Route path="/music/artist/:artistId" element={<Music />} />
             <Route path="/youtube"            element={<YouTube />} />
             <Route path="/adrian"             element={<Adrian />} />
             <Route path="/confirm"            element={<ConfirmSubscription />} />

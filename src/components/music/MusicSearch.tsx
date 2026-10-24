@@ -4,6 +4,7 @@ import { searchSpotify, SearchResults, SearchArtist } from '../../lib/spotify'
 import { ReviewIndex, Scores } from '../../hooks/useReviewIndex'
 import ScorePill from './ScorePill'
 import ArtistProfile, { TrackButton } from './ArtistProfile'
+import SuggestedArtists from './SuggestedArtists'
 
 type Row =
   | { kind: 'artist'; key: string; title: string; sub: string; image: string; scores: Scores; artist: SearchArtist; url: string }
@@ -162,10 +163,13 @@ export default function MusicSearch({ index, artist, onOpenArtist }: {
       {artist ? (
         <ArtistProfile artist={artist} index={index} onClose={() => onOpenArtist(null)} />
       ) : (
-        <p className="music-search__hint">
-          Every result shows the audience score next to Adrian's. Greyed-out dashes mean it hasn't been reviewed yet.
-          Artist scores are the average of their reviewed albums.
-        </p>
+        <>
+          <p className="music-search__hint">
+            Every result shows the audience score next to Adrian's. Greyed-out dashes mean it hasn't been reviewed yet.
+            Artist scores are the average of their reviewed albums.
+          </p>
+          <SuggestedArtists index={index} onOpenArtist={onOpenArtist} />
+        </>
       )}
     </div>
   )
