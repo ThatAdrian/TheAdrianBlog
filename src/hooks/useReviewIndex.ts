@@ -16,6 +16,7 @@ export interface ReviewEntry {
   audienceCount: number
   tracks: { name: string; rating: number }[]
   artistIds: string[]
+  artists: { id: string; name: string }[]
 }
 
 export interface Scores {
@@ -77,6 +78,7 @@ export function useReviewIndex() {
       audienceCount: c?.count ?? 0,
       tracks: parseTracklist((p as any).tracklist ?? ''),
       artistIds: albumId ? (albumMeta[albumId]?.artists ?? []).map(a => a.id) : [],
+      artists: albumId ? albumMeta[albumId]?.artists ?? [] : [],
     }
   }), [reviews, community, albumMeta])
 
@@ -133,8 +135,18 @@ export function useReviewIndex() {
     }
   }, [artistReviews])
 
+  // Every artist with at least one reviewed album, best-rated by Adrian first
+  const reviewedArtists = useMemo(() => {
+    const seen = new Map<string, { id: string; name: string }>()
+    entries.forEach(e => e.artists.forEach(a => { if (!seen.has(a.id)) seen.set(a.id, a) }))
+    return [...seen.values()]
+      .map(a => ({ ...a, scores: artistScores(a.id, a.name) }))
+      .sort((a, b) => (b.scores.mine ?? 0) - (a.scores.mine ?? 0) || (b.scores.audience ?? 0) - (a.scores.audience ?? 0))
+  }, [entries, artistScores])
+
   return {
     loading: postsLoading || metaLoading,
+    reviewedArtists,
     entries,
     albumScores,
     trackScores,

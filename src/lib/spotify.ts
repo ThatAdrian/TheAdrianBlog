@@ -149,6 +149,35 @@ export async function getArtist(artistId: string): Promise<SearchArtist | null> 
   }
 }
 
+// Similar-artist suggestions from the similar-artists Edge Function (Deezer +
+// Last.fm, matched to Spotify), cached per set of seeds for 6 hours
+export interface SimilarArtist extends SearchArtist { because: string[] }
+const SIMILAR_KEY = 'tab_similar_v1'
+const SIMILAR_TTL = 6 * 60 * 60 * 1000
+
+export async function getSimilarArtists(seeds: { id: string; name: string }[], exclude: string[], limit = 12): Promise<SimilarArtist[]> {
+  if (!seeds.length) return []
+  const key = seeds.map(s => s.id).sort().join(',')
+  let cache: Record<string, { at: number; artists: SimilarArtist[] }> = {}
+  try { cache = JSON.parse(localStorage.getItem(SIMILAR_KEY) ?? '{}') ?? {} } catch { /* ignore */ }
+  const hit = cache[key]
+  if (hit && Date.now() - hit.at < SIMILAR_TTL) return hit.artists
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/similar-artists`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify({ seeds, exclude, limit }),
+    })
+    if (!res.ok) return []
+    const artists: SimilarArtist[] = (await res.json()).artists ?? []
+    // keep the 20 most recent seed sets (taste + recently viewed artist pages)
+    const kept = Object.entries({ ...cache, [key]: { at: Date.now(), artists } })
+      .sort((x, y) => y[1].at - x[1].at).slice(0, 20)
+    try { localStorage.setItem(SIMILAR_KEY, JSON.stringify(Object.fromEntries(kept))) } catch { /* ignore */ }
+    return artists
+  } catch { return [] }
+}
+
 export function parseSpotifyAlbumId(input: string): string {
   const match = input.match(/album\/([A-Za-z0-9]+)/)
   return match ? match[1] : input.trim()

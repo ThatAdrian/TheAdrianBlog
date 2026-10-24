@@ -4,6 +4,7 @@ import { searchSpotify, SearchResults, SearchArtist } from '../../lib/spotify'
 import { ReviewIndex, Scores } from '../../hooks/useReviewIndex'
 import ScorePill from './ScorePill'
 import ArtistProfile, { TrackButton } from './ArtistProfile'
+import SuggestedArtists from './SuggestedArtists'
 
 type Row =
   | { kind: 'artist'; key: string; title: string; sub: string; image: string; scores: Scores; artist: SearchArtist; url: string }
@@ -167,6 +168,8 @@ export default function MusicSearch({ index, artist, onOpenArtist }: {
           Artist scores are the average of their reviewed albums.
         </p>
       )}
+
+      <SuggestedArtists index={index} seedArtist={artist} onOpenArtist={onOpenArtist} />
     </div>
   )
 }
