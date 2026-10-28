@@ -580,3 +580,78 @@ a.release-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,2
   .event-row { gap: 0.6rem; padding: 0.6rem; }
   .event-row__tickets { padding: 0.3rem 0.5rem; }
 }
+
+/* ── Discography (artist page) ────────────────────────────────── */
+.disco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+.disco-card {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.03);
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+.disco-card:hover { border-color: rgba(0,245,255,0.3); background: rgba(255,255,255,0.05); transform: translateY(-2px); }
+.disco-card__cover {
+  position: relative;
+  aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+.disco-card__cover img { width: 100%; height: 100%; object-fit: cover; }
+.disco-card__reviewed {
+  position: absolute; top: 6px; left: 6px;
+  padding: 0.15rem 0.45rem; border-radius: 1rem;
+  background: rgba(3,2,15,0.8); border: 1px solid rgba(0,245,255,0.45);
+  color: var(--accent-cyan);
+  font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.disco-card__title { font-size: 0.82rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.disco-card__meta { font-size: 0.68rem; color: var(--text-muted); }
+.disco-card .music-search__scores { margin-top: 0.2rem; }
+.disco-more { margin-top: 1rem; }
+
+/* ── Album page ───────────────────────────────────────────────── */
+.album-view__cover {
+  width: 180px; height: 180px; flex-shrink: 0;
+  border-radius: 12px; overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: var(--text-muted);
+  box-shadow: 0 0 30px rgba(180,0,255,0.2);
+}
+.album-view__cover img { width: 100%; height: 100%; object-fit: cover; }
+.album-view__type {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-cyan);
+}
+.album-view__artists { font-size: 0.9rem; color: var(--text-primary); }
+.album-view__artist {
+  border: none; background: none; padding: 0; cursor: pointer;
+  font: inherit; color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);
+}
+.album-view__artist:hover { color: var(--accent-cyan); }
+.artist-profile__actions .track-btn { text-decoration: none; }
+.album-view__tracks .album-view__track { gap: 0.75rem; }
+.album-view__num { width: 1.4rem; text-align: right; font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
+.album-view__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.album-view__name { font-size: 0.88rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.album-view__explicit {
+  display: inline-block; margin-left: 0.45rem; padding: 0 0.3rem;
+  border-radius: 3px; background: rgba(255,255,255,0.15);
+  font-size: 0.6rem; line-height: 1.4; color: var(--text-muted); vertical-align: middle;
+}
+.album-view__feat { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.album-view__time { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--text-muted); }
+
+@media (max-width: 520px) {
+  .disco-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .album-view__cover { width: 120px; height: 120px; }
+  .album-view__tracks .album-view__track { gap: 0.5rem; }
+}

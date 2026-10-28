@@ -26,14 +26,21 @@ export interface SpotifyTrack {
   preview_url: string | null
   duration_ms: number
   track_number: number
+  disc_number?: number
+  explicit?: boolean
+  artists?: { id: string; name: string }[]
 }
 
 export interface SpotifyAlbum {
   id: string
   name: string
-  artists: { name: string }[]
+  artists: { id?: string; name: string }[]
   images: { url: string; width: number }[]
   release_date: string
+  album_type?: string
+  total_tracks?: number
+  label?: string
+  external_urls?: { spotify?: string }
   tracks: { items: SpotifyTrack[] }
 }
 
@@ -176,6 +183,60 @@ export async function getSimilarArtists(seeds: { id: string; name: string }[], e
     try { localStorage.setItem(SIMILAR_KEY, JSON.stringify(Object.fromEntries(kept))) } catch { /* ignore */ }
     return artists
   } catch { return [] }
+}
+
+// An artist's own releases (albums, singles/EPs, compilations), newest first.
+// Pages through 10 at a time, and drops duplicate editions (clean/explicit,
+// regional copies) that share a title and type.
+export interface ArtistRelease {
+  id: string
+  name: string
+  type: 'album' | 'single' | 'ep' | 'compilation'
+  releaseDate: string
+  year: string
+  totalTracks: number
+  image: string
+  url: string
+}
+
+const discographyCache = new Map<string, ArtistRelease[]>()
+
+export async function getArtistDiscography(artistId: string): Promise<ArtistRelease[] | null> {
+  const hit = discographyCache.get(artistId)
+  if (hit) return hit
+  try {
+    const token = await getSpotifyToken()
+    const items: any[] = []
+    let url: string | null = `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single,compilation&limit=10`
+    for (let page = 0; url && page < 20; page++) {
+      const res: Response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) { if (!items.length) return null; break }
+      const data = await res.json()
+      items.push(...(data.items ?? []).filter(Boolean))
+      url = data.next ?? null
+    }
+    const seen = new Set<string>()
+    const list: ArtistRelease[] = []
+    items
+      .sort((a, b) => (b.release_date ?? '').localeCompare(a.release_date ?? ''))
+      .forEach(a => {
+        const type: ArtistRelease['type'] = a.album_group === 'compilation' || a.album_type === 'compilation'
+          ? 'compilation'
+          : a.album_type === 'single' ? (a.total_tracks >= 4 ? 'ep' : 'single') : 'album'
+        const key = `${type}:${a.name.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}`
+        if (seen.has(key)) return
+        seen.add(key)
+        list.push({
+          id: a.id, name: a.name, type,
+          releaseDate: a.release_date ?? '', year: a.release_date?.slice(0, 4) ?? '',
+          totalTracks: a.total_tracks ?? 0, image: pickImage(a.images), url: a.external_urls?.spotify ?? '',
+        })
+      })
+    discographyCache.set(artistId, list)
+    return list
+  } catch {
+    return null
+  }
 }
 
 export function parseSpotifyAlbumId(input: string): string {

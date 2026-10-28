@@ -9,6 +9,7 @@ import ReleaseRow from './ReleaseRow'
 import { fetchReleases, Release, todayISO, RELEASES_EVENT } from '../../lib/releases'
 import { fetchEvents, ArtistEvent, EVENTS_EVENT } from '../../lib/events'
 import EventRow from './EventRow'
+import ArtistDiscography from './ArtistDiscography'
 
 export function TrackButton({ artist, compact = false }: { artist: SearchArtist; compact?: boolean }) {
   const { isTracked, toggle } = useTrackedArtists()
@@ -104,6 +105,8 @@ export default function ArtistProfile({ artist, index, onClose }: { artist: Sear
           })}
         </div>
       )}
+
+      <ArtistDiscography artist={artist} index={index} />
 
       <div className="artist-profile__section-title">Upcoming</div>
       {releases === null ? (

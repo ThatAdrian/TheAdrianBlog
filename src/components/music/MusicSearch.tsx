@@ -8,7 +8,7 @@ import SuggestedArtists from './SuggestedArtists'
 
 type Row =
   | { kind: 'artist'; key: string; title: string; sub: string; image: string; scores: Scores; artist: SearchArtist; url: string }
-  | { kind: 'album' | 'track'; key: string; title: string; sub: string; image: string; scores: Scores; url: string }
+  | { kind: 'album' | 'track'; key: string; title: string; sub: string; image: string; scores: Scores; url: string; albumId: string }
 
 const EMPTY: SearchResults = { artists: [], albums: [], tracks: [] }
 
@@ -64,7 +64,7 @@ export default function MusicSearch({ index, artist, onOpenArtist }: {
       rows: results.albums.map(a => ({
         kind: 'album' as const, key: `al-${a.id}`, title: a.name,
         sub: [a.artists.map(x => x.name).join(', '), a.year].filter(Boolean).join(' · '), image: a.image,
-        scores: index.albumScores(a.id, a.name, a.artists.map(x => x.name)), url: a.url,
+        scores: index.albumScores(a.id, a.name, a.artists.map(x => x.name)), url: a.url, albumId: a.id,
       })),
     },
     {
@@ -72,7 +72,7 @@ export default function MusicSearch({ index, artist, onOpenArtist }: {
       rows: results.tracks.map(t => ({
         kind: 'track' as const, key: `tr-${t.id}`, title: t.name,
         sub: `${t.artists.map(x => x.name).join(', ')} · ${t.albumName}`, image: t.image,
-        scores: index.trackScores(t.name, t.albumId, t.albumName, t.artists.map(x => x.name)), url: t.url,
+        scores: index.trackScores(t.name, t.albumId, t.albumName, t.artists.map(x => x.name)), url: t.url, albumId: t.albumId,
       })),
     },
   ].filter(g => g.rows.length > 0)
@@ -85,8 +85,10 @@ export default function MusicSearch({ index, artist, onOpenArtist }: {
       onOpenArtist(row.artist)
     } else if (row.scores.slug) {
       navigate(`/posts/${row.scores.slug}`, { state: { from: '/music?tab=search' } })
-    } else if (row.url) {
-      window.open(row.url, '_blank', 'noopener,noreferrer')
+    } else {
+      // Unreviewed albums and songs open the album page with previews
+      navigate(`/music/album/${row.albumId}`)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 

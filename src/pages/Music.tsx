@@ -13,6 +13,7 @@ import { getArtist, SearchArtist } from '../lib/spotify'
 import { useTrackedArtists } from '../lib/trackedArtists'
 import Dock, { DockItemData } from '../components/Dock'
 import MusicSearch from '../components/music/MusicSearch'
+import AlbumView from '../components/music/AlbumView'
 import TrackedArtists from '../components/music/TrackedArtists'
 import Notifications from '../components/music/Notifications'
 import ReleaseCalendar from '../components/music/ReleaseCalendar'
@@ -57,11 +58,11 @@ export default function Music() {
   const [filter, setFilter] = useState<FilterMode>('adrian')
   const [communityData, setCommunityData] = useState<Record<string, { avg: number; count: number }>>({})
   const [params] = useSearchParams()
-  const { artistId } = useParams()
+  const { artistId, albumId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  // /music/artist/:id is the artist page; it lives under the Search tab
-  const tab: TabId = artistId ? 'search' : TABS.some(t => t.id === params.get('tab')) ? params.get('tab') as TabId : 'overview'
+  // /music/artist/:id and /music/album/:id are pages under the Search tab
+  const tab: TabId = artistId || albumId ? 'search' : TABS.some(t => t.id === params.get('tab')) ? params.get('tab') as TabId : 'overview'
   const [artist, setArtist] = useState<SearchArtist | null>(null)
   const index = useReviewIndex()
   const { artists: tracked } = useTrackedArtists()
@@ -71,9 +72,9 @@ export default function Music() {
   const unread = [...releases.notifications, ...events.notifications].filter(n => n.at > releases.seenAt && !isHidden(n)).length
 
   const setTab = useCallback((id: TabId) => {
-    navigate(id === 'overview' ? '/music' : `/music?tab=${id}`, { replace: !artistId })
+    navigate(id === 'overview' ? '/music' : `/music?tab=${id}`, { replace: !artistId && !albumId })
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [navigate, artistId])
+  }, [navigate, artistId, albumId])
 
   // Show what we already know straight away (passed in navigation state), then
   // fill in the rest (image, genres) from Spotify
@@ -135,8 +136,15 @@ export default function Music() {
 
         {tab === 'search' && (
           <>
-            <div className="section-title">{artistId ? 'Artist' : 'Search'}</div>
-            {artistId && !artist
+            <div className="section-title">{albumId ? 'Album' : artistId ? 'Artist' : 'Search'}</div>
+            {albumId ? (
+              <AlbumView
+                albumId={albumId}
+                index={index}
+                onOpenArtist={a => openArtist({ id: a.id, name: a.name, image: '', genres: [], url: '' })}
+                onClose={() => (window.history.length > 1 ? navigate(-1) : setTab('search'))}
+              />
+            ) : artistId && !artist
               ? <div className="no-posts"><p>Loading artist…</p></div>
               : <MusicSearch index={index} artist={artist} onOpenArtist={openArtist} />}
           </>
