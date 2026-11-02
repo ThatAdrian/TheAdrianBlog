@@ -274,6 +274,24 @@
   line-height: 1.6;
 }
 
+.album-rating__change {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent-cyan, #00f5ff);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.album-rating__error {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  color: #ff4466;
+  text-align: center;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────────*/
 @media (max-width: 480px) {
   .score-card__big { font-size: 2.2rem; }

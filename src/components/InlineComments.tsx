@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
+import { supabase, useAuth, loginHref } from '../lib/auth'
 import './InlineComments.css'
 
 const SUPABASE_URL = 'https://nwkissnpwmjktuaunzyt.supabase.co'
@@ -26,21 +28,39 @@ async function fetchComments(slug: string): Promise<Comment[]> {
   return res.json()
 }
 
+// Commenting needs an account. The insert goes out with the user's token, and
+// the database fills in user_id and the profile's display name (see
+// 20261102000000_user_accounts.sql), so display_name here is just a hint.
 async function postComment(data: {
   post_slug: string; display_name: string; content: string
   selected_text: string; parent_id: string | null; user_rating: number | null
 }): Promise<Comment | null> {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json', Prefer: 'return=representation',
-    },
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) return null
-  const rows = await res.json()
-  return rows[0] ?? null
+  const { data: row, error } = await supabase.from('comments').insert(data).select().single()
+  if (error) return null
+  return row as Comment
+}
+
+// Shown instead of the form when signed out
+function AccountNotice({ onCancel }: { onCancel: () => void }) {
+  const next = window.location.pathname
+  return (
+    <div className="comment-account-notice">
+      <p>Log in or create an account to comment. It keeps your name, ratings and tracked artists on every device.</p>
+      <div className="comment-form-actions comment-account-actions">
+        <Link className="comment-submit comment-account-link" to={loginHref(next)}>Log in</Link>
+        <Link className="comment-submit comment-account-link" to={loginHref(next, 'register')}>Create account</Link>
+      </div>
+      <button className="comment-cancel comment-account-cancel" onClick={onCancel}>Cancel</button>
+    </div>
+  )
+}
+
+function CommentingAs({ name }: { name: string | null }) {
+  return (
+    <p className="comment-as">
+      Commenting as <strong>{name ?? '…'}</strong> · <Link to="/account">Account</Link>
+    </p>
+  )
 }
 
 function getInitial(name: string) { return name.trim().charAt(0).toUpperCase() }
@@ -176,23 +196,26 @@ function MiniStars({ value, onChange }: { value: number; onChange: (v: number) =
 // ── Comment form ──────────────────────────────────────────────────────────────
 function CommentForm({ selectedText, isTrack, onSubmit, onCancel }: {
   selectedText: string; isTrack: boolean
-  onSubmit: (name: string, content: string, rating: number|null) => Promise<void>
+  onSubmit: (name: string, content: string, rating: number|null) => Promise<boolean>
   onCancel: () => void
 }) {
-  const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
+  const { user, profile } = useAuth()
+  const name = profile?.display_name ?? ''
   const [content, setContent] = useState('')
   const [rating, setRating] = useState(0)
   const [submitting, setSubmitting] = useState(false)
-  const nameRef = useRef<HTMLInputElement>(null)
+  const [failed, setFailed] = useState(false)
+  const textRef = useRef<HTMLTextAreaElement>(null)
 
-  // Focus the name input to open keyboard
-  useEffect(() => { nameRef.current?.focus() }, [])
+  // Focus the text box to open the keyboard
+  useEffect(() => { textRef.current?.focus() }, [user])
 
   async function handleSubmit() {
-    if (!content.trim() || !name.trim()) return
-    setSubmitting(true); localStorage.setItem('comment_name', name)
-    await onSubmit(name, content, isTrack && rating > 0 ? rating : null)
+    if (!content.trim() || !name) return
+    setSubmitting(true); setFailed(false)
+    const ok = await onSubmit(name, content, isTrack && rating > 0 ? rating : null)
     setSubmitting(false)
+    if (!ok) setFailed(true)
   }
 
   return (
@@ -200,30 +223,28 @@ function CommentForm({ selectedText, isTrack, onSubmit, onCancel }: {
       <div className="comment-selected-text">
         {isTrack ? `Track: "${selectedText}"` : `"${selectedText.slice(0,100)}${selectedText.length>100?'...':''}"`}
       </div>
-      {isTrack && <MiniStars value={rating} onChange={setRating}/>}
-      <input
-        ref={nameRef}
-        type="text"
-        placeholder="Your name"
-        value={name}
-        onChange={e => setName(e.target.value)}
-        className="comment-input comment-input--name"
-        maxLength={30}
-      />
-      <textarea
-        placeholder={isTrack ? 'Comment on this track...' : 'Add a comment...'}
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        className="comment-input comment-input--text"
-        rows={3}
-        maxLength={1000}
-      />
-      <div className="comment-form-actions">
-        <button className="comment-cancel" onClick={onCancel}>Cancel</button>
-        <button className="comment-submit" onClick={handleSubmit} disabled={!content.trim()||!name.trim()||submitting}>
-          {submitting ? 'Posting...' : 'Post'}
-        </button>
-      </div>
+      {!user ? <AccountNotice onCancel={onCancel}/> : (
+        <>
+          {isTrack && <MiniStars value={rating} onChange={setRating}/>}
+          <CommentingAs name={profile?.display_name ?? null}/>
+          <textarea
+            ref={textRef}
+            placeholder={isTrack ? 'Comment on this track...' : 'Add a comment...'}
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            className="comment-input comment-input--text"
+            rows={3}
+            maxLength={1000}
+          />
+          {failed && <p className="comment-error">Couldn't post that. Try again.</p>}
+          <div className="comment-form-actions">
+            <button className="comment-cancel" onClick={onCancel}>Cancel</button>
+            <button className="comment-submit" onClick={handleSubmit} disabled={!content.trim()||!name||submitting}>
+              {submitting ? 'Posting...' : 'Post'}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -232,30 +253,36 @@ function CommentForm({ selectedText, isTrack, onSubmit, onCancel }: {
 function ReplyForm({ comment, isTrack, onDone, onCancel }: {
   comment: Comment; isTrack: boolean; onDone: () => void; onCancel: () => void
 }) {
-  const [name, setName] = useState(() => localStorage.getItem('comment_name') ?? '')
+  const { user, profile } = useAuth()
+  const name = profile?.display_name ?? ''
   const [content, setContent] = useState('')
   const [rating, setRating] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   async function handleSubmit() {
-    if (!content.trim() || !name.trim()) return
-    setSubmitting(true); localStorage.setItem('comment_name', name)
-    await postComment({ post_slug: comment.post_slug, display_name: name, content,
+    if (!content.trim() || !name) return
+    setSubmitting(true); setFailed(false)
+    const row = await postComment({ post_slug: comment.post_slug, display_name: name, content,
       selected_text: comment.selected_text, parent_id: comment.id,
       user_rating: isTrack && rating > 0 ? rating : null })
-    setSubmitting(false); onDone()
+    setSubmitting(false)
+    if (!row) { setFailed(true); return }
+    onDone()
   }
+
+  if (!user) return <div className="comment-reply-input"><AccountNotice onCancel={onCancel}/></div>
 
   return (
     <div className="comment-reply-input">
       {isTrack && <MiniStars value={rating} onChange={setRating}/>}
-      <input type="text" placeholder="Your name" value={name} onChange={e => setName(e.target.value)}
-        className="comment-input comment-input--name" maxLength={30} autoFocus/>
+      <CommentingAs name={profile?.display_name ?? null}/>
       <textarea placeholder="Write a reply..." value={content} onChange={e => setContent(e.target.value)}
-        className="comment-input comment-input--text" rows={2} maxLength={1000}/>
+        className="comment-input comment-input--text" rows={2} maxLength={1000} autoFocus/>
+      {failed && <p className="comment-error">Couldn't post that. Try again.</p>}
       <div className="comment-form-actions">
         <button className="comment-cancel" onClick={onCancel}>Cancel</button>
-        <button className="comment-submit" onClick={handleSubmit} disabled={!content.trim()||!name.trim()||submitting}>
+        <button className="comment-submit" onClick={handleSubmit} disabled={!content.trim()||!name||submitting}>
           {submitting ? 'Posting...' : 'Reply'}
         </button>
       </div>
@@ -419,12 +446,14 @@ export default function InlineComments({ postSlug }: InlineCommentsProps) {
   }, [])
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
-    if (!pending) return
-    await postComment({ post_slug: postSlug, display_name: name, content,
+    if (!pending) return false
+    const row = await postComment({ post_slug: postSlug, display_name: name, content,
       selected_text: pending.selectedText, parent_id: null, user_rating: rating })
+    if (!row) return false
     await loadComments()
     setPending(null)
     window.getSelection()?.removeAllRanges()
+    return true
   }
 
   const rootComments = comments.filter(c => !c.parent_id)
@@ -511,11 +540,12 @@ export function TrackCommentTrigger({ trackName, postSlug }: { trackName: string
   const btnRef = useRef<HTMLButtonElement>(null)
 
   async function handleSubmit(name: string, content: string, rating: number|null) {
-    localStorage.setItem('comment_name', name)
-    await postComment({ post_slug: postSlug, display_name: name, content,
+    const row = await postComment({ post_slug: postSlug, display_name: name, content,
       selected_text: `__track__${trackName}`, parent_id: null, user_rating: rating })
+    if (!row) return false
     setOpen(false)
     document.dispatchEvent(new CustomEvent('comment-posted', { detail: { postSlug } }))
+    return true
   }
 
   function handleOpen() {

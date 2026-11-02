@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTrackedArtists, TrackedArtist } from '../../lib/trackedArtists'
+import { useAuth, loginHref } from '../../lib/auth'
 import { ReviewIndex } from '../../hooks/useReviewIndex'
 import { SearchArtist } from '../../lib/spotify'
 import ScorePill from './ScorePill'
@@ -32,6 +34,7 @@ export default function TrackedArtists({ index, onOpenArtist, onFindArtists }: {
   onFindArtists: () => void
 }) {
   const { artists, toggle } = useTrackedArtists()
+  const { ready, user } = useAuth()
   const [sort, setSortState] = useState<SortId>(readSort)
   const setSort = (id: SortId) => {
     setSortState(id)
@@ -54,7 +57,23 @@ export default function TrackedArtists({ index, onOpenArtist, onFindArtists }: {
     })
   }, [artists, index, sort])
 
+  // Tracking needs an account (synced across devices)
+  const signInBanner = ready && !user && (
+    <div className="tracked-signin">
+      <p>
+        {artists.length
+          ? 'These are the artists you tracked on this device. Log in or create an account to keep them, and they’ll move into your account and sync to all your devices.'
+          : 'Create a free account to track artists and get their new releases and concerts on every device.'}
+      </p>
+      <div className="tracked-signin__actions">
+        <Link className="music-filter-btn active" to={loginHref('/music?tab=tracked', 'register')}>Create account</Link>
+        <Link className="music-filter-btn" to={loginHref('/music?tab=tracked')}>Log in</Link>
+      </div>
+    </div>
+  )
+
   if (artists.length === 0) {
+    if (signInBanner) return signInBanner
     return (
       <div className="no-posts tracked-empty">
         <p>You're not tracking any artists yet.</p>
@@ -65,6 +84,7 @@ export default function TrackedArtists({ index, onOpenArtist, onFindArtists }: {
 
   return (
     <>
+      {signInBanner}
       <div className="tracked-sort" role="group" aria-label="Sort tracked artists">
         <span className="tracked-sort__label">Sort</span>
         {SORTS.map(o => (

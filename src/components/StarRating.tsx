@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { supabase, useAuth, requireAccount } from '../lib/auth'
 import './StarRating.css'
 
 // ── Rating → color (matches Music.tsx getRatingColor, 1-10 scale) ──────────────
@@ -32,19 +33,21 @@ async function fetchCommunityRating(albumId: string) {
   } catch { return { avg: 0, count: 0 } }
 }
 
-async function submitRating(albumId: string, rating: number) {
-  await fetch(`${SUPABASE_URL}/rest/v1/ratings`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json', Prefer: 'return=minimal',
-    },
-    body: JSON.stringify({ album_id: albumId, rating }),
-  })
+// Rating needs an account: one rating per account per album, and rating again
+// changes it (ratings_user_album_key in 20261102000000_user_accounts.sql).
+// Older anonymous ratings have no user_id and still count in the average.
+async function submitRating(albumId: string, rating: number, userId: string): Promise<boolean> {
+  const { error } = await supabase.from('ratings').upsert(
+    { user_id: userId, album_id: albumId, rating },
+    { onConflict: 'user_id,album_id' }
+  )
+  return !error
 }
 
-function hasVoted(id: string) { return !!localStorage.getItem(`voted_${id}`) }
-function markVoted(id: string) { localStorage.setItem(`voted_${id}`, '1') }
+async function fetchMyRating(albumId: string, userId: string): Promise<number | null> {
+  const { data } = await supabase.from('ratings').select('rating').eq('album_id', albumId).eq('user_id', userId).maybeSingle()
+  return data ? Number((data as { rating: number }).rating) : null
+}
 
 // ── Star SVG — color driven by prop ───────────────────────────────────────────
 function StarSVG({ fill, color, size }: { fill: 'full' | 'half' | 'empty'; color: string; size: number }) {
@@ -142,16 +145,28 @@ export function TrackRating({ trackId, trackName, artistRating, size = 'sm' }: {
 export function AlbumRating({ albumId, albumName, artistRating, showCommunity = true }: {
   albumId: string; albumName: string; artistRating: number; showCommunity?: boolean
 }) {
+  const { user } = useAuth()
   const [community, setCommunity] = useState({ avg: 0, count: 0 })
   const [userStars, setUserStars]   = useState(0)
   const [submitted, setSubmitted]   = useState(false)
-  const [voted, setVoted]           = useState(false)
+  const [myRating, setMyRating]     = useState<number | null>(null)  // 1–10, this account's rating
+  const [editing, setEditing]       = useState(false)
+  const [saving, setSaving]         = useState(false)
+  const [failed, setFailed]         = useState(false)
   const [pulse, setPulse]           = useState(false)
 
   useEffect(() => {
     if (showCommunity) fetchCommunityRating(albumId).then(setCommunity)
-    setVoted(hasVoted(albumId))
   }, [albumId, showCommunity])
+
+  useEffect(() => {
+    let live = true
+    setMyRating(null); setEditing(false); setSubmitted(false)
+    if (user && showCommunity) fetchMyRating(albumId, user.id).then(r => { if (live) setMyRating(r) })
+    return () => { live = false }
+  }, [albumId, showCommunity, user])
+
+  const voted = myRating !== null && !editing
 
   const artistColor   = ratingColor(artistRating)
   const artistStars   = artistRating / 2
@@ -164,12 +179,20 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
     : '—'
 
   async function handleSubmit() {
-    if (!userStars || voted) return
-    await submitRating(albumId, userStars * 2)  // stars × 2 = 1–10
-    markVoted(albumId)
-    setVoted(true); setSubmitted(true)
+    if (!requireAccount('rate albums') || !user) return
+    if (!userStars || voted || saving) return
+    setSaving(true); setFailed(false)
+    const ok = await submitRating(albumId, userStars * 2, user.id)  // stars × 2 = 1–10
+    setSaving(false)
+    if (!ok) { setFailed(true); return }
+    setMyRating(userStars * 2); setEditing(false); setSubmitted(true)
     setPulse(true); setTimeout(() => setPulse(false), 600)
     fetchCommunityRating(albumId).then(setCommunity)
+  }
+
+  function startEditing() {
+    setUserStars((myRating ?? 0) / 2)
+    setEditing(true); setSubmitted(false)
   }
 
   return (
@@ -211,10 +234,12 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
 
       {showCommunity && (
         <div className="album-rating__input">
-          {voted ? (
+          {voted && myRating !== null ? (
             <p className="album-rating__thanks">
-              {submitted ? '✦ Thanks for rating!' : '✦ You already rated this one.'}
+              {submitted ? '✦ Thanks for rating!' : '✦ You rated this'}{' '}
+              <strong style={{ color: ratingColor(myRating) }}>{myRating % 1 === 0 ? myRating : myRating.toFixed(1)}/10</strong>.
               {community.count > 0 && <span> Community avg: <strong style={{ color: communityColor }}>{communityDisplay}/10</strong></span>}
+              {' '}<button type="button" className="album-rating__change" onClick={startEditing}>Change</button>
             </p>
           ) : (
             <>
@@ -227,9 +252,10 @@ export function AlbumRating({ albumId, albumName, artistRating, showCommunity = 
                   </span>
                 )}
               </div>
-              <button className="album-rating__submit" onClick={handleSubmit} disabled={!userStars}>
-                Submit Rating
+              <button className="album-rating__submit" onClick={handleSubmit} disabled={(!!user && !userStars) || saving}>
+                {!user ? 'Log in to rate' : saving ? 'Saving…' : editing ? 'Update Rating' : 'Submit Rating'}
               </button>
+              {failed && <p className="album-rating__error">Couldn't save your rating. Try again.</p>}
             </>
           )}
         </div>
