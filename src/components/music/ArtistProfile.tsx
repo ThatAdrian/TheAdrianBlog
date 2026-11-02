@@ -20,7 +20,9 @@ export function TrackButton({ artist, compact = false }: { artist: SearchArtist;
       className={`track-btn ${tracked ? 'track-btn--on' : ''} ${compact ? 'track-btn--compact' : ''}`}
       aria-pressed={tracked}
       title={tracked ? `Stop tracking ${artist.name}` : `Track ${artist.name}`}
-      onMouseDown={e => e.preventDefault()}
+      // Search suggestion rows open the artist on mousedown, so the press has
+      // to stop here too, not just the click, or the row navigates first
+      onMouseDown={e => { e.preventDefault(); e.stopPropagation() }}
       onClick={e => {
         e.stopPropagation()
         toggle({ artist_id: artist.id, artist_name: artist.name, artist_image: artist.image })
