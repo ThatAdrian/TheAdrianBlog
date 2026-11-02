@@ -183,6 +183,22 @@
 }
 .comment-cancel:hover { color: rgba(200,200,255,0.8); border-color: rgba(255,255,255,0.18); }
 
+/* ── Accounts ─────────────────────────────────────────────────────── */
+.comment-account-notice { display: flex; flex-direction: column; gap: 0.6rem; }
+.comment-account-notice p {
+  font-size: 0.78rem; line-height: 1.5; color: rgba(200,200,255,0.65); margin: 0;
+}
+.comment-account-actions > * { flex: 1; }
+.comment-account-link { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
+.comment-account-cancel { align-self: center; border: none; }
+.comment-as {
+  font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  color: rgba(200,200,255,0.45); margin: 0;
+}
+.comment-as strong { color: var(--accent-cyan); font-weight: 600; }
+.comment-as a { color: rgba(200,200,255,0.6); }
+.comment-error { font-family: 'Space Mono', monospace; font-size: 0.66rem; color: #ff4466; margin: 0; }
+
 /* ── Mini stars ───────────────────────────────────────────────────── */
 .mini-stars { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .mini-stars-label { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: rgba(200,200,255,0.4); white-space: nowrap; }

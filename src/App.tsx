@@ -11,10 +11,14 @@ import DotGrid from './components/DotGrid'
 import { VolumeControl } from './components/TrackPlayer'
 import SubscribeModal from './components/SubscribeModal'
 import ConfirmSubscription from './pages/ConfirmSubscription'
+import AuthPrompt from './components/AuthPrompt'
+import { useAuth } from './lib/auth'
 
 // Lazy load pages that use Three.js — only downloads when visited
 const Adrian   = lazy(() => import('./pages/Adrian'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const Account  = lazy(() => import('./pages/Account'))
+const AuthPage = lazy(() => import('./pages/Account').then(m => ({ default: m.AuthPage })))
 
 const NAV_ITEMS = [
   { label: 'home',    href: '/',        ariaLabel: 'Home',    rotation: -8, hoverStyles: { bgColor: '#00f5ff', textColor: '#03020f' } },
@@ -30,9 +34,10 @@ function PageFallback() {
 
 export default function App() {
   const location = useLocation()
+  const { user } = useAuth()
   const isAdrianPage  = location.pathname === '/adrian'
   const isDashboard   = location.pathname.startsWith('/dashboard')
-  const isNotFound    = !['/', '/music', '/youtube', '/adrian', '/dashboard', '/confirm'].includes(location.pathname) &&
+  const isNotFound    = !['/', '/music', '/youtube', '/adrian', '/dashboard', '/confirm', '/login', '/register', '/account'].includes(location.pathname) &&
     !location.pathname.startsWith('/posts/') &&
     !location.pathname.startsWith('/category/')
   const isPostPage    = location.pathname.startsWith('/posts/')
@@ -80,7 +85,12 @@ export default function App() {
             TheAdrianBlog
           </span>
         }
-        items={NAV_ITEMS}
+        items={[
+          ...NAV_ITEMS,
+          user
+            ? { label: 'account', href: '/account', ariaLabel: 'Your account', rotation: -6, hoverStyles: { bgColor: '#ffd000', textColor: '#03020f' } }
+            : { label: 'log in',  href: '/login',   ariaLabel: 'Log in or create an account', rotation: -6, hoverStyles: { bgColor: '#ffd000', textColor: '#03020f' } },
+        ]}
         menuAriaLabel="Toggle navigation"
         menuBg="rgba(7,5,25,0.95)"
         menuContentColor="#00f5ff"
@@ -102,6 +112,9 @@ export default function App() {
             <Route path="/youtube"            element={<YouTube />} />
             <Route path="/adrian"             element={<Adrian />} />
             <Route path="/confirm"            element={<ConfirmSubscription />} />
+            <Route path="/login"              element={<AuthPage mode="login" />} />
+            <Route path="/register"           element={<AuthPage mode="register" />} />
+            <Route path="/account"            element={<Account />} />
             <Route path="*"                   element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -109,6 +122,7 @@ export default function App() {
 
       {isPostPage && <VolumeControl />}
       <SubscribeModal />
+      <AuthPrompt />
 
       <footer className="footer">
         <p>© {new Date().getFullYear()} TheAdrianBlog — built different</p>
