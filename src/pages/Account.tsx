@@ -50,7 +50,8 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [forgot, setForgot] = useState(false)
   const [resetSent, setResetSent] = useState(false)
 
-  useEffect(() => { setError(''); setForgot(false); setResetSent(false) }, [mode])
+  // Each route keys its own AuthPage (App.tsx), so switching login <-> register starts fresh
+  useEffect(() => { setError(''); setForgot(false); setResetSent(false); setSentTo('') }, [mode])
 
   if (ready && user) return <Navigate to={next} replace />
 
