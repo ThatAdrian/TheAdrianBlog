@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import './TrackPlayer.css'
+import { ratingColor } from '../lib/ratings'
 
 // ── Global audio manager ──────────────────────────────────────────────────────
 const audioManager = {
@@ -26,20 +27,6 @@ function setGlobalVolume(v: number) {
   volumeListeners.forEach(fn => fn(globalVolume))
 }
 
-// ── Rating colour ─────────────────────────────────────────────────────────────
-function getRatingColor(r: number): string {
-  if (r >= 5)   return '#ff00ff'
-  if (r >= 4.5) return '#dd00ff'
-  if (r >= 4)   return '#0088ff'
-  if (r >= 3.5) return '#00bbaa'
-  if (r >= 3)   return '#00cc44'
-  if (r >= 2.5) return '#aadd00'
-  if (r >= 2)   return '#ffd000'
-  if (r >= 1.5) return '#ff8c00'
-  if (r >= 1)   return '#ff6600'
-  return '#e63333'
-}
-
 const BAR_COUNT = 48
 
 interface TrackPlayerProps {
@@ -59,7 +46,7 @@ export default function TrackPlayer({ previewUrl, trackName, rating = 0, loading
   const analyserRef = useRef<AnalyserNode | null>(null)
   const ctxRef = useRef<AudioContext | null>(null)
   const gainRef = useRef<GainNode | null>(null)
-  const color = rating > 0 ? getRatingColor(rating) : 'rgba(200,200,255,0.35)'
+  const color = rating > 0 ? ratingColor(rating) : 'rgba(200,200,255,0.35)'
 
   useEffect(() => {
     const audio = new Audio()
